@@ -3,6 +3,13 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
   "dependencies": {
     "astro": "^7.0.6"
   },
@@ -11,5 +18,12 @@
     "@tailwindcss/vite": "^4.3.2",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.7.3"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": ["{projectRoot}/dist"]
+      }
+    }
   }
 }

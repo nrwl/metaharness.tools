@@ -19,7 +19,7 @@ pnpm dev        # start the dev server (nx dev website)
 | Command             | Description                              |
 | ------------------- | ---------------------------------------- |
 | `pnpm dev`          | Dev server with HMR                      |
-| `pnpm build`        | Production build → `dist/apps/website`   |
+| `pnpm build`        | Production build → `apps/website/dist`   |
 | `pnpm preview`      | Preview the production build             |
 | `nx check website`  | Type-check the Astro project             |
 
@@ -34,7 +34,7 @@ apps/website/        Astro site
 
 ## Deployment
 
-Deployed to Netlify (see `netlify.toml`). Build command `pnpm exec nx build website`, publish dir `dist/apps/website`.
+Deployed to Netlify (see `netlify.toml`). Build command `pnpm exec nx build website`, publish dir `apps/website/dist`.
 
 ## License
 

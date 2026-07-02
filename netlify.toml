@@ -1,6 +1,6 @@
 [build]
   command = "pnpm exec nx build website"
-  publish = "dist/apps/website"
+  publish = "apps/website/dist"
 
 [build.environment]
   NODE_VERSION = "22"
