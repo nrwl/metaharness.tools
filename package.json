@@ -1,0 +1,26 @@
+{
+  "name": "metaharness.tools",
+  "version": "1.0.0",
+  "description": "metaharness.tools website",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nx dev website",
+    "build": "nx build website",
+    "preview": "nx preview website"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.0.6",
+      "onFail": "download"
+    }
+  },
+  "devDependencies": {
+    "nx": "23.0.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1"
+  },
+  "nx": {}
+}

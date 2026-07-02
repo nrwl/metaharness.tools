@@ -1,0 +1,48 @@
+# dependencies
+node_modules
+
+# build output
+/dist
+/tmp
+/out-tsc
+*.tsbuildinfo
+
+# Astro
+.astro/
+apps/website/.astro/
+
+# Nx
+.nx/cache
+.nx/workspace-data
+
+# generated agent rule files
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+# logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment
+.env
+.env.*
+!.env.example
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# Netlify
+.netlify/
+
+# System files
+.DS_Store
+Thumbs.db
