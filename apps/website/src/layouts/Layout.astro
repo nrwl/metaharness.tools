@@ -1,15 +1,25 @@
 ---
 import '../styles/global.css';
+import ComingSoon from '../components/ComingSoon.astro';
 
 interface Props {
   title?: string;
   description?: string;
 }
 
+// Dev server: real site unless explicitly gated with COMING_SOON=true.
+// Production builds: gated unless explicitly unlocked with COMING_SOON=false.
+const comingSoon = import.meta.env.DEV
+  ? process.env.COMING_SOON === 'true'
+  : process.env.COMING_SOON !== 'false';
+
 const {
   title = 'metaharness.tools',
   description = 'Understanding meta harnesses.',
 } = Astro.props;
+
+const pageTitle = comingSoon ? 'metaharness.tools' : title;
+const pageDescription = comingSoon ? 'Coming soon.' : description;
 ---
 
 <!doctype html>
@@ -17,11 +27,11 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title}</title>
+    <title>{pageTitle}</title>
   </head>
   <body>
-    <slot />
+    {comingSoon ? <ComingSoon /> : <slot />}
   </body>
 </html>

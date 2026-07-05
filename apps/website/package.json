@@ -16,13 +16,23 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^26.1.0",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.7.3"
   },
   "nx": {
     "targets": {
       "build": {
-        "outputs": ["{projectRoot}/dist"]
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "inputs": [
+          "production",
+          "^production",
+          {
+            "env": "COMING_SOON"
+          }
+        ]
       }
     }
   }
