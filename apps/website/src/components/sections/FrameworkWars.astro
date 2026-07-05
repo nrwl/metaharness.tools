@@ -1,0 +1,97 @@
+---
+import VizPlaceholder from '../VizPlaceholder.astro';
+
+const layers = [
+  {
+    num: '01',
+    name: 'Core platform capabilities',
+    body: 'DOM manipulation, AJAX. They just have to exist, not be ergonomic. There is exactly one set of them, because they are tied to the platform itself.',
+  },
+  {
+    num: '02',
+    name: 'The framework layer',
+    body: 'Defining components, inputs coming in, outputs going out. Surprisingly little variation, and universal: equally good whether you are building a to-do app or a massive banking app.',
+  },
+  {
+    num: '03',
+    name: 'The application layer',
+    body: 'Routing, server-side rendering, state, data access. It varies too much to normalize. One implementation cannot satisfy everyone, so it takes many.',
+  },
+];
+---
+
+<section id="framework-wars" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      Some history
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      The framework wars
+    </h2>
+
+    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        Twelve years ago the JavaScript world fought a framework war, and the
+        lessons took a long time to learn. <mark>The framework that did the
+        least won.</mark> React arrived doing far less than its rivals, with no
+        router and no data layer, focused on rendering components and turning
+        events into more components, and it beat the frameworks that tried to do
+        everything. A new layer then grew on top of it and became known as the
+        meta-framework. The same fight is starting over AI agents now, and it
+        may end the same way.
+      </p>
+    </div>
+
+    <ol
+      class="mt-8 divide-y divide-neutral-800 overflow-hidden rounded-lg border border-neutral-800"
+    >
+      {
+        layers.map((l) => (
+          <li class="bg-neutral-950 p-6">
+            <div class="flex items-baseline gap-4">
+              <span class="font-mono text-xs text-accent">{l.num}</span>
+              <div>
+                <h3 class="text-base font-medium text-neutral-100">{l.name}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-neutral-400">
+                  {l.body}
+                </p>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        React won on intentional minimalism. It focused on the one layer it
+        could make universal, and the one layer where its builders had real
+        expertise. That last point matters more than it looks. The people who
+        build frameworks are generally not the people who build applications
+        with them, and <mark>the same split holds for harnesses today</mark>.
+      </p>
+      <p>
+        Next.js was an implementation, not the implementation. It did not work
+        for every React developer, but for a huge segment of the community it
+        became the default. It became known as a meta-framework because it sits
+        on top of React and completes it, adding the affordances that building
+        real applications requires without re-implementing React itself.
+      </p>
+      <p>
+        The layers rhyme with today. LLMs are the new core capability: a few
+        things became good enough and an explosion of tooling grew on top.
+        Harnesses are the new universal middle layer, so universal that Claude
+        Code, Codex, and OpenCode are more similar to each other than the UI
+        frameworks of 2013 ever were. And a third layer is now emerging on top
+        of them, because every organization is solving the same problems above
+        its harnesses. That layer is the <mark>meta-harness</mark>.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder label="two stacked timelines, the 2013 framework layers morphing into the 2026 agent layers" />
+  </div>
+</section>

@@ -49,9 +49,12 @@ import Capability from '../Capability.astro';
       <p>
         The permission model of a bare harness is too crude and too personal. It
         asks one user to approve one action. Organizations want nuanced rules
-        that everyone adheres to, like requiring explicit verification before a
-        new npm dependency is added, or blocking writes to certain paths. A
-        meta-harness <mark>lifts guardrails from the individual to the org</mark>.
+        that everyone adheres to, set per team, per repo, or per role, like
+        requiring explicit verification before a new npm dependency is added, or
+        blocking writes to certain paths. Those rules have to live outside any
+        single harness, which requires the organization itself to exist as a
+        first-class thing. A meta-harness
+        <mark>lifts guardrails from the individual to the org</mark>.
       </p>
     </Capability>
 
@@ -64,7 +67,9 @@ import Capability from '../Capability.astro';
       vizLabel="a prompt going in on the left, a ready workspace assembling on the right: repo cloned, dependencies installed, dev server up"
     >
       <p>
-        Materialization is the process of setting up the environment where the
+        When you type codex or claude in a folder, that folder already has to
+        exist and the environment already has to be ready. Materialization is
+        the process of setting up the environment where the
         agent can do useful work. Cloud agents implement a basic version of it;
         local harnesses do very little. Think of it as the step that takes your
         prompt, provisions the relevant source code, installs the necessary
@@ -95,9 +100,12 @@ import Capability from '../Capability.astro';
       </p>
       <p class="text-neutral-400">
         Regular harnesses offer a basic mechanism for adding multiple roots, but
-        it doesn't scale beyond simple cases. The set of repos has to be known
-        in advance. It has to be set up by hand. The agent naively pulls every
-        repo into scope at once. And there is no coordination across the
+        it doesn't scale beyond simple cases. A harness really works in folders
+        of files, not repos. It has no notion of a repository, of how repos
+        relate, or of a code change as distinct from a PR, even though one change
+        can span several PRs across several repos. The set of repos has to be
+        known in advance. It has to be set up by hand. The agent naively pulls
+        every repo into scope at once. And there is no coordination across the
         multiple PRs that a cross-repo change produces.
       </p>
     </Capability>
@@ -134,12 +142,16 @@ import Capability from '../Capability.astro';
         environment they were set up in (git worktrees and all) is still around.
         In practice that means you can't count on a session surviving a long
         gap, you can't pick it up on a different machine, and another person
-        can't pick it up at all.
+        can't pick it up at all. Today the only durable output of a session is
+        the pull request. <mark>The PR is durable, the session is not.</mark>
       </p>
       <p>
         A meta-harness makes sessions durable, preserving them so they can be
-        <mark>restored at any point in the future, on any machine, by anyone
-        with access</mark>.
+        restored at any point in the future, on any machine, by anyone with
+        access. Once a session is reified you can name it, reference it in a
+        future prompt so the agent pulls in everything it needs without
+        re-explaining, reconstruct it on another machine to poke at it, and
+        compose it into new work.
       </p>
     </Capability>
 
@@ -170,7 +182,9 @@ import Capability from '../Capability.astro';
         memory stays grounded in the system rather than in stale notes. Docs
         rot and code does not. A meta-harness captures work as it happens, so a
         new session can start grounded in what the org already knows instead of
-        relearning it every time.
+        relearning it every time. Because sessions are related to each other in
+        a session graph, new work starts by borrowing from the sessions it is
+        related to, so you never start from scratch.
       </p>
     </Capability>
   </div>
