@@ -1,0 +1,50 @@
+---
+const groupings = [
+  {
+    title: 'Agent swapping',
+    body: 'One harness becomes many, chosen per task.',
+  },
+  {
+    title: 'Individual to organization',
+    body: 'Personal permissions and memory become shared, org-wide ones.',
+  },
+  {
+    title: 'Increased collaboration',
+    body: 'Solo sessions become multiplayer and durable.',
+  },
+  {
+    title: 'Increased autonomy',
+    body: 'The agent reaches across repos and remembers across time, so it stops handing work back to you.',
+  },
+];
+---
+
+<section id="recap" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The through-line
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      It all comes back to autonomy
+    </h2>
+    <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+      At bottom, a meta-harness looks for the
+      <mark>moments where an agent would normally stop and hand the problem to
+      a human</mark>, and lets the agent handle it instead. Almost everything
+      above groups into four.
+    </p>
+  </div>
+
+  <div class="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2">
+    {
+      groupings.map((g) => (
+        <div class="rounded-lg border border-neutral-800 bg-neutral-900/30 p-6">
+          <h3 class="text-lg font-medium text-neutral-100">{g.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-neutral-400">{g.body}</p>
+        </div>
+      ))
+    }
+  </div>
+</section>

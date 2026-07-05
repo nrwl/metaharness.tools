@@ -1,0 +1,74 @@
+---
+import VizPlaceholder from '../VizPlaceholder.astro';
+
+const components = [
+  {
+    name: 'Loop',
+    body: 'Run the model, act, feed results back, repeat until done.',
+  },
+  {
+    name: 'Tool interface',
+    body: 'How the agent reads files, runs commands, and calls MCP servers.',
+  },
+  {
+    name: 'Context management',
+    body: 'What goes into the window, and what gets evicted.',
+  },
+  {
+    name: 'Control',
+    body: 'Permissions, approvals, and guardrails on what the agent may do.',
+  },
+];
+---
+
+<section id="harness" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The base
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      What is a harness
+    </h2>
+    <p class="mt-6 text-xl font-medium text-neutral-200">
+      A harness is the runtime that turns a model into an agent.
+    </p>
+
+    <div class="mt-6 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        The model predicts tokens. The harness is everything around it that
+        turns prediction into action. It's often described as having four
+        components.
+      </p>
+    </div>
+
+    <dl class="mt-8 grid gap-px overflow-hidden rounded-lg border border-neutral-800 bg-neutral-800 sm:grid-cols-2">
+      {
+        components.map((c) => (
+          <div class="bg-neutral-950 p-6">
+            <dt class="text-base font-medium text-neutral-100">{c.name}</dt>
+            <dd class="mt-2 text-sm leading-relaxed text-neutral-400">
+              {c.body}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+      Claude Code, Codex, and OpenCode are harnesses.
+    </p>
+
+    <blockquote
+      class="mt-8 border-l border-neutral-700 pl-5 text-lg italic leading-relaxed text-neutral-400"
+    >
+      The model is the engine. The harness is the chassis, wheels, and steering.
+      The agent is the car that actually goes somewhere.
+    </blockquote>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder label="step-build diagram, an LLM tile with four component tiles snapping in to form an agent" />
+  </div>
+</section>

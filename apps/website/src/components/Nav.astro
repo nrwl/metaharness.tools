@@ -1,0 +1,37 @@
+---
+const links = [
+  { href: '#understanding', label: 'The problem' },
+  { href: '#harness', label: 'Harness' },
+  { href: '#harness-vs-meta', label: 'vs Meta-harness' },
+  { href: '#capabilities', label: 'Capabilities' },
+  { href: '#infrastructure', label: 'Infrastructure' },
+  { href: '#landscape', label: 'Landscape' },
+];
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-neutral-900/80 bg-neutral-950/70 backdrop-blur"
+>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a
+      href="#top"
+      class="font-mono text-sm font-medium tracking-tight text-neutral-100"
+    >
+      metaharness.tools
+    </a>
+    <ul class="hidden items-center gap-6 text-sm text-neutral-400 md:flex">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="transition-colors hover:text-neutral-100"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>

@@ -1,0 +1,47 @@
+---
+import VizPlaceholder from '../VizPlaceholder.astro';
+---
+
+<section id="understanding" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The problem
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      Understanding meta-harnesses
+    </h2>
+
+    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        AI models are getting better. But a better model doesn't help an agent
+        overcome certain boundaries. Agents only reach a small part of the
+        organization's codebase. They don't remember what happened in the past.
+        They don't coordinate PRs and CI. Those are
+        <mark>structural limits, not intelligence limits</mark>.
+      </p>
+      <p class="text-neutral-400">
+        Picture a single change to a shared UI library. To land it, someone
+        explains the change to the first module that consumes the library, then
+        to the second module, then to the platform team downstream, then to
+        whoever owns CI. The same change gets re-explained five, six, seven
+        times, once at every boundary. An agent hits the same walls. It is
+        boxed into one repository, and it forgets everything the moment the
+        session ends.
+      </p>
+      <p class="text-neutral-400">
+        Two axes describe every one of these walls. There is
+        <mark>space</mark>: the agent is bound to the repo in front of it and
+        can't see the code that depends on it. And there is
+        <mark>time</mark>: the agent starts every session from scratch, with no
+        memory of what was decided before.
+      </p>
+      <p class="font-medium text-neutral-100">Meta-harnesses remove them.</p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder label="scroll storyline, a change rippling through four repos, an explanation counter ticking up, then splitting into two axes: space and time" />
+  </div>
+</section>

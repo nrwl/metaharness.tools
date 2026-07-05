@@ -1,0 +1,106 @@
+---
+const resources = [
+  {
+    label: 'Anthropic, Managed Agents',
+    href: 'https://www.anthropic.com/engineering/managed-agents',
+    body: 'A meta-harness that decouples brain, hands, and session so harnesses stay swappable.',
+  },
+  {
+    label: 'Databricks, Introducing Omnigent',
+    href: 'https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents',
+    body: 'A runner plus server design that composes, governs, and shares agents across Claude Code, Codex, and Pi.',
+  },
+  {
+    label: 'MongoDB, Agent harness',
+    href: 'https://www.mongodb.com/company/blog/technical/agent-harness-why-llm-is-smallest-part-of-your-agent-system',
+    body: 'Why the LLM is the smallest part of a production agent system.',
+  },
+  {
+    label: 'Martin Fowler, Harness Engineering',
+    href: 'https://martinfowler.com/articles/harness-engineering.html',
+    body: 'A foundational treatment of the harness as an engineering discipline.',
+  },
+  {
+    label: 'Daily Dose of DS, The Anatomy of an Agent Harness',
+    href: 'https://blog.dailydoseofds.com/p/the-anatomy-of-an-agent-harness',
+    body: 'A component-by-component breakdown of what a harness is made of.',
+  },
+  {
+    label: 'Firecrawl, What is an Agent Harness',
+    href: 'https://www.firecrawl.dev/blog/what-is-an-agent-harness',
+    body: 'An accessible introduction to the harness concept.',
+  },
+  {
+    label: 'Hugging Face, Agent Glossary',
+    href: 'https://huggingface.co/blog/agent-glossary',
+    body: 'Shared vocabulary for agents, harnesses, and the layers around them.',
+  },
+];
+---
+
+<section id="polygraph" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <div
+      class="rounded-xl border border-neutral-800 bg-neutral-900/40 p-8 sm:p-10"
+    >
+      <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+        A meta-harness by Nx
+      </p>
+      <h2
+        class="mt-4 text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+      >
+        Polygraph
+      </h2>
+      <p class="mt-5 text-lg leading-relaxed text-neutral-300">
+        Polygraph is Nx's meta-harness. It dissolves repo and session
+        boundaries, giving your agents a unified dependency graph across your
+        organization without moving any code, durable sessions anyone can
+        resume, and institutional memory that carries from one session to the
+        next. Polygraph isn't an agent. It's infrastructure that makes your
+        agents more powerful.
+      </p>
+      <a
+        href="https://trypolygraph.com"
+        target="_blank"
+        rel="noopener"
+        class="mt-8 inline-flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-100 px-5 py-2.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-white"
+      >
+        Explore Polygraph
+        <span aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-20 max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      Resources
+    </p>
+    <h2
+      class="mt-4 text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+    >
+      Where the ideas come from
+    </h2>
+
+    <ul class="mt-8 divide-y divide-neutral-900 border-t border-neutral-900">
+      {
+        resources.map((r) => (
+          <li class="py-5">
+            <a
+              href={r.href}
+              target="_blank"
+              rel="noopener"
+              class="group flex flex-col gap-1"
+            >
+              <span class="text-base font-medium text-neutral-100 transition-colors group-hover:text-accent">
+                {r.label}
+              </span>
+              <span class="text-sm leading-relaxed text-neutral-500">
+                {r.body}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

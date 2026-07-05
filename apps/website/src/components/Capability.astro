@@ -1,0 +1,53 @@
+---
+import VizPlaceholder from './VizPlaceholder.astro';
+
+interface Props {
+  id: string;
+  index: string;
+  title: string;
+  analogy: string;
+  parallel?: string;
+  vizLabel: string;
+}
+
+const { id, index, title, analogy, parallel, vizLabel } = Astro.props;
+---
+
+<article class="border-t border-neutral-900 pt-14">
+  <div class="mx-auto max-w-3xl">
+    <div class="flex items-baseline gap-3">
+      <span class="font-mono text-sm text-neutral-600">{index}</span>
+      <h3
+        id={id}
+        class="text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+      >
+        {title}
+      </h3>
+    </div>
+
+    <div class="mt-6 space-y-5 text-lg leading-relaxed text-neutral-300">
+      <slot />
+    </div>
+
+    <blockquote
+      class="mt-8 border-l border-neutral-700 pl-5 text-lg italic leading-relaxed text-neutral-400"
+    >
+      {analogy}
+    </blockquote>
+
+    {
+      parallel && (
+        <p class="mt-5 text-sm text-neutral-500">
+          <span class="font-medium text-neutral-400">
+            Meta-framework parallel:
+          </span>{' '}
+          {parallel}
+        </p>
+      )
+    }
+  </div>
+
+  <div class="mx-auto mt-10 max-w-5xl">
+    <VizPlaceholder label={vizLabel} />
+  </div>
+</article>

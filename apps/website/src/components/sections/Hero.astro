@@ -1,0 +1,65 @@
+---
+import VizPlaceholder from '../VizPlaceholder.astro';
+
+const cards = [
+  {
+    href: '#harness-vs-meta',
+    title: 'Harness vs Meta-Harness',
+    body: 'Start with the base. A harness turns a model into an agent; a meta-harness operates above one or more of them.',
+  },
+  {
+    href: '#capabilities',
+    title: 'What a Meta-Harness Adds',
+    body: 'Seven capabilities, each a boundary agents run into: swapping, guardrails, materialization, cross-repo reach, multiplayer, durability, memory.',
+  },
+  {
+    href: '#infrastructure',
+    title: 'Infrastructure',
+    body: 'Some of it runs on your machine. The rest needs state that outlives one session and one user.',
+  },
+];
+---
+
+<section id="top" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      An educational reference
+    </p>
+    <h1
+      class="mt-6 text-4xl font-semibold tracking-tight text-neutral-50 sm:text-6xl"
+    >
+      metaharness.tools
+    </h1>
+    <p class="mx-auto mt-6 max-w-xl text-lg text-neutral-400 sm:text-xl">
+      Everything you need to know about meta-harnesses.
+    </p>
+    <p class="mt-4 text-sm text-neutral-500">Made with love by Nx</p>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder label="signature diagram, harnesses under a meta-harness band, arrows across repos and across time" />
+  </div>
+
+  <div class="mx-auto mt-14 grid max-w-5xl gap-4 sm:grid-cols-3">
+    {
+      cards.map((card) => (
+        <a
+          href={card.href}
+          class="group rounded-lg border border-neutral-800 bg-neutral-900/30 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/60"
+        >
+          <div class="flex items-center justify-between">
+            <p class="text-base font-medium text-neutral-100">
+              {card.title}
+            </p>
+            <span class="text-accent transition-transform group-hover:translate-x-0.5">
+              &rarr;
+            </span>
+          </div>
+          <p class="mt-3 text-sm leading-relaxed text-neutral-400">
+            {card.body}
+          </p>
+        </a>
+      ))
+    }
+  </div>
+</section>
