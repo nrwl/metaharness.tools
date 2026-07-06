@@ -327,6 +327,13 @@ export function MetaHarnessLayers({
   // Normalized pointer position over the canvas (-1..1), for subtle parallax.
   const pointer = useRef<Pt>({ x: 0, y: 0 });
 
+  // Storybook/URL controls can deliver `stage` as a string ("0"); a strict
+  // 'auto' check would then silently pin stage 0. Normalize once.
+  const pinnedStage: 0 | 1 | 2 | null =
+    stage === 'auto' || String(stage) === 'auto'
+      ? null
+      : (Math.min(2, Math.max(0, Number(stage) || 0)) as 0 | 1 | 2);
+
   const canvasRef = useCanvasAnimation({
     width,
     height,
@@ -351,9 +358,11 @@ export function MetaHarnessLayers({
       // Stage state.
       const pt = elapsed % CYCLE;
       const st: StageState =
-        stage === 'auto' ? autoState(pt) : pinnedState(stage);
+        pinnedStage === null ? autoState(pt) : pinnedState(pinnedStage);
       const llmAlpha =
-        stage === 'auto' ? smoothstep(T.llmFadeIn[0], T.llmFadeIn[1], elapsed) : 1;
+        pinnedStage === null
+          ? smoothstep(T.llmFadeIn[0], T.llmFadeIn[1], elapsed)
+          : 1;
 
       // Drifted centers.
       const metaCenter: Pt = {
