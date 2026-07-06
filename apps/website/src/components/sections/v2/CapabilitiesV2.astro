@@ -1,0 +1,85 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section id="capabilities" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The fills
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      What a meta-harness does
+    </h2>
+    <p class="mt-6 text-lg leading-relaxed text-neutral-400">
+      Take the two problems in order. A meta-harness solves each one the way a
+      meta-framework solved routing and rendering: it does the plumbing for you,
+      once, in a way that transfers.
+    </p>
+  </div>
+
+  <div class="mt-16 space-y-16">
+    <article class="border-t border-neutral-900 pt-14">
+      <div class="mx-auto max-w-3xl">
+        <div class="flex items-baseline gap-3">
+          <span class="font-mono text-sm text-neutral-600">01</span>
+          <h3
+            class="text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+          >
+            Cross-repo work
+          </h3>
+        </div>
+        <div class="mt-6 space-y-5 text-lg leading-relaxed text-neutral-300">
+          <p>
+            The meta-harness knows what a repository is, and how repos relate. So
+            it provisions the repos you need, each on the correct branch, sets up
+            the worktrees, and gets the agents running side by side. You do not
+            touch any of it.
+          </p>
+          <p>
+            Then it treats a code change as its own object, distinct from a pull
+            request, because one change can span several repos and several PRs.
+            It <mark>coordinates the change across all of them</mark> and opens
+            the PRs so they land together. The whole choreography you were doing
+            by hand becomes a single thing the meta-harness runs.
+          </p>
+        </div>
+      </div>
+      <div class="mx-auto mt-10 max-w-5xl">
+        <VizPlaceholder label="RepositoryGraph island" />
+      </div>
+    </article>
+
+    <article class="border-t border-neutral-900 pt-14">
+      <div class="mx-auto max-w-3xl">
+        <div class="flex items-baseline gap-3">
+          <span class="font-mono text-sm text-neutral-600">02</span>
+          <h3
+            class="text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+          >
+            Sessions
+          </h3>
+        </div>
+        <div class="mt-6 space-y-5 text-lg leading-relaxed text-neutral-300">
+          <p>
+            The session with all its reasoning stops being a file on your laptop.
+            It is captured automatically and shared across the organization, so
+            it is reachable by anyone, not just you, not just this machine.
+          </p>
+          <p>
+            More than stored, sessions are connected into a graph, because work
+            is almost always built on other work. So the next time you come
+            around to that area, the agent <mark>finds and references the
+            session that touched it</mark>, pulls in what was decided and why,
+            and starts from there instead of from scratch. The reasoning you were
+            afraid of losing is now the context the next session begins with.
+          </p>
+        </div>
+      </div>
+      <div class="mx-auto mt-10 max-w-5xl">
+        <VizPlaceholder label="SessionNetwork island" />
+      </div>
+    </article>
+  </div>
+</section>

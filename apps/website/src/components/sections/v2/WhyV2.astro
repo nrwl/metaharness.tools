@@ -1,0 +1,53 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section id="why" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The question
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      Why would you need one?
+    </h2>
+
+    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        The clearest way to answer that is a story most developers have already
+        lived, told through React. You started with the core: React rendered
+        components and turned events into more components, and that was it. To
+        build a real application you stitched the rest on yourself. You picked a
+        router. You picked a data-fetching layer. You added a UI component
+        library, then a design system on top of it. It worked. But it was a lot
+        of work, and <mark>none of it transferred</mark>. Switch teams, switch
+        companies, and you rebuilt the same setup from scratch, differently
+        every time.
+      </p>
+      <p>
+        Meta-frameworks solved this. Next.js, and later TanStack Start, took all
+        that plumbing and put it in a batteries-included box you could move with.
+        You still wrote React, but routing, rendering, and data access arrived
+        already arranged, so setting up a serious app stopped being someone's
+        personal side quest.
+      </p>
+      <p>
+        Harnesses today are the React core. They are excellent at the one
+        universal thing they do, and everyone is stitching the rest on by hand:
+        custom CLIs, code mode, skills, glue scripts to make an agent reach
+        beyond the folder in front of it. It works, and it does not transfer.
+      </p>
+      <p class="font-medium text-neutral-100">
+        A meta-harness is the Next.js of harnesses. The box that arranges the
+        pieces, so you can stop building the setup and start doing the work.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder
+      label="React core with hand-stitched router, data, UI, design system, resolving into a single batteries-included box, then the same shape redrawn for harnesses"
+    />
+  </div>
+</section>

@@ -1,0 +1,39 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section id="top" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      An educational reference
+    </p>
+    <h1
+      class="mt-6 text-4xl font-semibold tracking-tight text-neutral-50 sm:text-6xl"
+    >
+      What is a meta-harness?
+    </h1>
+    <p class="mx-auto mt-6 max-w-xl text-lg text-neutral-400 sm:text-xl">
+      Answered in one breath, then unpacked.
+    </p>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder label="MetaHarnessLayers island" ratio="aspect-[16/10]" />
+  </div>
+
+  <div class="mx-auto mt-14 max-w-3xl">
+    <p class="text-xl leading-relaxed text-neutral-200">
+      At the core, a large language model predicts tokens. A
+      <mark>harness</mark> wraps that model into an agent that can act, reading
+      files, running commands, calling tools. Claude Code, Codex, and OpenCode
+      are harnesses. A <mark>meta-harness</mark> wraps the harness, operating
+      above one or more of them across everything a single agent never sees on
+      its own: many repositories, many sessions, many people, and time.
+    </p>
+    <p class="mt-6 text-lg leading-relaxed text-neutral-400">
+      That is the whole concept. The model at the center, the harness around it,
+      the meta-harness around both. Everything below is the answer to the next
+      question: why would you want one?
+    </p>
+  </div>
+</section>

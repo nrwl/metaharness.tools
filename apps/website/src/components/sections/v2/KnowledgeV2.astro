@@ -1,0 +1,50 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section id="knowledge" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The company brain
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      The knowledge walks out the door
+    </h2>
+
+    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        Think about how this plays out at a company, because the session problem
+        is really a knowledge problem. As your responsibility rises, you stop
+        reading every implementation. As a system architect you care that the
+        data flows through the application the right way; you do not sit at the
+        keyboard of every developer shipping a feature. The developer holds those
+        details. And when that developer changes jobs, the knowledge leaves with
+        them, because it was almost never written down.
+      </p>
+      <p>
+        Agents are developers who leave after every single task. The reasoning
+        that went into an implementation is right there while the session runs,
+        and then the session ends and the agent forgets. Session logs exist, but
+        they are <mark>local to one machine, invisible to the org</mark>. The
+        workaround people reach for is ADRs, architectural decision records, but
+        it is a workaround: where do you store them, and how do you share them
+        across an organization? The multiplayer nature of agentic work, many
+        people and many agents drawing on the same accumulated understanding, is
+        the part nobody has solved with a document.
+      </p>
+      <p class="font-medium text-neutral-100">
+        A meta-harness turns sessions into shared organizational memory. The
+        reasoning stops walking out the door, because it never lived behind one
+        door to begin with.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder
+      label="developers leaving with knowledge draining away, versus sessions feeding a shared org-wide memory that stays"
+    />
+  </div>
+</section>

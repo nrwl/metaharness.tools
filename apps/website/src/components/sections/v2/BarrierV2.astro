@@ -1,0 +1,80 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+
+const plumbing = [
+  {
+    num: '01',
+    body: 'Fetch the second repo, and get it onto the right branch.',
+  },
+  {
+    num: '02',
+    body: 'Set up worktrees so the agents can work in each repo independently without stepping on each other.',
+  },
+  {
+    num: '03',
+    body: 'Route context by hand: CLAUDE.md files, custom scripts, copied-in markdown, so each agent knows what the other is doing.',
+  },
+  {
+    num: '04',
+    body: 'Once the work is done, figure out how to push the coordinated PRs so they land together instead of breaking each other.',
+  },
+];
+---
+
+<section id="barrier" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-3xl">
+    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+      The catch
+    </p>
+    <h2
+      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+    >
+      The same barrier, again
+    </h2>
+    <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+      At that new altitude you hit the exact stitching problem from before, one
+      level up. You are now looking at the backend repo and the frontend repo at
+      once, but the harness is local to each. To make one agent work across both,
+      you become the plumbing. Concretely, today, with just a harness:
+    </p>
+
+    <ol
+      class="mt-8 divide-y divide-neutral-800 overflow-hidden rounded-lg border border-neutral-800"
+    >
+      {
+        plumbing.map((step) => (
+          <li class="bg-neutral-950 p-6">
+            <div class="flex items-baseline gap-4">
+              <span class="font-mono text-xs text-accent">{step.num}</span>
+              <p class="text-base leading-relaxed text-neutral-300">
+                {step.body}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="mt-10 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <p>
+        And that is only the first problem. The second one is quieter and worse.
+        You spent a session with an agent working through a tricky piece of the
+        system, and a lot of reasoning went into it: why this approach, what you
+        ruled out, where the sharp edges are. <mark>Where does that go?</mark>
+        The session log is a file on your machine. In a month, when a bug report
+        lands on exactly that feature, you want to pull that reasoning back, and
+        there is nowhere it lives that you or anyone else can reach.
+      </p>
+      <p class="font-medium text-neutral-100">
+        Everyone hits these two problems right now, cross-repo plumbing and
+        session knowledge with nowhere to live. That is the harness gap.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-14 max-w-5xl">
+    <VizPlaceholder
+      label="two repos side by side with hand-drawn worktrees, scripts, and CLAUDE.md wires between them, and a session log falling off the edge of one laptop"
+    />
+  </div>
+</section>

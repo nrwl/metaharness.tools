@@ -1,5 +1,10 @@
 ---
-const links = [
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const defaultLinks: NavLink[] = [
   { href: '#understanding', label: 'The problem' },
   { href: '#harness', label: 'Harness' },
   { href: '#harness-vs-meta', label: 'vs Meta-harness' },
@@ -7,6 +12,12 @@ const links = [
   { href: '#infrastructure', label: 'Infrastructure' },
   { href: '#landscape', label: 'Landscape' },
 ];
+
+interface Props {
+  links?: NavLink[];
+}
+
+const { links = defaultLinks } = Astro.props;
 ---
 
 <header
