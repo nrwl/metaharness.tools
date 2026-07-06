@@ -86,3 +86,13 @@ export interface KernelFrame {
    */
   appear: number;
 }
+
+/**
+ * Frame options for a before/after morph kernel: a {@link KernelFrame} plus a
+ * single eased `progress` value (0 = "before" state, 1 = "after" state). The
+ * caller tweens `progress`; the kernel reads it to blend the two end states
+ * while continuous motion (rotation, pulses, cycling) still runs off `elapsed`.
+ */
+export interface MorphFrame extends KernelFrame {
+  progress: number;
+}

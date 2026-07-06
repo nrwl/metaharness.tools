@@ -22,14 +22,30 @@ export {
 } from './animations/repository-graph';
 export type { RepositoryGraphProps } from './animations/repository-graph';
 
+export { CrossRepoFlow, drawCrossRepoFlow } from './animations/cross-repo-flow';
+export type { CrossRepoFlowProps } from './animations/cross-repo-flow';
+
+export {
+  SessionMemory,
+  drawSessionMemory,
+  SESSION_MEMORY_CYCLE,
+} from './animations/session-memory';
+export type { SessionMemoryProps } from './animations/session-memory';
+
 // Shared canvas utilities, exposed for consumers that build their own canvases.
 export {
   setupCanvas,
   useCanvasAnimation,
   useInView,
+  useMorphToggle,
 } from './lib/canvas';
 export type {
   CanvasFrame,
   UseCanvasAnimationOptions,
   UseInViewOptions,
+  UseMorphToggleOptions,
+  MorphToggle,
+  MorphMode,
 } from './lib/canvas';
+export { MorphSwitch } from './lib/MorphSwitch';
+export type { MorphSwitchProps } from './lib/MorphSwitch';

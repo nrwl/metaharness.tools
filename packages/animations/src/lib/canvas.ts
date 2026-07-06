@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
+import { clamp01, easeInOut, lerp } from './anim';
 
 /**
  * DPR-aware canvas setup.
@@ -157,4 +164,116 @@ export function useInView<T extends Element = HTMLDivElement>(
   }, [threshold, once]);
 
   return { ref, inView };
+}
+
+/** Toggle side for a before/after morph animation. */
+export type MorphMode = 'auto' | 'before' | 'after';
+
+export interface UseMorphToggleOptions {
+  /**
+   * 'auto' (default) shows an interactive switch that also auto-cycles while
+   * in view until the user interacts; 'before'/'after' pin the morph to one
+   * end (non-interactive) for stories and the site's fixed placements.
+   */
+  mode?: MorphMode;
+  /** Whether the animation is on screen (gates auto-cycling). */
+  inView: boolean;
+  /** Seconds for the eased before<->after tween. */
+  duration?: number;
+  /** Seconds between auto toggles while in view, before any interaction. */
+  autoInterval?: number;
+}
+
+export interface MorphToggle {
+  /**
+   * Eased 0..1 morph progress for the given frame elapsed time. Call once per
+   * draw; it also records `elapsed` so toggles can start their tween from the
+   * current frame.
+   */
+  progressAt: (elapsed: number) => number;
+  /** Logical target side for the switch UI (true = "after"). */
+  after: boolean;
+  /** True when the switch is pinned (mode !== 'auto') and non-interactive. */
+  disabled: boolean;
+  /** Whether the user has taken over from the auto-cycle. */
+  interacted: boolean;
+  /** Flip the switch (marks the animation as user-driven). */
+  onToggle: () => void;
+}
+
+/**
+ * Drives the shared before/after morph mechanic: a single 0..1 `progress`
+ * tweened with an ease-in-out cubic when toggled, an auto-cycle that flips it
+ * on an interval while in view until the user interacts, and pinned
+ * before/after modes for stories.
+ *
+ * Progress is derived from the frame `elapsed` (passed to {@link progressAt}),
+ * so it freezes cleanly whenever the host loop pauses or scrolls off screen.
+ */
+export function useMorphToggle(options: UseMorphToggleOptions): MorphToggle {
+  const { mode = 'auto', inView, duration = 0.9, autoInterval = 5 } = options;
+  const pinned = mode !== 'auto';
+  const pinnedAfter = mode === 'after';
+
+  const [after, setAfter] = useState(pinnedAfter);
+  const [interacted, setInteracted] = useState(false);
+
+  // Tween bookkeeping (refs so the draw loop and interval read live values).
+  const elapsedRef = useRef(0);
+  const fromRef = useRef(pinnedAfter ? 1 : 0);
+  const toRef = useRef(pinnedAfter ? 1 : 0);
+  const startRef = useRef(0);
+  const progressRef = useRef(pinnedAfter ? 1 : 0);
+  const afterRef = useRef(pinnedAfter);
+
+  const setTarget = useCallback(
+    (next: boolean) => {
+      fromRef.current = progressRef.current;
+      toRef.current = next ? 1 : 0;
+      startRef.current = elapsedRef.current;
+      afterRef.current = next;
+      setAfter(next);
+    },
+    [],
+  );
+
+  // Auto-cycle: only while in view, before interaction, and not pinned.
+  useEffect(() => {
+    if (pinned || interacted || !inView) return;
+    const id = setInterval(
+      () => setTarget(!afterRef.current),
+      autoInterval * 1000,
+    );
+    return () => clearInterval(id);
+  }, [pinned, interacted, inView, autoInterval, setTarget]);
+
+  const progressAt = useCallback(
+    (elapsed: number) => {
+      elapsedRef.current = elapsed;
+      if (pinned) {
+        progressRef.current = pinnedAfter ? 1 : 0;
+        return progressRef.current;
+      }
+      const u =
+        duration <= 0 ? 1 : clamp01((elapsed - startRef.current) / duration);
+      const p = lerp(fromRef.current, toRef.current, easeInOut(u));
+      progressRef.current = p;
+      return p;
+    },
+    [pinned, pinnedAfter, duration],
+  );
+
+  const onToggle = useCallback(() => {
+    if (pinned) return;
+    if (!interacted) setInteracted(true);
+    setTarget(!afterRef.current);
+  }, [pinned, interacted, setTarget]);
+
+  return {
+    progressAt,
+    after: pinned ? pinnedAfter : after,
+    disabled: pinned,
+    interacted,
+    onToggle,
+  };
 }
