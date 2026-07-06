@@ -42,34 +42,33 @@ const toc = [
 </section>
 
 <section id="what-is" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
-  <div class="mx-auto max-w-3xl text-center">
-    <h2
-      class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
-    >
-      What is a meta-harness?
-    </h2>
-    <p class="mx-auto mt-6 max-w-xl text-lg text-neutral-400 sm:text-xl">
-      Answered in one breath, then unpacked.
-    </p>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-5xl"
+      >
+        Your agents, beyond one repo, one session, one developer.
+      </h2>
+      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+        Harnesses like Claude Code, Codex, and OpenCode are where React was
+        before Next.js: excellent at the core, everything around it stitched
+        together by hand. Next.js and TanStack Start elevated React with
+        batteries included. A <mark>meta-harness</mark> does the same one layer
+        up. It wraps your harness and handles what no single agent sees on its
+        own: <span class="text-neutral-100"
+          >coordinating changes across repositories, carrying context from
+          session to session, and turning agent work into knowledge your whole
+          organization can draw on</span
+        >. That is this page, in order.
+      </p>
+    </div>
   </div>
 
   <div class="mx-auto mt-14 max-w-5xl">
     <VizPlaceholder label="MetaHarnessLayers island" ratio="aspect-[16/10]" />
-  </div>
-
-  <div class="mx-auto mt-14 max-w-3xl">
-    <p class="text-xl leading-relaxed text-neutral-200">
-      At the core, a large language model predicts tokens. A
-      <mark>harness</mark> wraps that model into an agent that can act, reading
-      files, running commands, calling tools. Claude Code, Codex, and OpenCode
-      are harnesses. A <mark>meta-harness</mark> wraps the harness, operating
-      above one or more of them across everything a single agent never sees on
-      its own: many repositories, many sessions, many people, and time.
-    </p>
-    <p class="mt-6 text-lg leading-relaxed text-neutral-400">
-      That is the whole concept. The model at the center, the harness around it,
-      the meta-harness around both. Everything below is the answer to the next
-      question: why would you want one?
+    <p class="mx-auto mt-6 max-w-2xl text-center text-sm text-neutral-500">
+      The shape underneath: a model predicts tokens, a harness wraps it into an
+      agent that can act, the meta-harness wraps the harness.
     </p>
   </div>
 
