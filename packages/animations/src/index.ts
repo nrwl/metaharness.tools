@@ -5,6 +5,9 @@
 export { Template } from './animations/_template';
 export type { TemplateProps } from './animations/_template';
 
+export { MetaHarnessLayers } from './animations/meta-harness-layers';
+export type { MetaHarnessLayersProps } from './animations/meta-harness-layers';
+
 // Shared canvas utilities, exposed for consumers that build their own canvases.
 export {
   setupCanvas,
