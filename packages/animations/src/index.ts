@@ -8,6 +8,20 @@ export type { TemplateProps } from './animations/_template';
 export { MetaHarnessLayers } from './animations/meta-harness-layers';
 export type { MetaHarnessLayersProps } from './animations/meta-harness-layers';
 
+export {
+  SessionNetwork,
+  drawSessionNetwork,
+  SESSION_NETWORK_CYCLE,
+} from './animations/session-network';
+export type { SessionNetworkProps } from './animations/session-network';
+
+export {
+  RepositoryGraph,
+  drawRepositoryGraph,
+  REPOSITORY_GRAPH_CYCLE,
+} from './animations/repository-graph';
+export type { RepositoryGraphProps } from './animations/repository-graph';
+
 // Shared canvas utilities, exposed for consumers that build their own canvases.
 export {
   setupCanvas,

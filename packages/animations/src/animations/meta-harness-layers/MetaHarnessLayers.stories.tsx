@@ -27,7 +27,11 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Full self-running build-up: LLM -> harness -> meta-harness, then loop. */
+/**
+ * Full self-running build-up: LLM -> harness -> meta-harness, then loop.
+ * Click the Sessions or Repositories chip once reified to explode into the
+ * corresponding network; Esc or ← back to return.
+ */
 export const Default: Story = {};
 
 /** Stage 0 pinned: the bare LLM node, idle. */
