@@ -1,0 +1,57 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+
+const capabilities = [
+  {
+    title: 'A graph of repositories',
+    body: 'The meta-harness connects your repos into a graph: the frontend to the design system, the backend to the shared APIs, and outward across the organization. Agents stop seeing one box and start seeing how the system hangs together.',
+  },
+  {
+    title: 'Provisioning and parallelism',
+    body: 'It clones the right repositories on the right branches, sets up the worktrees, and connects your agents to them, side by side. The setup you were scripting by hand becomes something that just happens.',
+  },
+  {
+    title: 'One change, many repos',
+    body: 'A real change rarely stops at one repo. The meta-harness treats the change itself as the unit: it coordinates the edits across repositories and opens the PRs so they land together instead of breaking each other.',
+  },
+];
+---
+
+<section id="cross-repo" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        Working across repositories
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        As your work levels up, you stop caring about a single repo. A fix
+        touches the frontend, the backend, and the design system in one motion,
+        and the meta-harness is built for exactly that motion.
+      </p>
+    </div>
+
+    <div class="mx-auto mt-14 max-w-5xl">
+      <VizPlaceholder
+        label="RepositoryGraph island: frontend, backend, design system nodes connect, then expand into a large org-wide graph"
+        ratio="aspect-[16/10]"
+      />
+    </div>
+
+    <div class="mt-14 grid gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-3">
+      {
+        capabilities.map((item) => (
+          <div>
+            <h3 class="text-xl font-semibold tracking-tight text-neutral-50">
+              {item.title}
+            </h3>
+            <p class="mt-3 text-base leading-relaxed text-neutral-400">
+              {item.body}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

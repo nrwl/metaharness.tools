@@ -1,0 +1,67 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section
+  id="memory"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-20 md:py-28"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        The knowledge dissolves with the session
+      </h2>
+      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+        There is a second shift hiding inside the first. Work used to be one
+        person per problem; now it is <mark>you plus a handful of agents</mark>,
+        and the agents hold the implementation details. You operate like an
+        architect: you care that the data flows through the system the right
+        way, you do not sit at the keyboard of every change. The agent holds
+        those details, the way a coworker used to.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        Every company knows how that story ends. The coworker who knows why the
+        payment retry logic looks the way it does changes jobs, and the
+        knowledge leaves with them, because it was never written down. With
+        agents, that does not happen once a year. It happens every time a
+        session ends.
+      </p>
+    </div>
+
+    <figure
+      class="mx-auto mt-14 max-w-4xl border-y border-neutral-800 py-10 text-center"
+    >
+      <p class="text-2xl font-medium leading-snug text-neutral-100 sm:text-3xl">
+        Agents are developers who <span class="text-accent"
+          >leave after every single task</span
+        >.
+      </p>
+    </figure>
+
+    <div class="mt-14 grid items-center gap-12 lg:grid-cols-2">
+      <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+        <p>
+          Play out a single day. In the morning you work on the frontend repo
+          with an agent: a tricky fix, real reasoning about why this approach
+          and not the other. The session ends, and that reasoning dissolves. In
+          the afternoon you move to the backend repo, another session, more
+          decisions. It dissolves too.
+        </p>
+        <p>
+          Just you, one day, two repos, and the why behind both changes is
+          already out of reach. The session logs exist, but they are files on
+          your machine that nothing ever reads back.
+        </p>
+      </div>
+
+      <div>
+        <VizPlaceholder
+          label="SessionDissolve island: you + agent on frontend cube, session fades out; then backend cube, fades again"
+          ratio="aspect-[16/10]"
+        />
+      </div>
+    </div>
+  </div>
+</section>

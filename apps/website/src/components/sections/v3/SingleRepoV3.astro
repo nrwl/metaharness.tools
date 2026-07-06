@@ -1,0 +1,46 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section
+  id="single-repo"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-20 md:py-28"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        A harness lives inside one repo
+      </h2>
+    </div>
+
+    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+      <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+        <p>
+          Point a harness at a repository and it is remarkably capable inside
+          it. It reads the code, runs the tests, makes the change, opens the
+          PR. Within those walls it can act on almost anything.
+        </p>
+        <p>
+          But everything it sees, everything it touches, and everything it
+          remembers <mark>ends at the repo boundary</mark>. The repository is
+          the harness's whole world. That is not an accident or a flaw: the
+          repo is the unit a harness is built to understand, the same way React
+          was built to render components and nothing more.
+        </p>
+        <p class="text-neutral-400">
+          Which was perfectly fine, as long as your work fit inside one repo
+          too.
+        </p>
+      </div>
+
+      <div>
+        <VizPlaceholder
+          label="SingleRepoCube island: one frontend repo cube, AI agent glowing inside, hard boundary"
+          ratio="aspect-[4/3]"
+        />
+      </div>
+    </div>
+  </div>
+</section>

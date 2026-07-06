@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import HeroV3 from '../components/sections/v3/HeroV3.astro';
+import SingleRepoV3 from '../components/sections/v3/SingleRepoV3.astro';
+import WorkShiftV3 from '../components/sections/v3/WorkShiftV3.astro';
+import LostMemoryV3 from '../components/sections/v3/LostMemoryV3.astro';
+import MultiplayerV3 from '../components/sections/v3/MultiplayerV3.astro';
+import AnswerV3 from '../components/sections/v3/AnswerV3.astro';
+import CrossRepoV3 from '../components/sections/v3/CrossRepoV3.astro';
+import SessionsV3 from '../components/sections/v3/SessionsV3.astro';
+import LandscapeV2 from '../components/sections/v2/LandscapeV2.astro';
+import Finale from '../components/sections/Finale.astro';
+import Footer from '../components/sections/Footer.astro';
+
+const title = 'metaharness.tools | v3 proposal';
+const description =
+  'Problem-first page structure for metaharness.tools: the single-repo limit, the shift in your work, lost memory, and the meta-harness as the answer.';
+
+const navLinks = [
+  { href: '#work-shift', label: 'Your work' },
+  { href: '#memory', label: 'Memory' },
+  { href: '#answer', label: 'The answer' },
+  { href: '#cross-repo', label: 'Cross-repo' },
+  { href: '#sessions', label: 'Sessions' },
+  { href: '#landscape', label: 'Landscape' },
+];
+---
+
+<Layout title={title} description={description} noindex={true}>
+  <Nav links={navLinks} />
+  <main class="bg-neutral-950 text-neutral-100">
+    <HeroV3 />
+    <SingleRepoV3 />
+    <WorkShiftV3 />
+    <LostMemoryV3 />
+    <MultiplayerV3 />
+    <AnswerV3 />
+    <CrossRepoV3 />
+    <SessionsV3 />
+    <LandscapeV2 />
+    <Finale />
+  </main>
+  <Footer />
+</Layout>

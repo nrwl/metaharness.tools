@@ -1,0 +1,51 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section id="work-shift" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        Your work no longer does
+      </h2>
+    </div>
+
+    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+      <div class="lg:order-last">
+        <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+          <p>
+            In the framework era you were the frontend expert: deep in one
+            repo, choosing the router and the component library, caring less
+            about the backend because that was someone else's floor. With
+            agents taking the lower-level implementation,
+            <mark>you level up a floor</mark>. You go from single-repo
+            specialist to system-level generalist: you care about the whole
+            stack, and you cross the frontend and backend boundaries that were
+            never really meant to be walls.
+          </p>
+          <p>
+            Here is what that feels like. You spot a bug. You do not know that
+            code line by line, but you understand it at the system level: what
+            it touches, why it fails, roughly where the fix lives. Before, you
+            would have handed it to the person who owns that code. Now you fire
+            up an agent, steer it toward the fix, follow its reasoning, and the
+            change lands.
+          </p>
+          <p class="font-medium text-neutral-100">
+            Your scope is now the frontend, the backend, the design system.
+            Each agent still wakes up inside a single box.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <VizPlaceholder
+          label="MultiRepoCubes island: frontend, backend, design system cubes, one agent in each, no connections"
+          ratio="aspect-[4/3]"
+        />
+      </div>
+    </div>
+  </div>
+</section>

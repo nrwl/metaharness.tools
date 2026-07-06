@@ -1,0 +1,43 @@
+---
+import VizPlaceholder from '../../VizPlaceholder.astro';
+---
+
+<section
+  id="answer"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-24 md:py-32"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-5xl"
+      >
+        The answer: meta-harnesses
+      </h2>
+      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+        You have seen this move before. React gave you the core, and you chose
+        the router, the data-fetching library, the component library, and
+        stitched them together yourself. It worked, and it did not transfer:
+        every team rebuilt the same setup differently. Then Next.js and
+        TanStack Start packaged the proven choices into one box, and setting up
+        a serious app stopped being someone's personal side quest.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        A meta-harness makes the same move around your harness. It fills the
+        gaps you just saw with proven solutions instead of personal glue: it
+        understands repositories and how they relate, provisions and
+        coordinates agents across them, and turns sessions into shared
+        memory. <strong class="font-semibold text-neutral-50"
+          >You get more productive, your agent gets more capable, and with
+          capability comes autonomy.</strong
+        >
+      </p>
+    </div>
+
+    <div class="mx-auto mt-14 max-w-5xl">
+      <VizPlaceholder
+        label="MetaHarnessLayers island: LLM core, harness ring, meta-harness ring closing the gaps"
+        ratio="aspect-[16/10]"
+      />
+    </div>
+  </div>
+</section>
