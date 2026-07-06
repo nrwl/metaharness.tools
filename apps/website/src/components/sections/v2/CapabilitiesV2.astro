@@ -3,25 +3,25 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
 ---
 
 <section id="capabilities" class="px-6 py-20 md:py-28">
-  <div class="mx-auto max-w-3xl">
-    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-      The fills
-    </p>
-    <h2
-      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
-    >
-      What a meta-harness does
-    </h2>
-    <p class="mt-6 text-lg leading-relaxed text-neutral-400">
-      Take the two problems in order. A meta-harness solves each one the way a
-      meta-framework solved routing and rendering: it does the plumbing for you,
-      once, in a way that transfers.
-    </p>
-  </div>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+        <span class="text-neutral-600">04</span> The fills
+      </p>
+      <h2
+        class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        What a meta-harness does
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-400">
+        Take the two problems in order. A meta-harness solves each one the way a
+        meta-framework solved routing and rendering: it does the plumbing for
+        you, once, in a way that transfers.
+      </p>
+    </div>
 
-  <div class="mt-16 space-y-16">
-    <article class="border-t border-neutral-900 pt-14">
-      <div class="mx-auto max-w-3xl">
+    <article class="mt-16 grid items-center gap-12 border-t border-neutral-900 pt-14 lg:grid-cols-2">
+      <div>
         <div class="flex items-baseline gap-3">
           <span class="font-mono text-sm text-neutral-600">01</span>
           <h3
@@ -46,13 +46,16 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
           </p>
         </div>
       </div>
-      <div class="mx-auto mt-10 max-w-5xl">
-        <VizPlaceholder label="RepositoryGraph island" />
+      <div>
+        <VizPlaceholder label="RepositoryGraph island" ratio="aspect-[4/3]" />
       </div>
     </article>
 
-    <article class="border-t border-neutral-900 pt-14">
-      <div class="mx-auto max-w-3xl">
+    <article class="mt-16 grid items-center gap-12 border-t border-neutral-900 pt-14 lg:grid-cols-2">
+      <div class="lg:order-first">
+        <VizPlaceholder label="SessionNetwork island" ratio="aspect-[4/3]" />
+      </div>
+      <div>
         <div class="flex items-baseline gap-3">
           <span class="font-mono text-sm text-neutral-600">02</span>
           <h3
@@ -76,9 +79,6 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
             afraid of losing is now the context the next session begins with.
           </p>
         </div>
-      </div>
-      <div class="mx-auto mt-10 max-w-5xl">
-        <VizPlaceholder label="SessionNetwork island" />
       </div>
     </article>
   </div>

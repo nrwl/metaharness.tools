@@ -1,5 +1,14 @@
 ---
 import VizPlaceholder from '../../VizPlaceholder.astro';
+
+const toc = [
+  { num: '01', label: 'The question', href: '#why' },
+  { num: '02', label: 'Your work', href: '#work-shift' },
+  { num: '03', label: 'The barrier', href: '#barrier' },
+  { num: '04', label: 'Capabilities', href: '#capabilities' },
+  { num: '05', label: 'Knowledge', href: '#knowledge' },
+  { num: '06', label: 'Landscape', href: '#landscape' },
+];
 ---
 
 <section id="top" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
@@ -36,4 +45,24 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
       question: why would you want one?
     </p>
   </div>
+
+  <nav aria-label="Sections" class="mx-auto mt-16 max-w-5xl">
+    <ul
+      class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-900 bg-neutral-900 sm:grid-cols-3 lg:grid-cols-6"
+    >
+      {
+        toc.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="flex h-full flex-col gap-1.5 bg-neutral-950 p-4 transition-colors hover:bg-neutral-900/60"
+            >
+              <span class="font-mono text-xs text-neutral-600">{item.num}</span>
+              <span class="text-sm text-neutral-300">{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
 </section>

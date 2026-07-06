@@ -4,58 +4,81 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
 const plumbing = [
   {
     num: '01',
-    body: 'Fetch the second repo, and get it onto the right branch.',
+    title: 'Fetch and branch',
+    body: 'Pull the second repo and get it onto the right branch.',
   },
   {
     num: '02',
-    body: 'Set up worktrees so the agents can work in each repo independently without stepping on each other.',
+    title: 'Set up worktrees',
+    body: 'So agents work in each repo independently, without stepping on each other.',
   },
   {
     num: '03',
-    body: 'Route context by hand: CLAUDE.md files, custom scripts, copied-in markdown, so each agent knows what the other is doing.',
+    title: 'Route context by hand',
+    body: 'CLAUDE.md files, custom scripts, copied-in markdown, so each agent knows what the other is doing.',
   },
   {
     num: '04',
-    body: 'Once the work is done, figure out how to push the coordinated PRs so they land together instead of breaking each other.',
+    title: 'Land the PRs together',
+    body: 'Push the coordinated PRs so they land together instead of breaking each other.',
   },
 ];
 ---
 
-<section id="barrier" class="px-6 py-20 md:py-28">
-  <div class="mx-auto max-w-3xl">
-    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-      The catch
-    </p>
-    <h2
-      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
-    >
-      The same barrier, again
-    </h2>
-    <p class="mt-6 text-lg leading-relaxed text-neutral-300">
-      At that new altitude you hit the exact stitching problem from before, one
-      level up. You are now looking at the backend repo and the frontend repo at
-      once, but the harness is local to each. To make one agent work across both,
-      you become the plumbing. Concretely, today, with just a harness:
-    </p>
+<section
+  id="barrier"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-20 md:py-28"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+        <span class="text-neutral-600">03</span> The catch
+      </p>
+      <h2
+        class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        The same barrier, again
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        At that new altitude you hit the exact stitching problem from before, one
+        level up. You are now looking at the backend repo and the frontend repo
+        at once, but the harness is local to each. To make one agent work across
+        both, you become the plumbing. Concretely, today, with just a harness:
+      </p>
+    </div>
 
-    <ol
-      class="mt-8 divide-y divide-neutral-800 overflow-hidden rounded-lg border border-neutral-800"
-    >
-      {
-        plumbing.map((step) => (
-          <li class="bg-neutral-950 p-6">
-            <div class="flex items-baseline gap-4">
-              <span class="font-mono text-xs text-accent">{step.num}</span>
-              <p class="text-base leading-relaxed text-neutral-300">
-                {step.body}
-              </p>
-            </div>
-          </li>
-        ))
-      }
-    </ol>
+    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+      <div class="lg:order-first">
+        <VizPlaceholder label="CrossRepoBeforeAfter island" ratio="aspect-[16/10]" />
+      </div>
 
-    <div class="mt-10 space-y-6 text-lg leading-relaxed text-neutral-300">
+      <ol>
+        {
+          plumbing.map((step, i) => (
+            <li class="flex gap-4">
+              <div class="flex flex-col items-center">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 font-mono text-xs text-accent">
+                  {step.num}
+                </span>
+                {i < plumbing.length - 1 && (
+                  <span class="my-1 w-px flex-1 bg-neutral-800" />
+                )}
+              </div>
+              <div class="pb-8 last:pb-0">
+                <h3 class="text-base font-semibold text-neutral-100">
+                  {step.title}
+                </h3>
+                <p class="mt-1 text-base leading-relaxed text-neutral-400">
+                  {step.body}
+                </p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="mx-auto mt-14 max-w-3xl text-lg leading-relaxed text-neutral-300">
       <p>
         And that is only the first problem. The second one is quieter and worse.
         You spent a session with an agent working through a tricky piece of the
@@ -65,16 +88,16 @@ const plumbing = [
         lands on exactly that feature, you want to pull that reasoning back, and
         there is nowhere it lives that you or anyone else can reach.
       </p>
-      <p class="font-medium text-neutral-100">
-        Everyone hits these two problems right now, cross-repo plumbing and
-        session knowledge with nowhere to live. That is the harness gap.
-      </p>
     </div>
-  </div>
 
-  <div class="mx-auto mt-14 max-w-5xl">
-    <VizPlaceholder
-      label="two repos side by side with hand-drawn worktrees, scripts, and CLAUDE.md wires between them, and a session log falling off the edge of one laptop"
-    />
+    <figure class="mx-auto mt-16 max-w-3xl border-t border-neutral-800 pt-10 text-center">
+      <p class="text-lg text-neutral-400">
+        Everyone hits these two problems right now, cross-repo plumbing and
+        session knowledge with nowhere to live.
+      </p>
+      <p class="mt-4 text-2xl font-medium leading-snug text-neutral-100 sm:text-3xl">
+        That is the <span class="text-accent">harness gap</span>.
+      </p>
+    </figure>
   </div>
 </section>

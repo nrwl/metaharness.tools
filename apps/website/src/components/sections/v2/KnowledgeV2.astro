@@ -2,19 +2,21 @@
 import VizPlaceholder from '../../VizPlaceholder.astro';
 ---
 
-<section id="knowledge" class="px-6 py-20 md:py-28">
-  <div class="mx-auto max-w-3xl">
-    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-      The company brain
-    </p>
-    <h2
-      class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
-    >
-      The knowledge walks out the door
-    </h2>
-
-    <div class="mt-8 space-y-6 text-lg leading-relaxed text-neutral-300">
-      <p>
+<section
+  id="knowledge"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-20 md:py-28"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+        <span class="text-neutral-600">05</span> The company brain
+      </p>
+      <h2
+        class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        The knowledge walks out the door
+      </h2>
+      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
         Think about how this plays out at a company, because the session problem
         is really a knowledge problem. As your responsibility rises, you stop
         reading every implementation. As a system architect you care that the
@@ -23,28 +25,42 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
         details. And when that developer changes jobs, the knowledge leaves with
         them, because it was almost never written down.
       </p>
-      <p>
-        Agents are developers who leave after every single task. The reasoning
-        that went into an implementation is right there while the session runs,
-        and then the session ends and the agent forgets. Session logs exist, but
-        they are <mark>local to one machine, invisible to the org</mark>. The
-        workaround people reach for is ADRs, architectural decision records, but
-        it is a workaround: where do you store them, and how do you share them
-        across an organization? The multiplayer nature of agentic work, many
-        people and many agents drawing on the same accumulated understanding, is
-        the part nobody has solved with a document.
-      </p>
-      <p class="font-medium text-neutral-100">
-        A meta-harness turns sessions into shared organizational memory. The
-        reasoning stops walking out the door, because it never lived behind one
-        door to begin with.
-      </p>
     </div>
-  </div>
 
-  <div class="mx-auto mt-14 max-w-5xl">
-    <VizPlaceholder
-      label="developers leaving with knowledge draining away, versus sessions feeding a shared org-wide memory that stays"
-    />
+    <figure class="mx-auto mt-14 max-w-4xl border-y border-neutral-800 py-10 text-center">
+      <p class="text-2xl font-medium leading-snug text-neutral-100 sm:text-3xl">
+        Agents are developers who <span class="text-accent"
+          >leave after every single task</span
+        >.
+      </p>
+    </figure>
+
+    <div class="mt-14 grid items-center gap-12 lg:grid-cols-2">
+      <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+        <p>
+          The reasoning that went into an implementation is right there while the
+          session runs, and then the session ends and the agent forgets. Session
+          logs exist, but they are
+          <mark>local to one machine, invisible to the org</mark>. The workaround
+          people reach for is ADRs, architectural decision records, but it is a
+          workaround: where do you store them, and how do you share them across
+          an organization? The multiplayer nature of agentic work, many people
+          and many agents drawing on the same accumulated understanding, is the
+          part nobody has solved with a document.
+        </p>
+        <p class="font-medium text-neutral-100">
+          A meta-harness turns sessions into shared organizational memory. The
+          reasoning stops walking out the door, because it never lived behind one
+          door to begin with.
+        </p>
+      </div>
+
+      <div>
+        <VizPlaceholder
+          label="SessionMemoryBeforeAfter island"
+          ratio="aspect-[16/10]"
+        />
+      </div>
+    </div>
   </div>
 </section>
