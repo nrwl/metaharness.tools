@@ -26,9 +26,10 @@ import { drawRepositoryGraph } from '../repository-graph/kernel';
  * as reusable components.
  *
  * Interactivity: once reified, the "Sessions" and "Repositories" chips are
- * clickable — the layered diagram explodes into the corresponding network
- * kernel (SessionNetwork / RepositoryGraph). Esc or the "← back" label
- * returns. Plus subtle pointer parallax over the whole canvas.
+ * clickable — the core diagram recedes and an in-context panel opens in the
+ * middle of the meta-harness, running the corresponding network kernel
+ * (SessionNetwork / RepositoryGraph). Esc, clicking the chip again, or
+ * clicking outside the panel closes it.
  */
 export interface MetaHarnessLayersProps {
   /** Forwarded to the wrapper element. */
@@ -50,13 +51,14 @@ export interface MetaHarnessLayersProps {
 
 // ---------------------------------------------------------------------------
 // Palette (site dark theme). Accent is reserved for "alive" signals only:
-// the LLM pulse, the feed pulses travelling into the LLM, and the reify flash.
+// the feed pulses travelling into the LLM, the reify flash, the meta layer's
+// post-reify breathing, and hover/expand affordances on the clickable chips.
 // ---------------------------------------------------------------------------
 const BG = '#0a0a0a';
 const FILL = '#171717';
-const OUTLINE_META = '#262626';
+const OUTLINE_META_C: RGB = [38, 38, 38]; // #262626, breathes toward ACCENT
 const OUTLINE_HARNESS = '#404040';
-const OUTLINE_LLM = '#404040';
+const OUTLINE_LLM = '#262626'; // deliberately quiet — emphasis sits on the meta layer
 const TEXT_LABEL = '#a3a3a3';
 const TEXT_HEADER = '#e5e5e5';
 const ACCENT = '#d4b483';
@@ -168,6 +170,16 @@ function easeInOut(t: number): number {
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
+type RGB = readonly [number, number, number];
+const ACCENT_C: RGB = [212, 180, 131];
+const mixRgb = (a: RGB, b: RGB, t: number): RGB => [
+  lerp(a[0], b[0], t),
+  lerp(a[1], b[1], t),
+  lerp(a[2], b[2], t),
+];
+const rgbCss = (c: RGB) =>
+  `rgb(${Math.round(c[0])}, ${Math.round(c[1])}, ${Math.round(c[2])})`;
+
 interface Pt {
   x: number;
   y: number;
@@ -202,7 +214,7 @@ function drift(seed: number, elapsed: number, amp = 2.4): Pt {
 }
 
 // ---------------------------------------------------------------------------
-// Click-to-explode expansion
+// Click-to-expand in-context panel
 // ---------------------------------------------------------------------------
 type ExpandMode = 'sessions' | 'repositories';
 
@@ -213,14 +225,19 @@ interface ExpandState {
   open: boolean;
   /** Raw transition progress 0..1 (eased where used). */
   t: number;
-  /** Center of the clicked chip; the diagram scales toward it. */
-  at: Pt;
   /** `elapsed` at click time, so the kernel runs a fresh local clock. */
   kernelStart: number;
 }
 
 interface HitRect {
-  id: ExpandMode | 'back';
+  id: ExpandMode;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface Rect {
   x: number;
   y: number;
   w: number;
@@ -231,8 +248,11 @@ const CLICKABLE_CHIPS: ReadonlySet<string> = new Set([
   'sessions',
   'repositories',
 ]);
-const EXPAND_DUR = 0.7; // seconds for the explode/collapse transition
-const MONO_FONT = '12px ui-monospace, SFMono-Regular, Menlo, monospace';
+const EXPAND_DUR = 0.6; // seconds for the panel open/close transition
+const HOVER_DUR = 0.15; // seconds for the chip hover ease
+// In-context panel the network kernels render into (centered on the canvas).
+const PANEL = { w: 496, h: 384, r: 10, fill: '#111111', border: '#404040' };
+const PANEL_SMALL = { w: 520, h: 370 }; // fallback if chips would overlap
 
 // ---------------------------------------------------------------------------
 // Drawing primitives
@@ -374,19 +394,22 @@ export function MetaHarnessLayers({
   style,
 }: MetaHarnessLayersProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
-  // Normalized pointer position over the canvas (-1..1), for subtle parallax.
-  const pointer = useRef<Pt>({ x: 0, y: 0 });
-  // Click-to-explode state (refs: the rAF loop reads them, no re-render needed).
+  // Click-to-expand state (refs: the rAF loop reads them, no re-render needed).
   const expandRef = useRef<ExpandState>({
     mode: null,
     open: false,
     t: 0,
-    at: { x: 0, y: 0 },
     kernelStart: 0,
   });
   // Hit-test rects for clickable elements, rebuilt every drawn frame in
-  // logical canvas coordinates (chip drift + parallax included).
+  // logical canvas coordinates (chip drift included).
   const hitsRef = useRef<HitRect[]>([]);
+  // Which clickable chip the pointer is currently over (by chip id).
+  const hoveredRef = useRef<string | null>(null);
+  // Per-chip hover progress 0..1, integrated over HOVER_DUR each frame.
+  const hoverTRef = useRef<Record<string, number>>({});
+  // Panel rect (logical coords) while a panel is open, for outside-click close.
+  const panelRef = useRef<Rect | null>(null);
   const elapsedRef = useRef(0);
   // The layered diagram's own cycle clock; freezes while expanded so the
   // build-up resumes where it left off when the user comes back.
@@ -412,7 +435,7 @@ export function MetaHarnessLayers({
       const cx = w / 2;
       const cy = h / 2;
 
-      // ---- Explode transition bookkeeping ---------------------------------
+      // ---- Panel open/close transition bookkeeping ------------------------
       elapsedRef.current = elapsed;
       hitsRef.current = [];
       const exp = expandRef.current;
@@ -425,14 +448,6 @@ export function MetaHarnessLayers({
       // Freeze the diagram's cycle while expanded; resume on the way back.
       if (!exp.open) mainClockRef.current += dt;
 
-      // Parallax offset per layer depth (inner moves most).
-      const px = pointer.current.x;
-      const py = pointer.current.y;
-      const par = (depth: number): Pt => ({ x: px * depth, y: py * depth });
-      const parLLM = par(3.2);
-      const parHarness = par(2.0);
-      const parMeta = par(1.0);
-
       // Stage state (auto cycle runs on the freezable main clock).
       const pt = mainClockRef.current % CYCLE;
       const st: StageState =
@@ -442,39 +457,31 @@ export function MetaHarnessLayers({
           ? smoothstep(T.llmFadeIn[0], T.llmFadeIn[1], elapsed)
           : 1;
 
-      // ---- Layered diagram (skipped once fully exploded) ------------------
-      if (et < 0.999) {
-        // Fade as one unit and scale slightly toward the clicked chip.
-        ctx.save();
-        const zs = 1 + 0.1 * et;
-        ctx.translate(exp.at.x, exp.at.y);
-        ctx.scale(zs, zs);
-        ctx.translate(-exp.at.x, -exp.at.y);
-        fadeMul = 1 - et;
+      // Emphasis shift: once every meta chip has reified, attention moves to
+      // the meta layer (slow accent breathing on its border, brighter chip
+      // borders) while the core group dims slightly.
+      const metaEmph =
+        smoothstep(0.9, 1, Math.min(...st.reify)) * easeInOut(st.metaRect);
+      const metaBreath = metaEmph * (0.15 + 0.1 * Math.sin(elapsed * 1.1));
+      const metaStroke = rgbCss(mixRgb(OUTLINE_META_C, ACCENT_C, metaBreath));
+      // Core group (LLM + harness + connectors) alpha: full in stages 0/1,
+      // ~0.75 once the meta layer is up (stage 2).
+      const coreDim = lerp(1, 0.75, easeInOut(st.metaRect));
 
-      // Drifted centers.
-      const metaCenter: Pt = {
-        x: cx + parMeta.x,
-        y: cy + parMeta.y,
-      };
-      const harnessCenter: Pt = {
-        x: cx + parHarness.x,
-        y: cy + parHarness.y,
-      };
+      // Centers (idle drift only — no pointer parallax).
+      const metaCenter: Pt = { x: cx, y: cy };
+      const harnessCenter: Pt = { x: cx, y: cy };
       const llmDrift = drift(0.37, elapsed, 1.8);
-      const llmCenter: Pt = {
-        x: cx + llmDrift.x + parLLM.x,
-        y: cy + llmDrift.y + parLLM.y,
-      };
+      const llmCenter: Pt = { x: cx + llmDrift.x, y: cy + llmDrift.y };
 
-      // ---- Outer: meta-harness layer -------------------------------------
+      // ---- Outer: meta-harness layer (stays visible while expanded) -------
       drawLayer(
         ctx,
         metaCenter,
         META_RECT.w,
         META_RECT.h,
         22,
-        OUTLINE_META,
+        metaStroke,
         st.metaRect,
         'Meta-harness',
       );
@@ -497,38 +504,64 @@ export function MetaHarnessLayers({
       // Meta chips + connectors to the harness boundary.
       META_CHIPS.forEach((chip, i) => {
         const d = drift(chip.seed, elapsed);
-        const c: Pt = {
-          x: cx + chip.x + d.x + parMeta.x,
-          y: cy + chip.y + d.y + parMeta.y,
-        };
+        const c: Pt = { x: cx + chip.x + d.x, y: cy + chip.y + d.y };
         const reify = st.reify[i];
         const flash = st.flash[i];
         const alpha = st.metaChips;
         if (alpha <= 0.001) return;
 
-        // Connector from chip inner edge to the harness rect boundary.
-        const harnessEdge = rectEdge(
-          harnessCenter.x,
-          harnessCenter.y,
-          HARNESS_RECT.w / 2,
-          HARNESS_RECT.h / 2,
-          c,
-        );
-        const chipEdge = rectEdge(
-          c.x,
-          c.y,
-          META_CHIP.w / 2,
-          META_CHIP.h / 2,
-          harnessEdge,
-        );
-        drawConnector(ctx, chipEdge, harnessEdge, alpha * 0.5);
-
         const clickable = CLICKABLE_CHIPS.has(chip.id);
-        drawMetaChip(ctx, c, chip.label, alpha, reify, flash, clickable);
+        const isExpanded = exp.mode === chip.id;
 
-        // Register the chip for click/hover hit-testing (only when settled
-        // and the diagram is not exploded). Rect includes drift + parallax.
-        if (clickable && alpha > 0.9 && !exp.mode) {
+        // Connector from chip inner edge to the harness rect boundary; fades
+        // out during expansion since its target shrinks away with the core.
+        if (et < 0.999) {
+          const harnessEdge = rectEdge(
+            harnessCenter.x,
+            harnessCenter.y,
+            HARNESS_RECT.w / 2,
+            HARNESS_RECT.h / 2,
+            c,
+          );
+          const chipEdge = rectEdge(
+            c.x,
+            c.y,
+            META_CHIP.w / 2,
+            META_CHIP.h / 2,
+            harnessEdge,
+          );
+          drawConnector(ctx, chipEdge, harnessEdge, alpha * 0.5 * (1 - et));
+        }
+
+        // Hover progress, integrated toward the pointer state over HOVER_DUR.
+        let hover = 0;
+        if (clickable) {
+          const target = hoveredRef.current === chip.id ? 1 : 0;
+          const cur = hoverTRef.current[chip.id] ?? 0;
+          const next = clamp01(cur + (target ? dt : -dt) / HOVER_DUR);
+          hoverTRef.current[chip.id] = next;
+          hover = next * next * (3 - 2 * next); // smoothstep ease
+        }
+        // The clicked chip keeps the full accent treatment while its panel is
+        // open; the other meta chips recede behind it.
+        if (isExpanded) hover = Math.max(hover, et);
+        fadeMul = exp.mode && !isExpanded ? lerp(1, 0.35, et) : 1;
+        drawMetaChip(
+          ctx,
+          c,
+          chip.label,
+          alpha,
+          reify,
+          flash,
+          clickable,
+          hover,
+          metaEmph,
+        );
+        fadeMul = 1;
+
+        // Register for hit-testing (only once settled). While a panel is
+        // open, only the clicked chip stays live so a second click closes it.
+        if (clickable && alpha > 0.9 && (!exp.mode || isExpanded)) {
           hitsRef.current.push({
             id: chip.id as ExpandMode,
             x: c.x - META_CHIP.w / 2,
@@ -539,109 +572,194 @@ export function MetaHarnessLayers({
         }
       });
 
-      // ---- Middle: harness layer -----------------------------------------
-      drawLayer(
-        ctx,
-        harnessCenter,
-        HARNESS_RECT.w,
-        HARNESS_RECT.h,
-        18,
-        OUTLINE_HARNESS,
-        st.harnessRect,
-        'Harness',
-      );
-      // Harness sublabel under the header.
-      if (st.harnessRect > 0.4) {
+      // ---- Core group: harness + LLM (recedes while a panel is open) ------
+      if (et < 0.999) {
+        // Scale toward the canvas center and fade out as the panel opens;
+        // additionally dimmed to `coreDim` once the meta layer is up.
         ctx.save();
-        ga(ctx, easeInOut(st.harnessRect));
-        ctx.font = FONT_SUB;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = TEXT_LABEL;
-        ctx.fillText(
-          'Claude Code / Codex',
-          harnessCenter.x - HARNESS_RECT.w / 2 + 16,
-          harnessCenter.y - HARNESS_RECT.h / 2 + 36,
-        );
-        ctx.restore();
-      }
+        const cs = lerp(1, 0.6, et);
+        ctx.translate(cx, cy);
+        ctx.scale(cs, cs);
+        ctx.translate(-cx, -cy);
+        fadeMul = coreDim * (1 - et);
 
-      // Harness chips + feeding connectors with inward pulses.
-      HARNESS_CHIPS.forEach((chip) => {
-        const d = drift(chip.seed, elapsed);
-        const c: Pt = {
-          x: cx + chip.x + d.x + parHarness.x,
-          y: cy + chip.y + d.y + parHarness.y,
-        };
-        const alpha = st.harnessChips;
-        if (alpha <= 0.001) return;
-
-        const llmEdge = rectEdge(
-          llmCenter.x,
-          llmCenter.y,
-          LLM.w / 2,
-          LLM.h / 2,
-          c,
+        // Middle: harness layer.
+        drawLayer(
+          ctx,
+          harnessCenter,
+          HARNESS_RECT.w,
+          HARNESS_RECT.h,
+          18,
+          OUTLINE_HARNESS,
+          st.harnessRect,
+          'Harness',
         );
-        const chipEdge = rectEdge(
-          c.x,
-          c.y,
-          HARNESS_CHIP.w / 2,
-          HARNESS_CHIP.h / 2,
-          llmEdge,
-        );
-        drawConnector(ctx, chipEdge, llmEdge, alpha * 0.55);
-        // Feed pulse: dot travelling from chip -> LLM.
-        if (alpha > 0.15 && llmAlpha > 0.15) {
-          const speed = 0.45;
-          const tp = (elapsed * speed + chip.seed) % 1;
-          const pos: Pt = {
-            x: lerp(chipEdge.x, llmEdge.x, tp),
-            y: lerp(chipEdge.y, llmEdge.y, tp),
-          };
-          // Fade the dot in/out near the endpoints.
-          const dotA = Math.sin(tp * Math.PI) * alpha;
-          drawPulse(ctx, pos, 2.6, dotA * 0.9);
+        // Harness sublabel under the header.
+        if (st.harnessRect > 0.4) {
+          ctx.save();
+          ga(ctx, easeInOut(st.harnessRect));
+          ctx.font = FONT_SUB;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = TEXT_LABEL;
+          ctx.fillText(
+            'Claude Code / Codex',
+            harnessCenter.x - HARNESS_RECT.w / 2 + 16,
+            harnessCenter.y - HARNESS_RECT.h / 2 + 36,
+          );
+          ctx.restore();
         }
-        drawHarnessChip(ctx, c, chip.label, alpha);
-      });
 
-      // ---- Center: LLM node ----------------------------------------------
-      drawLLM(ctx, llmCenter, llmAlpha, elapsed);
+        // Harness chips + feeding connectors with inward pulses.
+        HARNESS_CHIPS.forEach((chip) => {
+          const d = drift(chip.seed, elapsed);
+          const c: Pt = { x: cx + chip.x + d.x, y: cy + chip.y + d.y };
+          const alpha = st.harnessChips;
+          if (alpha <= 0.001) return;
+
+          const llmEdge = rectEdge(
+            llmCenter.x,
+            llmCenter.y,
+            LLM.w / 2,
+            LLM.h / 2,
+            c,
+          );
+          const chipEdge = rectEdge(
+            c.x,
+            c.y,
+            HARNESS_CHIP.w / 2,
+            HARNESS_CHIP.h / 2,
+            llmEdge,
+          );
+          drawConnector(ctx, chipEdge, llmEdge, alpha * 0.55);
+          // Feed pulse: dot travelling from chip -> LLM.
+          if (alpha > 0.15 && llmAlpha > 0.15) {
+            const speed = 0.45;
+            const tp = (elapsed * speed + chip.seed) % 1;
+            const pos: Pt = {
+              x: lerp(chipEdge.x, llmEdge.x, tp),
+              y: lerp(chipEdge.y, llmEdge.y, tp),
+            };
+            // Fade the dot in/out near the endpoints.
+            const dotA = Math.sin(tp * Math.PI) * alpha;
+            drawPulse(ctx, pos, 2.6, dotA * 0.9);
+          }
+          drawHarnessChip(ctx, c, chip.label, alpha);
+        });
+
+        // Center: LLM node.
+        drawLLM(ctx, llmCenter, llmAlpha);
 
         fadeMul = 1;
         ctx.restore();
       }
 
-      // ---- Expanded mode: network kernel + back affordance ----------------
+      // ---- Expanded mode: in-context panel with the network kernel --------
+      panelRef.current = null;
       if (et > 0.001 && exp.mode) {
-        const kernelFrame = {
-          width: w,
-          height: h,
-          elapsed: elapsed - exp.kernelStart,
-          appear: et,
-        };
-        if (exp.mode === 'sessions') drawSessionNetwork(ctx, kernelFrame);
-        else drawRepositoryGraph(ctx, kernelFrame);
+        // Panel size: shrink (rather than move the chips) if the default
+        // footprint would collide with the top/bottom chip rows at y ±232.
+        const fits = PANEL.h / 2 <= 232 - META_CHIP.h / 2 - 6;
+        const pw = fits ? PANEL.w : PANEL_SMALL.w;
+        const ph = fits ? PANEL.h : PANEL_SMALL.h;
+        panelRef.current = { x: cx - pw / 2, y: cy - ph / 2, w: pw, h: ph };
 
-        if (et > 0.2) {
+        // Connector: clicked chip inner edge -> nearest panel edge, growing
+        // with the transition, with a small arrowhead at the panel end.
+        const expChipDef = META_CHIPS.find((cd) => cd.id === exp.mode);
+        if (expChipDef) {
+          const d = drift(expChipDef.seed, elapsed);
+          const chipC: Pt = {
+            x: cx + expChipDef.x + d.x,
+            y: cy + expChipDef.y + d.y,
+          };
+          const chipEdge = rectEdge(
+            chipC.x,
+            chipC.y,
+            META_CHIP.w / 2,
+            META_CHIP.h / 2,
+            { x: cx, y: cy },
+          );
+          const panelEdge = rectEdge(cx, cy, pw / 2, ph / 2, chipC);
+          const ex = lerp(chipEdge.x, panelEdge.x, et);
+          const ey = lerp(chipEdge.y, panelEdge.y, et);
+          const ang = Math.atan2(ey - chipEdge.y, ex - chipEdge.x);
+          const ah = 3.5;
           ctx.save();
-          ctx.globalAlpha = et;
-          ctx.font = MONO_FONT;
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = TEXT_LABEL;
-          ctx.fillText('← back', 20, 26);
+          ctx.globalAlpha = 0.5 * et;
+          ctx.strokeStyle = ACCENT;
+          ctx.lineWidth = 1;
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(chipEdge.x, chipEdge.y);
+          ctx.lineTo(ex, ey);
+          ctx.moveTo(
+            ex - ah * Math.cos(ang - 0.5),
+            ey - ah * Math.sin(ang - 0.5),
+          );
+          ctx.lineTo(ex, ey);
+          ctx.lineTo(
+            ex - ah * Math.cos(ang + 0.5),
+            ey - ah * Math.sin(ang + 0.5),
+          );
+          ctx.stroke();
           ctx.restore();
-          if (exp.open) {
-            hitsRef.current.push({ id: 'back', x: 12, y: 12, w: 84, h: 28 });
-          }
         }
+
+        // Panel body: grows from 0.85 scale while fading in.
+        const ps = lerp(0.85, 1, et);
+        const spw = pw * ps;
+        const sph = ph * ps;
+        const spx = cx - spw / 2;
+        const spy = cy - sph / 2;
+        ctx.save();
+        ctx.globalAlpha = et;
+        roundRectPath(ctx, spx, spy, spw, sph, PANEL.r * ps);
+        ctx.fillStyle = PANEL.fill;
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = PANEL.border;
+        ctx.stroke();
+        ctx.restore();
+
+        // Network kernel: clipped to the panel, letterbox-fitted from the
+        // kernels' native 960x600 logical space, running a fresh clock.
+        const ka = clamp01((et - 0.7) / 0.3);
+        if (ka > 0.001) {
+          ctx.save();
+          roundRectPath(ctx, spx, spy, spw, sph, PANEL.r * ps);
+          ctx.clip();
+          const ks = Math.min(spw / DEFAULT_WIDTH, sph / DEFAULT_HEIGHT);
+          ctx.translate(
+            spx + (spw - DEFAULT_WIDTH * ks) / 2,
+            spy + (sph - DEFAULT_HEIGHT * ks) / 2,
+          );
+          ctx.scale(ks, ks);
+          const kernelFrame = {
+            width: DEFAULT_WIDTH,
+            height: DEFAULT_HEIGHT,
+            elapsed: elapsed - exp.kernelStart,
+            appear: ka,
+          };
+          if (exp.mode === 'sessions') drawSessionNetwork(ctx, kernelFrame);
+          else drawRepositoryGraph(ctx, kernelFrame);
+          ctx.restore();
+        }
+
+        // Close hint below the panel's bottom-right corner.
+        ctx.save();
+        ctx.globalAlpha = et;
+        ctx.font = FONT_SUB;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#737373';
+        ctx.fillText('esc to close', spx + spw, spy + sph + 8);
+        ctx.restore();
       }
     },
   });
 
-  // Pointer parallax + hover cursor + click-to-explode + Escape-to-close.
+  // Hover tracking + click-to-expand + Escape-to-close.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -659,29 +777,38 @@ export function MetaHarnessLayers({
           p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h,
       );
     const onMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-      pointer.current = { x: clampPar(nx), y: clampPar(ny) };
-      canvas.style.cursor = hitAt(toLogical(e)) ? 'pointer' : '';
+      const hit = hitAt(toLogical(e));
+      hoveredRef.current = hit ? hit.id : null;
+      canvas.style.cursor = hit ? 'pointer' : '';
     };
     const onLeave = () => {
-      pointer.current = { x: 0, y: 0 };
+      hoveredRef.current = null;
       canvas.style.cursor = '';
     };
     const onClick = (e: MouseEvent) => {
-      const hit = hitAt(toLogical(e));
-      if (!hit) return;
+      const p = toLogical(e);
+      const hit = hitAt(p);
       const exp = expandRef.current;
-      if (hit.id === 'back') {
-        exp.open = false;
-      } else {
-        exp.mode = hit.id;
-        exp.open = true;
-        exp.at = { x: hit.x + hit.w / 2, y: hit.y + hit.h / 2 };
-        exp.kernelStart = elapsedRef.current;
+      if (exp.open) {
+        // While a panel is open only two targets are live: the clicked chip
+        // (toggles closed) and anywhere outside the panel (dismisses).
+        const panel = panelRef.current;
+        const inPanel =
+          panel !== null &&
+          p.x >= panel.x &&
+          p.x <= panel.x + panel.w &&
+          p.y >= panel.y &&
+          p.y <= panel.y + panel.h;
+        if ((hit && hit.id === exp.mode) || !inPanel) {
+          exp.open = false;
+          canvas.style.cursor = '';
+        }
+        return;
       }
-      canvas.style.cursor = '';
+      if (!hit) return;
+      exp.mode = hit.id;
+      exp.open = true;
+      exp.kernelStart = elapsedRef.current;
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') expandRef.current.open = false;
@@ -711,8 +838,6 @@ export function MetaHarnessLayers({
     </div>
   );
 }
-
-const clampPar = (v: number) => (v < -1 ? -1 : v > 1 ? 1 : v);
 
 // ---------------------------------------------------------------------------
 // Concrete node/chip renderers
@@ -790,6 +915,40 @@ function drawHarnessChip(
   ctx.restore();
 }
 
+/**
+ * Small expand affordance: two 45° arrows pointing to opposite corners of a
+ * ~9px box, permanently visible on clickable chips (brighter on hover).
+ */
+function drawExpandGlyph(
+  ctx: CanvasRenderingContext2D,
+  gx: number,
+  gy: number,
+  alpha: number,
+) {
+  const r = 4.5; // half of the glyph box
+  const hd = 3; // arrowhead tick length
+  ctx.save();
+  ga(ctx, alpha);
+  ctx.strokeStyle = TEXT_LABEL;
+  ctx.lineWidth = 1;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  // Arrow to the top-right corner.
+  ctx.moveTo(gx - 0.5, gy + 0.5);
+  ctx.lineTo(gx + r, gy - r);
+  ctx.moveTo(gx + r - hd, gy - r);
+  ctx.lineTo(gx + r, gy - r);
+  ctx.lineTo(gx + r, gy - r + hd);
+  // Arrow to the bottom-left corner.
+  ctx.moveTo(gx + 0.5, gy - 0.5);
+  ctx.lineTo(gx - r, gy + r);
+  ctx.moveTo(gx - r + hd, gy + r);
+  ctx.lineTo(gx - r, gy + r);
+  ctx.lineTo(gx - r, gy + r - hd);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawMetaChip(
   ctx: CanvasRenderingContext2D,
   center: Pt,
@@ -798,15 +957,25 @@ function drawMetaChip(
   reify: number,
   flash: number,
   clickable: boolean,
+  hover: number,
+  emph: number,
 ) {
   const eased = easeInOut(alpha);
+  ctx.save();
+  // Hover: gentle scale-up around the chip center.
+  if (hover > 0.001) {
+    const sc = lerp(1, 1.05, hover);
+    ctx.translate(center.x, center.y);
+    ctx.scale(sc, sc);
+    ctx.translate(-center.x, -center.y);
+  }
   const x = center.x - META_CHIP.w / 2;
   const y = center.y - META_CHIP.h / 2;
-  ctx.save();
   ga(ctx, eased);
 
   roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
-  ctx.fillStyle = FILL;
+  // Fill warms slightly toward the accent on hover.
+  ctx.fillStyle = rgbCss(mixRgb([23, 23, 23], [31, 28, 22], hover));
   ctx.fill();
 
   // Reify flash: accent-tinted fill + glow at the moment of solidifying.
@@ -831,18 +1000,19 @@ function drawMetaChip(
     ctx.stroke();
     ctx.restore();
   }
-  // Solid pass (fades in as reify -> 1), briefly accent-tinted by the flash.
+  // Solid pass (fades in as reify -> 1). Slightly brighter once the meta
+  // layer carries the emphasis, lerping to the accent on hover; briefly
+  // accent-tinted by the reify flash.
   if (reify > 0.001) {
     ctx.save();
     ga(ctx, eased * reify);
-    // Clickable chips keep a slightly brighter border once reified, as a
-    // subtle affordance hint.
+    const base: RGB = clickable ? [111, 111, 111] : [82, 82, 82];
+    const bright: RGB = clickable ? [130, 130, 130] : [96, 96, 96];
+    const solid = mixRgb(mixRgb(base, bright, emph), ACCENT_C, hover);
     ctx.strokeStyle =
       flash > 0.01
         ? `rgba(${ACCENT_RGB}, ${clamp01(0.5 + flash * 0.5)})`
-        : clickable
-          ? '#6f6f6f'
-          : '#525252';
+        : rgbCss(solid);
     roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
     ctx.stroke();
     ctx.restore();
@@ -854,60 +1024,34 @@ function drawMetaChip(
   ctx.fillStyle = reify > 0.5 ? TEXT_HEADER : TEXT_LABEL;
   ctx.fillText(label, center.x, center.y + 0.5);
 
-  // Understated "+" glyph right of the label on clickable, reified chips.
+  // Expand affordance at the right edge of clickable, reified chips.
   if (clickable && reify > 0.9) {
-    const tw = ctx.measureText(label).width;
-    ga(ctx, eased * 0.9);
-    ctx.font = FONT_SUB;
-    ctx.fillStyle = TEXT_LABEL;
-    ctx.fillText('+', center.x + tw / 2 + 9, center.y + 0.5);
+    drawExpandGlyph(
+      ctx,
+      x + META_CHIP.w - 13,
+      center.y,
+      eased * lerp(0.45, 1, hover),
+    );
   }
   ctx.restore();
 }
 
-function drawLLM(
-  ctx: CanvasRenderingContext2D,
-  center: Pt,
-  alpha: number,
-  elapsed: number,
-) {
+function drawLLM(ctx: CanvasRenderingContext2D, center: Pt, alpha: number) {
   if (alpha <= 0.001) return;
   const eased = easeInOut(alpha);
   const x = center.x - LLM.w / 2;
   const y = center.y - LLM.h / 2;
-  const pulse = 0.5 + 0.5 * Math.sin(elapsed * 1.6);
 
   ctx.save();
   ga(ctx, eased);
 
-  // Accent glow behind the node, breathing.
-  const glowR = LLM.w * 0.9;
-  const glow = ctx.createRadialGradient(
-    center.x,
-    center.y,
-    LLM.h * 0.3,
-    center.x,
-    center.y,
-    glowR,
-  );
-  glow.addColorStop(0, `rgba(${ACCENT_RGB}, ${0.1 + 0.12 * pulse})`);
-  glow.addColorStop(1, `rgba(${ACCENT_RGB}, 0)`);
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, glowR, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Node body.
+  // Node body — deliberately quiet (no glow, static neutral border): once the
+  // meta layer reifies, the emphasis lives out there, not on the LLM.
   roundRectPath(ctx, x, y, LLM.w, LLM.h, 14);
   ctx.fillStyle = FILL;
   ctx.fill();
-  ctx.lineWidth = 1.2;
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, ${0.45 + 0.35 * pulse})`;
-  ctx.stroke();
-  // Neutral inner border keeps it grounded with the rest of the palette.
   ctx.lineWidth = 1;
   ctx.strokeStyle = OUTLINE_LLM;
-  roundRectPath(ctx, x + 1.5, y + 1.5, LLM.w - 3, LLM.h - 3, 12);
   ctx.stroke();
 
   // Brand marks (Claude spark + OpenAI knot), a centered row above the label.
