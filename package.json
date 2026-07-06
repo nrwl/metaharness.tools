@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nx dev website",
     "build": "nx build website",
-    "preview": "nx preview website"
+    "preview": "nx preview website",
+    "storybook": "nx storybook animations"
   },
   "devEngines": {
     "packageManager": {
