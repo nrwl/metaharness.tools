@@ -10,6 +10,14 @@ const sections = [
   { id: 'sessions', label: 'Sessions become shared memory' },
   { id: 'landscape', label: 'The landscape' },
 ];
+
+const lens = sections.map((s) => s.label.length);
+const minLen = Math.min(...lens);
+const maxLen = Math.max(...lens);
+const barWidth = (label) => {
+  const t = maxLen === minLen ? 0 : (label.length - minLen) / (maxLen - minLen);
+  return Math.round((0.75 + t * 0.75) * 1000) / 1000;
+};
 ---
 
 <nav
@@ -26,6 +34,7 @@ const sections = [
             href={`#${s.id}`}
             data-rail-link={s.id}
             class="rail-item relative flex items-center"
+            style={`--bar-w: ${barWidth(s.label)}rem`}
           >
             <span class="rail-bar" />
             <span class="rail-label font-mono text-[11px] tracking-wide">
@@ -83,7 +92,7 @@ const sections = [
   }
   .rail-bar {
     display: block;
-    width: 1rem;
+    width: var(--bar-w);
     height: 1px;
     background: #3a3a3a;
     transition:
@@ -96,9 +105,6 @@ const sections = [
     top: 50%;
     transform: translateY(-50%);
     padding: 0.125rem 0.5rem;
-    border-radius: 0.1875rem;
-    /* pill only matters idle (active label over page content); on hover the panel covers */
-    background: rgba(10, 10, 10, 0.92);
     color: #737373;
     opacity: 0;
     pointer-events: none;
@@ -111,18 +117,11 @@ const sections = [
     pointer-events: auto;
   }
   a[data-active] .rail-bar {
-    width: 1.75rem;
-    background: #8a8a8a;
-  }
-  a[data-active] .rail-label {
-    color: #8a8a8a;
-    opacity: 1;
-  }
-  #section-rail:hover .rail-bar {
-    width: 1.25rem;
+    width: calc(var(--bar-w) + 0.5rem);
+    background: #a3a3a3;
   }
   #section-rail:hover a[data-active] .rail-bar {
-    width: 2rem;
+    width: calc(var(--bar-w) + 0.5rem);
     background: #f5f5f5;
   }
   #section-rail:hover .rail-label {
