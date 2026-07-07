@@ -1,5 +1,6 @@
 ---
 const sections = [
+  { id: 'what-is', label: 'Meta-harnesses elevate the primitive' },
   { id: 'single-repo', label: 'A harness lives inside one repo' },
   { id: 'work-shift', label: 'Your work no longer does' },
   { id: 'memory', label: 'The knowledge dissolves with the session' },
@@ -16,7 +17,8 @@ const sections = [
   aria-label="Page sections"
   class="rail-hidden fixed top-1/2 left-0 z-40 hidden -translate-y-1/2 lg:block"
 >
-  <ul class="rail-list flex flex-col">
+  <div class="rail-panel" aria-hidden="true"></div>
+  <ul class="rail-list relative flex flex-col">
     {
       sections.map((s) => (
         <li>
@@ -45,6 +47,25 @@ const sections = [
   #section-rail.rail-hidden {
     opacity: 0;
     pointer-events: none;
+  }
+  .rail-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 25rem;
+    background: rgba(10, 10, 10, 0.96);
+    border: 1px solid #1f1f1f;
+    border-left: 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #section-rail:hover .rail-panel {
+    opacity: 1;
+    pointer-events: auto;
   }
   .rail-list {
     gap: 0.1875rem;
@@ -76,6 +97,7 @@ const sections = [
     transform: translateY(-50%);
     padding: 0.125rem 0.5rem;
     border-radius: 0.1875rem;
+    /* pill only matters idle (active label over page content); on hover the panel covers */
     background: rgba(10, 10, 10, 0.92);
     color: #737373;
     opacity: 0;
