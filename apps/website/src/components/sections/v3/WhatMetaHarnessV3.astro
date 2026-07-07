@@ -1,13 +1,14 @@
 ---
-import { HarnessSwapDiagram, RepositoryGraph } from '@metaharness/animations';
+import {
+  FeedbackLoop,
+  HarnessSwapDiagram,
+  ProvisioningSetup,
+  RepositoryGraph,
+  SessionTimeline,
+} from '@metaharness/animations';
 import VizPlaceholder from '../../VizPlaceholder.astro';
 
 const capabilities = [
-  {
-    title: 'Provisioning and setup',
-    body: 'It provisions the repos an agent needs, clones them into isolated worktrees, and runs the setup scripts before work starts.',
-    viz: 'provisioning: repos clone into worktrees, setup scripts run, environment goes green',
-  },
   {
     title: 'Work across repositories at once',
     body: 'Agents edit several repos in parallel and open coordinated PRs, so the changes land together instead of breaking each other.',
@@ -21,7 +22,7 @@ const capabilities = [
   {
     title: 'Multiplayer and collaboration',
     body: "Shared, resumable sessions let you build on a coworker's, turning individual runs into org-wide memory.",
-    viz: 'shared sessions across coworkers forming an org-wide knowledge graph',
+    island: 'session-timeline',
   },
   {
     title: 'Organizational rules and policies',
@@ -31,7 +32,7 @@ const capabilities = [
   {
     title: 'Feedback loops',
     body: 'Wrap act, verify, and correct loops around your harness, from a single goal-driven run to scheduled and event-driven loops.',
-    viz: 'feedback loop: act, verify, correct cycling until a stop condition',
+    island: 'feedback-loop',
   },
 ];
 ---
@@ -106,6 +107,22 @@ const capabilities = [
         <RepositoryGraph client:visible className="mx-auto" />
       </div>
 
+      <div
+        class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+      >
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
+            Provisioning and setup
+          </h3>
+          <p class="mt-3 text-base leading-relaxed text-neutral-400">
+            It provisions the repos an agent needs, clones them into isolated
+            worktrees, and runs the setup scripts before work starts.
+          </p>
+        </div>
+
+        <ProvisioningSetup client:visible className="mx-auto" />
+      </div>
+
       {
         capabilities.map((item) => (
           <div class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
@@ -118,7 +135,13 @@ const capabilities = [
               </p>
             </div>
 
-            <VizPlaceholder label={item.viz} ratio="aspect-[16/9]" />
+            {item.island === 'session-timeline' ? (
+              <SessionTimeline client:visible className="mx-auto" />
+            ) : item.island === 'feedback-loop' ? (
+              <FeedbackLoop client:visible className="mx-auto" />
+            ) : (
+              <VizPlaceholder label={item.viz ?? ''} ratio="aspect-[16/9]" />
+            )}
           </div>
         ))
       }

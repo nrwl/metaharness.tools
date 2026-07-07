@@ -16,6 +16,13 @@ export {
 export type { SessionNetworkProps } from './animations/session-network';
 
 export {
+  SessionTimeline,
+  drawSessionTimeline,
+  SESSION_TIMELINE_CYCLE,
+} from './animations/session-timeline';
+export type { SessionTimelineProps } from './animations/session-timeline';
+
+export {
   RepositoryGraph,
   drawRepositoryGraph,
   REPOSITORY_GRAPH_CYCLE,
@@ -48,6 +55,15 @@ export type { MultiRepoCubesProps } from './animations/multi-repo-cubes';
 
 export { HarnessSwapDiagram } from './animations/harness-swap-diagram';
 export type { HarnessSwapDiagramProps } from './animations/harness-swap-diagram';
+
+export {
+  ProvisioningSetup,
+  PROVISIONING_SETUP_CYCLE,
+} from './animations/provisioning-setup';
+export type { ProvisioningSetupProps } from './animations/provisioning-setup';
+
+export { FeedbackLoop, FEEDBACK_LOOP_CYCLE } from './animations/feedback-loop';
+export type { FeedbackLoopProps } from './animations/feedback-loop';
 
 export {
   SessionDissolve,
