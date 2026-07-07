@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nx dev website",
     "build": "nx build website",
-    "preview": "nx preview website"
+    "preview": "nx preview website",
+    "storybook": "nx storybook animations"
   },
   "devEngines": {
     "packageManager": {
@@ -22,5 +23,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1"
   },
-  "nx": {}
+  "nx": {
+    "includedScripts": []
+  }
 }

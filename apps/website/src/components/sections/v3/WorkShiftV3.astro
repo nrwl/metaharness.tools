@@ -1,0 +1,99 @@
+---
+import { MultiRepoCubes } from '@metaharness/animations';
+
+const plumbing = [
+  {
+    num: '01',
+    title: 'Fetch and branch',
+    body: 'Pull the second repo and get it onto the right branch.',
+  },
+  {
+    num: '02',
+    title: 'Set up worktrees',
+    body: 'So agents work in each repo independently, without stepping on each other.',
+  },
+  {
+    num: '03',
+    title: 'Route context by hand',
+    body: 'CLAUDE.md files, custom scripts, copied-in markdown, so each agent knows what the other is doing.',
+  },
+  {
+    num: '04',
+    title: 'Land the PRs together',
+    body: 'Push the coordinated PRs so they land together instead of breaking each other.',
+  },
+];
+---
+
+<section id="work-shift" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        The nature of your work changes
+      </h2>
+    </div>
+
+    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+      <div class="lg:order-last">
+        <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+          <p>
+            AI agents take over more and more of the lower-level
+            implementation, and <mark>you level up a floor</mark>. Your focus
+            shifts to the system architecture, the integration points, the way
+            data flows end to end: not just what the frontend renders, but how
+            the backend retrieves and exposes it. Your work potentially
+            stretches across repositories.
+          </p>
+          <p>
+            Your scope is now the frontend, the backend, the design system. <strong
+              class="font-semibold text-neutral-50"
+              >By default, the harness still operates inside a single box, with
+              no notion of the repos around it.</strong
+            >
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <MultiRepoCubes client:visible playOnce className="mx-auto" />
+      </div>
+    </div>
+
+    <div class="mt-16 border-t border-neutral-900 pt-12">
+      <div class="max-w-3xl">
+        <h3
+          class="text-xl font-semibold tracking-tight text-neutral-50 sm:text-2xl"
+        >
+          You become the plumbing
+        </h3>
+        <p class="mt-4 text-lg leading-relaxed text-neutral-300">
+          The harness, though, is local to each of those repos. To make agents
+          work across the frontend and the backend at once, you do the
+          stitching yourself. Concretely, today:
+        </p>
+      </div>
+
+      <ol class="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+        {
+          plumbing.map((step) => (
+            <li class="flex gap-4">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 font-mono text-xs text-accent">
+                {step.num}
+              </span>
+              <div>
+                <h4 class="text-base font-semibold text-neutral-100">
+                  {step.title}
+                </h4>
+                <p class="mt-1 text-base leading-relaxed text-neutral-400">
+                  {step.body}
+                </p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>

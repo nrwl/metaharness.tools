@@ -1,1 +1,26 @@
 @import 'tailwindcss';
+
+@theme {
+  /* Desaturated amber accent, used sparingly for eyebrows and links. */
+  --color-accent: oklch(0.8 0.08 75);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background-color: var(--color-neutral-950);
+  color: var(--color-neutral-100);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle inline highlight. Not the default yellow-on-dark. */
+mark {
+  background-color: color-mix(in oklch, var(--color-accent) 16%, transparent);
+  color: inherit;
+  padding: 0 0.18em;
+  border-radius: 3px;
+}

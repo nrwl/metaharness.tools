@@ -1,0 +1,181 @@
+---
+const sections = [
+  { id: 'what-is', label: 'Meta-harnesses elevate the primitive' },
+  { id: 'single-repo', label: 'A harness lives inside one repo' },
+  { id: 'work-shift', label: 'The nature of your work changes' },
+  { id: 'memory', label: 'The knowledge dissolves with the session' },
+  { id: 'multiplayer', label: 'And real work is multiplayer' },
+  { id: 'answer', label: 'The answer: meta-harnesses' },
+  { id: 'capabilities', label: 'What a meta-harness does' },
+  { id: 'landscape', label: 'The landscape' },
+];
+
+const lens = sections.map((s) => s.label.length);
+const minLen = Math.min(...lens);
+const maxLen = Math.max(...lens);
+const barWidth = (label: string) => {
+  const t = maxLen === minLen ? 0 : (label.length - minLen) / (maxLen - minLen);
+  return Math.round((0.75 + t * 0.75) * 1000) / 1000;
+};
+---
+
+<nav
+  id="section-rail"
+  aria-label="Page sections"
+  class="rail-hidden fixed top-1/2 left-0 z-40 hidden -translate-y-1/2 lg:block"
+>
+  <div class="rail-panel" aria-hidden="true"></div>
+  <ul class="rail-list relative flex flex-col">
+    {
+      sections.map((s) => (
+        <li>
+          <a
+            href={`#${s.id}`}
+            data-rail-link={s.id}
+            class="rail-item relative flex items-center"
+            style={`--bar-w: ${barWidth(s.label)}rem`}
+          >
+            <span class="rail-bar" />
+            <span class="rail-label font-mono text-[11px] tracking-wide">
+              {s.label}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  #section-rail {
+    /* generous padding = hover zone opens before the pointer reaches the bars */
+    padding: 2.5rem 3.5rem 2.5rem 1.5rem;
+    transition: opacity 0.5s ease;
+  }
+  #section-rail.rail-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rail-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 25rem;
+    background: rgba(10, 10, 10, 0.96);
+    border: 1px solid #1f1f1f;
+    border-left: 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #section-rail:hover .rail-panel {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .rail-list {
+    gap: 0.1875rem;
+    transition: gap 0.25s ease;
+  }
+  #section-rail:hover .rail-list {
+    gap: 0.5rem;
+  }
+  .rail-item {
+    padding: 0.1875rem 0;
+    transition: padding 0.25s ease;
+  }
+  #section-rail:hover .rail-item {
+    padding: 0.3125rem 0;
+  }
+  .rail-bar {
+    display: block;
+    width: var(--bar-w);
+    height: 1px;
+    background: #3a3a3a;
+    transition:
+      width 0.3s ease,
+      background 0.3s ease;
+  }
+  .rail-label {
+    position: absolute;
+    left: 2.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.125rem 0.5rem;
+    color: #737373;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease;
+    white-space: nowrap;
+  }
+  #section-rail:hover .rail-label {
+    pointer-events: auto;
+  }
+  a[data-active] .rail-bar {
+    width: calc(var(--bar-w) + 0.5rem);
+    background: #a3a3a3;
+  }
+  #section-rail:hover a[data-active] .rail-bar {
+    width: calc(var(--bar-w) + 0.5rem);
+    background: #f5f5f5;
+  }
+  #section-rail:hover .rail-label {
+    opacity: 1;
+  }
+  #section-rail:hover a[data-active] .rail-label {
+    color: #e5e5e5;
+  }
+  #section-rail:hover a:hover .rail-label {
+    color: #f5f5f5;
+  }
+</style>
+
+<script>
+  const rail = document.getElementById('section-rail');
+  if (rail) {
+    const links = [...rail.querySelectorAll('a[data-rail-link]')];
+    const ids = links.map((l) => l.getAttribute('data-rail-link'));
+
+    const update = () => {
+      rail.classList.toggle(
+        'rail-hidden',
+        window.scrollY < window.innerHeight * 0.5
+      );
+      const mid = window.scrollY + window.innerHeight / 2;
+      let active = ids[0];
+      for (const id of ids) {
+        if (!id) continue;
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= mid) active = id;
+      }
+      for (const link of links) {
+        if (link.getAttribute('data-rail-link') === active) {
+          link.setAttribute('data-active', '');
+        } else {
+          link.removeAttribute('data-active');
+        }
+      }
+    };
+
+    let ticking = false;
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(() => {
+            update();
+            ticking = false;
+          });
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+</script>

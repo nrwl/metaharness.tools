@@ -1,0 +1,16 @@
+---
+interface Props {
+  label: string;
+  ratio?: string;
+}
+
+const { label, ratio = 'aspect-[16/9]' } = Astro.props;
+---
+
+<div
+  class={`${ratio} flex max-h-[28rem] w-full items-center justify-center rounded-lg border border-dashed border-neutral-800 bg-neutral-900/30`}
+>
+  <span class="px-6 text-center font-mono text-xs tracking-widest text-neutral-600">
+    viz: {label}
+  </span>
+</div>

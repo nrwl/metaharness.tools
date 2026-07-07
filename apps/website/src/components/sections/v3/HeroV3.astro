@@ -1,0 +1,66 @@
+---
+import { MetaHarnessLayers } from '@metaharness/animations';
+---
+
+<section
+  id="top"
+  class="relative flex min-h-[calc(100svh-61px)] flex-col px-6"
+>
+  <div class="flex flex-1 flex-col items-center justify-center text-center">
+    <h1
+      class="text-5xl font-semibold tracking-tight text-neutral-50 sm:text-7xl"
+    >
+      The Meta-Harness
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 sm:text-2xl">
+      Elevating your harness for the new era of agentic work.
+    </p>
+    <a
+      href="#what-is"
+      class="mt-12 inline-flex items-center gap-2 border border-neutral-800 px-6 py-3 font-mono text-xs uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-neutral-600 hover:text-neutral-50"
+    >
+      Enter
+      <span aria-hidden="true">&darr;</span>
+    </a>
+  </div>
+
+  <div
+    class="flex flex-col items-center gap-1 pb-6 font-mono text-xs uppercase tracking-[0.2em] text-neutral-600"
+  >
+    <span>Scroll down</span>
+    <span aria-hidden="true">&darr;</span>
+  </div>
+</section>
+
+<section id="what-is" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-5xl"
+      >
+        Meta-harnesses elevate the primitive.
+      </h2>
+      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+        A harness is a primitive. Claude Code, Codex, and OpenCode are excellent
+        at one thing: turning a model into an agent that acts inside a repo.
+        Your work, meanwhile, is moving up a level: the whole stack, many
+        repositories, many sessions at once. Everyone hand-stitches workflows to
+        bridge that gap, just like everyone built around React until the
+        meta-frameworks arrived. <strong class="font-semibold text-neutral-50"
+          >The meta-harness is that layer: batteries included for agentic
+          work.</strong
+        >
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-6 max-w-5xl md:mt-8">
+    <MetaHarnessLayers
+      client:visible
+      variant="simple"
+      playOnce
+      height={420}
+      className="mx-auto"
+    />
+  </div>
+</section>

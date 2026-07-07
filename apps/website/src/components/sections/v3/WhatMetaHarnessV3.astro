@@ -1,0 +1,116 @@
+---
+import { HarnessSwapDiagram } from '@metaharness/animations';
+import VizPlaceholder from '../../VizPlaceholder.astro';
+
+const capabilities = [
+  {
+    title: 'Repository knowledge',
+    body: 'The agent gets a map of the whole system: which repositories exist, how they relate, and where a change belongs.',
+    viz: 'repository graph: repos as nodes, dependency edges, one node highlighted in context',
+  },
+  {
+    title: 'Provisioning and setup',
+    body: 'It provisions the repos an agent needs, clones them into isolated worktrees, and runs the setup scripts before work starts.',
+    viz: 'provisioning: repos clone into worktrees, setup scripts run, environment goes green',
+  },
+  {
+    title: 'Work across repositories at once',
+    body: 'Agents edit several repos in parallel and open coordinated PRs, so the changes land together instead of breaking each other.',
+    viz: 'cross-repo change: orchestrator fans out to repos, coordinated PRs open together',
+  },
+  {
+    title: 'Session durability',
+    body: 'Sessions are captured, stored, and indexed for search, so agents can resume them or pull them in as context instead of starting cold.',
+    viz: 'session capture: sessions stored, indexed, and pulled back into new work',
+  },
+  {
+    title: 'Multiplayer and collaboration',
+    body: "Shared, resumable sessions let you build on a coworker's, turning individual runs into org-wide memory.",
+    viz: 'shared sessions across coworkers forming an org-wide knowledge graph',
+  },
+  {
+    title: 'Organizational rules and policies',
+    body: "Policy lives at the meta-harness layer, checking prompts, tools, and actions against your organization's rules in code.",
+    viz: 'policy layer inspecting prompts and actions against org rules',
+  },
+  {
+    title: 'Feedback loops',
+    body: 'Wrap act, verify, and correct loops around your harness, from a single goal-driven run to scheduled and event-driven loops.',
+    viz: 'feedback loop: act, verify, correct cycling until a stop condition',
+  },
+];
+---
+
+<section id="capabilities" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <p class="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+        Capabilities
+      </p>
+      <h2
+        class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        What a meta-harness does
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        The meta-harness is still a broad, fast-moving idea. There is no single
+        fixed definition yet, and
+        <strong class="font-semibold text-neutral-50"
+          >the exact properties depend on the type of meta-harness and the scope
+          it takes on.</strong
+        >
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        Right now the term is used in two ways.{' '}
+        <strong class="font-semibold text-neutral-50">Harness optimization</strong>
+        {' '}is the Stanford Meta-Harness usage: an outer-loop system searches
+        over the harness around an LLM, tuning prompts, memory, retrieval,
+        context formatting, tools, completion checks, and runtime code.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        <strong class="font-semibold text-neutral-50">Harness orchestration</strong>
+        {' '}is the industry usage: a control layer sits above many agent
+        harnesses and handles routing, composition, sandboxing, policy,
+        observability, and collaboration.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        Here are some of the potential capabilities.
+      </p>
+    </div>
+
+    <div class="mt-16 space-y-12">
+      <div
+        class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+      >
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
+            Swappable harnesses
+          </h3>
+          <p class="mt-3 text-base leading-relaxed text-neutral-400">
+            Wraps Claude Code, Codex, or OpenCode instead of replacing them, so
+            the harness underneath stays swappable.
+          </p>
+        </div>
+
+        <HarnessSwapDiagram client:visible />
+      </div>
+
+      {
+        capabilities.map((item) => (
+          <div class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+            <div>
+              <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
+                {item.title}
+              </h3>
+              <p class="mt-3 text-base leading-relaxed text-neutral-400">
+                {item.body}
+              </p>
+            </div>
+
+            <VizPlaceholder label={item.viz} ratio="aspect-[16/9]" />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

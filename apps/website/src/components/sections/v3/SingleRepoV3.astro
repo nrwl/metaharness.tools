@@ -1,0 +1,39 @@
+---
+import { SingleRepoCube } from '@metaharness/animations';
+---
+
+<section
+  id="single-repo"
+  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-20 md:py-28"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <h2
+        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        A harness lives inside one repo
+      </h2>
+    </div>
+
+    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+      <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+        <p>
+          You start a harness in a folder and it gets to work. That folder is
+          usually a repository, and inside it the agent reads the code, runs
+          the tests, makes the change, opens the PR.
+        </p>
+        <p>
+          But a harness has <mark>no notion of a repository</mark>. That is
+          not an accident or a flaw. The harness is the agentic primitive, and
+          it focuses on doing that one job well. Just like in the JavaScript
+          framework world, where React core limits itself to the UI layer and
+          rendering components.
+        </p>
+      </div>
+
+      <div>
+        <SingleRepoCube client:visible className="mx-auto" />
+      </div>
+    </div>
+  </div>
+</section>
