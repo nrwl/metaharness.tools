@@ -13,7 +13,7 @@ const sections = [
 const lens = sections.map((s) => s.label.length);
 const minLen = Math.min(...lens);
 const maxLen = Math.max(...lens);
-const barWidth = (label) => {
+const barWidth = (label: string) => {
   const t = maxLen === minLen ? 0 : (label.length - minLen) / (maxLen - minLen);
   return Math.round((0.75 + t * 0.75) * 1000) / 1000;
 };
@@ -148,6 +148,7 @@ const barWidth = (label) => {
       const mid = window.scrollY + window.innerHeight / 2;
       let active = ids[0];
       for (const id of ids) {
+        if (!id) continue;
         const el = document.getElementById(id);
         if (el && el.offsetTop <= mid) active = id;
       }
