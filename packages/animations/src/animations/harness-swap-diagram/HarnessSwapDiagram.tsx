@@ -1,4 +1,5 @@
 import { type CSSProperties } from 'react';
+import { useInView } from '../../lib/canvas';
 import claudeCodeLogo from './logos/claude-code.svg?url';
 import codexLogo from './logos/codex.svg?url';
 import opencodeLogo from './logos/opencode.svg?url';
@@ -12,10 +13,15 @@ export function HarnessSwapDiagram({
   className,
   style,
 }: HarnessSwapDiagramProps) {
+  // The card swap is a pure CSS keyframe loop; SSR renders it, so without a gate
+  // its clock runs from page load even off-screen. Hold it paused until in view.
+  const { ref, inView } = useInView<HTMLDivElement>();
   return (
     <div
+      ref={ref}
       className={`mh-harness-swap${className ? ` ${className}` : ''}`}
       style={style}
+      data-run={inView ? 'true' : 'false'}
       aria-label="Meta-harness layer swapping harnesses"
     >
       <div className="mh-harness-swap__meta-shell">
@@ -132,6 +138,12 @@ export function HarnessSwapDiagram({
           opacity: 0;
           transform: translateY(0.4rem) scale(0.98);
           animation: mh-harness-swap 7.2s infinite;
+          /* Held until the diagram scrolls into view (see data-run). */
+          animation-play-state: paused;
+        }
+
+        .mh-harness-swap[data-run='true'] .mh-harness-swap__card {
+          animation-play-state: running;
         }
 
         .mh-harness-swap__card img {

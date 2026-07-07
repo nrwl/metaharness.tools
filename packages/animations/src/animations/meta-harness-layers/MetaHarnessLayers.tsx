@@ -160,17 +160,17 @@ const META_CHIPS: ChipDef[] = [
 // ---------------------------------------------------------------------------
 // Timeline (seconds within one auto cycle). Eased throughout — no linear pops.
 // ---------------------------------------------------------------------------
-const CYCLE = 16;
+const CYCLE = 10;
 const T = {
-  llmFadeIn: [0, 0.7] as const, // driven by global elapsed, once
-  harnessRect: [2.5, 4.2] as const,
-  harnessChips: [3.2, 4.9] as const,
-  metaRect: [6.0, 7.6] as const,
-  metaChips: [6.7, 8.3] as const,
-  reifyStart: 8.5, // first chip solidifies here
-  reifyStagger: 0.42, // per-chip delay
-  reifyDur: 0.6, // dashed -> solid transition length
-  fadeOut: [14.5, 16.0] as const, // everything but the LLM fades away
+  llmFadeIn: [0, 0.6] as const, // driven by global elapsed, once
+  harnessRect: [0.9, 2.0] as const,
+  harnessChips: [1.5, 2.7] as const,
+  metaRect: [2.9, 4.0] as const,
+  metaChips: [3.6, 4.8] as const,
+  reifyStart: 5.0, // first chip solidifies here
+  reifyStagger: 0.28, // per-chip delay
+  reifyDur: 0.5, // dashed -> solid transition length
+  fadeOut: [8.2, 9.6] as const, // everything but the LLM fades away
 };
 
 // Compressed timeline for the 'simple' variant: a pure layering picture with
@@ -568,7 +568,7 @@ export function MetaHarnessLayers({
         ctx.textBaseline = 'middle';
         ctx.fillStyle = TEXT_LABEL;
         ctx.fillText(
-          'Organization layer',
+          'Capability augmentation layer',
           metaCenter.x - metaRect.w / 2 + 16,
           metaCenter.y - metaRect.h / 2 + 36,
         );
