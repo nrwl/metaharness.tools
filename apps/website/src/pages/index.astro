@@ -1,16 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
-import Hero from '../components/sections/Hero.astro';
-import Problem from '../components/sections/Problem.astro';
-import FrameworkWars from '../components/sections/FrameworkWars.astro';
-import WhatIsHarness from '../components/sections/WhatIsHarness.astro';
-import HarnessVsMeta from '../components/sections/HarnessVsMeta.astro';
-import WhatMetaAdds from '../components/sections/WhatMetaAdds.astro';
-import Recap from '../components/sections/Recap.astro';
-import Infrastructure from '../components/sections/Infrastructure.astro';
-import CloudAgents from '../components/sections/CloudAgents.astro';
-import Landscape from '../components/sections/Landscape.astro';
+import HeroV3 from '../components/sections/v3/HeroV3.astro';
+import SectionRailV3 from '../components/sections/v3/SectionRailV3.astro';
+import SingleRepoV3 from '../components/sections/v3/SingleRepoV3.astro';
+import WorkShiftV3 from '../components/sections/v3/WorkShiftV3.astro';
+import LostMemoryV3 from '../components/sections/v3/LostMemoryV3.astro';
+import AnswerV3 from '../components/sections/v3/AnswerV3.astro';
+import WhatMetaHarnessV3 from '../components/sections/v3/WhatMetaHarnessV3.astro';
+import CrossRepoV3 from '../components/sections/v3/CrossRepoV3.astro';
+import SessionsV3 from '../components/sections/v3/SessionsV3.astro';
+import LandscapeV3 from '../components/sections/v3/LandscapeV3.astro';
 import Finale from '../components/sections/Finale.astro';
 import Footer from '../components/sections/Footer.astro';
 
@@ -18,21 +18,31 @@ const title =
   'metaharness.tools | Everything you need to know about meta-harnesses';
 const description =
   'An educational reference on AI agent meta-harnesses: the layer above your harnesses that spans repos, sessions, and time. What they are, what they add, and why.';
+
+const navLinks = [
+  { href: '#work-shift', label: 'Your work' },
+  { href: '#memory', label: 'Memory' },
+  { href: '#answer', label: 'The answer' },
+  { href: '#capabilities', label: 'What it does' },
+  { href: '#cross-repo', label: 'Cross-repo' },
+  { href: '#sessions', label: 'Sessions' },
+  { href: '#landscape', label: 'Landscape' },
+];
 ---
 
 <Layout title={title} description={description}>
-  <Nav />
+  <Nav links={navLinks} />
   <main class="bg-neutral-950 text-neutral-100">
-    <Hero />
-    <Problem />
-    <FrameworkWars />
-    <WhatIsHarness />
-    <HarnessVsMeta />
-    <WhatMetaAdds />
-    <Recap />
-    <Infrastructure />
-    <CloudAgents />
-    <Landscape />
+    <SectionRailV3 />
+    <HeroV3 />
+    <SingleRepoV3 />
+    <WorkShiftV3 />
+    <LostMemoryV3 />
+    <AnswerV3 />
+    <WhatMetaHarnessV3 />
+    <CrossRepoV3 />
+    <SessionsV3 />
+    <LandscapeV3 />
     <Finale />
   </main>
   <Footer />
