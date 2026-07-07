@@ -54,5 +54,44 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
         >.
       </p>
     </figure>
+
+    <div id="multiplayer" class="mt-20">
+      <div class="max-w-3xl">
+        <h2
+          class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+        >
+          And real work is multiplayer
+        </h2>
+      </div>
+
+      <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+        <div class="lg:order-last">
+          <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+            <p>
+              That was one person. Now zoom out. Your teammates run their own
+              sessions against the same systems, all day, every day. Each
+              session solves problems, rules out approaches, encodes decisions.
+              And each one stays where it was born: <mark
+                >local to one machine, invisible to everyone else</mark
+              >.
+            </p>
+            <p>
+              Someone on your team has almost certainly already worked through
+              the exact area you are about to touch. You will never know. Their
+              agent learned nothing from yours, and yours learns nothing from
+              theirs. The organization runs hundreds of sessions and
+              accumulates nothing.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <VizPlaceholder
+            label="IsolatedSessions island: many teammates' session nodes appearing across the org, each staying an island, no edges"
+            ratio="aspect-[4/3]"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </section>
