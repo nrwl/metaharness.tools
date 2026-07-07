@@ -41,9 +41,9 @@ const START_CY = 190;
 const START_SIZE = 150;
 
 // Final loose-triangle layout (no overlap, no links).
-const FRONTEND = { cx: 150, cy: 175, size: 120, label: 'frontend' };
-const DESIGN = { cx: 320, cy: 245, size: 120, label: 'design-system' };
-const BACKEND = { cx: 495, cy: 175, size: 120, label: 'backend' };
+const FRONTEND = { cx: 122, cy: 165, size: 120, label: 'frontend' };
+const DESIGN = { cx: 320, cy: 262, size: 120, label: 'design-system' };
+const BACKEND = { cx: 518, cy: 165, size: 120, label: 'backend' };
 
 // Timeline within the cycle (seconds).
 const TRAVEL_START = 2.0;
@@ -86,7 +86,7 @@ function drawRepoCube(
     cy,
     size,
     angle,
-    tiltX: -0.25,
+    tiltX: 0.25,
     stroke: CUBE_STROKE,
     edgeAlpha: 0.6,
     faceFill: CUBE_FACE,

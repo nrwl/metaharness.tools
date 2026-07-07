@@ -41,9 +41,10 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 /**
- * Reduced variant for an earlier page section: just the layering (compact
- * empty harness rect + meta-harness with reifying chips), no LLM, no harness
- * chips, no interactivity. Runs on its own compressed cycle.
+ * Reduced variant for an earlier page section: a pure layering picture (the
+ * LLM node wrapped by a compact harness rect, wrapped by a compact
+ * meta-harness rect), no chips, no interactivity. Runs on its own compressed
+ * cycle; everything but the LLM fades at cycle end.
  */
 export const Simple: Story = {
   args: { variant: 'simple' },

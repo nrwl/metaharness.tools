@@ -48,8 +48,8 @@ const SANS = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
 const BASE_W = 960;
 const BASE_H = 600;
 
-const FOCAL: Pt = { x: 480, y: 300 };
-const BASE_R = 62;
+const FOCAL: Pt = { x: 480, y: 235 };
+const BASE_R = 88;
 
 interface RepoDef {
   id: string;
@@ -58,9 +58,9 @@ interface RepoDef {
 }
 
 const REPOS: RepoDef[] = [
-  { id: 'frontend', x: 360, y: 472 },
-  { id: 'design-system', x: 500, y: 522 },
-  { id: 'backend', x: 640, y: 478 },
+  { id: 'frontend', x: 250, y: 480 },
+  { id: 'design-system', x: 490, y: 545 },
+  { id: 'backend', x: 730, y: 488 },
 ];
 
 const REPO_EDGES = [

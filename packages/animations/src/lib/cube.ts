@@ -92,7 +92,7 @@ export interface CubeOpts {
   size: number;
   /** Y-axis rotation in radians (caller owns the clock). */
   angle: number;
-  tiltX?: number; // default -0.25 (slight top-down view)
+  tiltX?: number; // default 0.25 (slight top-down view)
   perspective?: number; // default 300
   stroke: string; // edge color
   edgeAlpha?: number; // default 0.65
@@ -113,7 +113,7 @@ export function drawCube(ctx: CanvasRenderingContext2D, opts: CubeOpts): void {
     cy,
     size,
     angle,
-    tiltX = -0.25,
+    tiltX = 0.25,
     perspective = 300,
     stroke,
     edgeAlpha = 0.65,
@@ -130,6 +130,14 @@ export function drawCube(ctx: CanvasRenderingContext2D, opts: CubeOpts): void {
 
   ctx.save();
 
+  // Depth cue: fade with distance so the near (top) geometry reads clearly
+  // and the far side recedes, disambiguating the transparent wireframe.
+  const zs = verts.map((v) => v.z);
+  const zMin = Math.min(...zs);
+  const zMax = Math.max(...zs);
+  const zRange = zMax - zMin || 1;
+  const depthMul = (z: number) => 1 - ((z - zMin) / zRange) * 0.62;
+
   if (faceFill) {
     // Filled faces, back to front by average depth.
     const sorted = CUBE_FACES.map((face) => ({
@@ -138,8 +146,8 @@ export function drawCube(ctx: CanvasRenderingContext2D, opts: CubeOpts): void {
     })).sort((a, b) => b.avgZ - a.avgZ);
 
     ctx.fillStyle = faceFill;
-    ctx.globalAlpha = faceFillAlpha * alpha;
-    for (const { face } of sorted) {
+    for (const { face, avgZ } of sorted) {
+      ctx.globalAlpha = faceFillAlpha * alpha * depthMul(avgZ);
       ctx.beginPath();
       ctx.moveTo(projected[face[0]].x, projected[face[0]].y);
       for (let i = 1; i < face.length; i++) {
@@ -150,11 +158,12 @@ export function drawCube(ctx: CanvasRenderingContext2D, opts: CubeOpts): void {
     }
   }
 
-  // All wireframe edges on top.
+  // All wireframe edges on top, near edges brighter than far ones.
   ctx.strokeStyle = stroke;
   ctx.lineWidth = 1;
-  ctx.globalAlpha = edgeAlpha * alpha;
   for (const [a, b] of CUBE_EDGES) {
+    ctx.globalAlpha =
+      edgeAlpha * alpha * depthMul((verts[a].z + verts[b].z) / 2);
     ctx.beginPath();
     ctx.moveTo(projected[a].x, projected[a].y);
     ctx.lineTo(projected[b].x, projected[b].y);

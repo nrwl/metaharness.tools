@@ -38,9 +38,9 @@ export interface MetaHarnessLayersProps {
   paused?: boolean;
   /**
    * 'full' (default) is the complete diagram described above. 'simple' is a
-   * reduced cut for an earlier page section: just the layering (compact empty
-   * harness rect + meta-harness with reifying chips), no LLM, no harness
-   * chips/pulses, and no interactivity.
+   * reduced cut for an earlier page section: a pure layering picture (the LLM
+   * node wrapped by a compact harness rect, wrapped by a compact meta-harness
+   * rect), with no chips, no pulses and no interactivity.
    */
   variant?: 'full' | 'simple';
   /**
@@ -109,10 +109,12 @@ const DEFAULT_HEIGHT = 600;
 
 const LLM = { w: 122, h: 96 };
 const HARNESS_RECT = { w: 476, h: 332 };
-// Compact harness rect for the 'simple' variant: the layer is empty inside
-// (no LLM, no harness chips), so the full footprint would read as dead space.
-const HARNESS_RECT_SIMPLE = { w: 320, h: 180 };
 const META_RECT = { w: 876, h: 556 };
+// Compact rects for the 'simple' variant: the harness still wraps the LLM
+// node but holds no chips, and the meta rect tightens around it so the
+// nesting reads as layers rather than a small box in a huge empty frame.
+const HARNESS_RECT_SIMPLE = { w: 300, h: 200 };
+const META_RECT_SIMPLE = { w: 560, h: 360 };
 const HARNESS_CHIP = { w: 116, h: 34 };
 const META_CHIP = { w: 128, h: 36 };
 
@@ -161,17 +163,14 @@ const T = {
   fadeOut: [14.5, 16.0] as const, // everything but the LLM fades away
 };
 
-// Compressed timeline for the 'simple' variant: no LLM or harness-chip beats,
-// so the build-up starts almost immediately and the cycle is shorter.
-const CYCLE_SIMPLE = 14;
+// Compressed timeline for the 'simple' variant: a pure layering picture with
+// no chip beats, so only the two rects build up and the cycle is shorter.
+// The LLM fade-in reuses T.llmFadeIn (driven by global elapsed, once).
+const CYCLE_SIMPLE = 12;
 const T_SIMPLE = {
-  harnessRect: [0.3, 1.7] as const,
-  metaRect: [2.2, 3.8] as const,
-  metaChips: [2.9, 4.5] as const,
-  reifyStart: 5.0, // first chip solidifies here
-  reifyStagger: 0.42, // per-chip delay
-  reifyDur: 0.6, // dashed -> solid transition length
-  fadeOut: [12.5, 14.0] as const, // everything fades away
+  harnessRect: [1.2, 2.6] as const,
+  metaRect: [3.2, 4.6] as const,
+  fadeOut: [10.5, 12.0] as const, // everything but the LLM fades away
 };
 
 // ---------------------------------------------------------------------------
@@ -391,8 +390,9 @@ function autoState(pt: number): StageState {
   return { harnessRect, harnessChips, metaRect, metaChips, reify, flash };
 }
 
-// Same shape as autoState but driven by the compressed T_SIMPLE beats; the
-// harness-chip channel is pinned to 0 since 'simple' never draws them.
+// Same shape as autoState but driven by the compressed T_SIMPLE beats. Both
+// chip channels are pinned to 0 ('simple' draws no chips at all) and reify is
+// held at 1 so the meta border's accent emphasis keys off the metaRect appear.
 function autoStateSimple(pt: number): StageState {
   const fadeOut = smoothstep(T_SIMPLE.fadeOut[0], T_SIMPLE.fadeOut[1], pt);
   const alive = 1 - fadeOut;
@@ -401,20 +401,15 @@ function autoStateSimple(pt: number): StageState {
     smoothstep(T_SIMPLE.harnessRect[0], T_SIMPLE.harnessRect[1], pt) * alive;
   const metaRect =
     smoothstep(T_SIMPLE.metaRect[0], T_SIMPLE.metaRect[1], pt) * alive;
-  const metaChips =
-    smoothstep(T_SIMPLE.metaChips[0], T_SIMPLE.metaChips[1], pt) * alive;
 
-  const reify: number[] = [];
-  const flash: number[] = [];
-  for (let i = 0; i < META_CHIPS.length; i++) {
-    const s = T_SIMPLE.reifyStart + i * T_SIMPLE.reifyStagger;
-    reify.push(smoothstep(s, s + T_SIMPLE.reifyDur, pt));
-    // Triangle flash peaking just after the chip solidifies.
-    const u = pt - s;
-    const f = u >= 0 && u < 0.5 ? 1 - Math.abs(u - 0.15) / 0.35 : 0;
-    flash.push(Math.max(0, f) * alive);
-  }
-  return { harnessRect, harnessChips: 0, metaRect, metaChips, reify, flash };
+  return {
+    harnessRect,
+    harnessChips: 0,
+    metaRect,
+    metaChips: 0,
+    reify: META_CHIPS.map(() => 1),
+    flash: META_CHIPS.map(() => 0),
+  };
 }
 
 function pinnedState(stage: 0 | 1 | 2): StageState {
@@ -444,9 +439,10 @@ export function MetaHarnessLayers({
   style,
 }: MetaHarnessLayersProps) {
   const simple = variant === 'simple';
-  // Variant-dependent geometry: the simple harness rect is compact since it
-  // holds no LLM or chips; meta connectors anchor to whichever rect is drawn.
+  // Variant-dependent geometry: 'simple' tightens both layer rects around the
+  // bare LLM node since no chips live inside or around them.
   const harnessRect = simple ? HARNESS_RECT_SIMPLE : HARNESS_RECT;
+  const metaRect = simple ? META_RECT_SIMPLE : META_RECT;
   const { ref, inView } = useInView<HTMLDivElement>();
   // Click-to-expand state (refs: the rAF loop reads them, no re-render needed).
   const expandRef = useRef<ExpandState>({
@@ -510,12 +506,15 @@ export function MetaHarnessLayers({
             ? autoStateSimple(pt)
             : autoState(pt)
           : pinnedState(pinnedStage);
-      // Simple never draws the harness chips or the LLM, whatever the stage
-      // pin says: zeroed alphas let the existing early-outs skip them.
-      if (simple) st.harnessChips = 0;
-      const llmAlpha = simple
-        ? 0
-        : pinnedStage === null
+      // Simple never draws the harness or meta chips, whatever the stage pin
+      // says: zeroed alphas let the existing early-outs skip them (and with
+      // them the meta connectors, reify cycle, flashes and hit registration).
+      if (simple) {
+        st.harnessChips = 0;
+        st.metaChips = 0;
+      }
+      const llmAlpha =
+        pinnedStage === null
           ? smoothstep(T.llmFadeIn[0], T.llmFadeIn[1], elapsed)
           : 1;
 
@@ -540,8 +539,8 @@ export function MetaHarnessLayers({
       drawLayer(
         ctx,
         metaCenter,
-        META_RECT.w,
-        META_RECT.h,
+        metaRect.w,
+        metaRect.h,
         22,
         metaStroke,
         st.metaRect,
@@ -557,8 +556,8 @@ export function MetaHarnessLayers({
         ctx.fillStyle = TEXT_LABEL;
         ctx.fillText(
           'Organization layer',
-          metaCenter.x - META_RECT.w / 2 + 16,
-          metaCenter.y - META_RECT.h / 2 + 36,
+          metaCenter.x - metaRect.w / 2 + 16,
+          metaCenter.y - metaRect.h / 2 + 36,
         );
         ctx.restore();
       }
@@ -572,8 +571,7 @@ export function MetaHarnessLayers({
         const alpha = st.metaChips;
         if (alpha <= 0.001) return;
 
-        // Simple variant is fully inert: no clickable chips, no expand glyph.
-        const clickable = !simple && CLICKABLE_CHIPS.has(chip.id);
+        const clickable = CLICKABLE_CHIPS.has(chip.id);
         const isExpanded = exp.mode === chip.id;
 
         // Connector from chip inner edge to the harness rect boundary; fades
