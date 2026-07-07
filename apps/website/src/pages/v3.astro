@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 import HeroV3 from '../components/sections/v3/HeroV3.astro';
+import SectionRailV3 from '../components/sections/v3/SectionRailV3.astro';
 import SingleRepoV3 from '../components/sections/v3/SingleRepoV3.astro';
 import WorkShiftV3 from '../components/sections/v3/WorkShiftV3.astro';
 import LostMemoryV3 from '../components/sections/v3/LostMemoryV3.astro';
@@ -30,6 +31,7 @@ const navLinks = [
 <Layout title={title} description={description} noindex={true}>
   <Nav links={navLinks} />
   <main class="bg-neutral-950 text-neutral-100">
+    <SectionRailV3 />
     <HeroV3 />
     <SingleRepoV3 />
     <WorkShiftV3 />
