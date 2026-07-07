@@ -7,9 +7,10 @@ import { drawIsolatedSessions } from './kernel';
  *
  * Several teammates each run agent sessions, but every session stays local to
  * that person's machine: bubbles tethered to a laptop glyph connect down to
- * the shared repos yet never to each other, and each one dissolves without
- * leaving anything behind. Thin React wrapper around the pure
- * {@link drawIsolatedSessions} kernel.
+ * the shared repos yet never to each other, and each one deflates into a
+ * small inert dot parked beside its owner's laptop, invisible to everyone
+ * else. Thin React wrapper around the pure {@link drawIsolatedSessions}
+ * kernel.
  */
 export interface IsolatedSessionsProps {
   /** Forwarded to the wrapper element. */

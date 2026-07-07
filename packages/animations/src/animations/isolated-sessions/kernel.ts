@@ -5,14 +5,17 @@
  * sessions, but every session is an island local to that person's machine.
  * Each person has a persistent laptop glyph; session bubbles pop up above it,
  * tethered to it by a faint dashed line, build a context graph, briefly
- * connect down to one shared repo, then the context implodes and the session
- * fades away without leaving anything behind. Later in the cycle some people
- * start a second session and the amnesia repeats. Crucially there are NO
- * session-to-session links of any kind: the repos below are shared, the
- * sessions never are.
+ * connect down to one shared repo, then the context implodes and the bubble
+ * deflates into a small inert dot that parks beside that person's laptop.
+ * Later in the cycle some people start a second session and another dot joins
+ * the row. Crucially there are NO session-to-session links of any kind and no
+ * links between the parked dots: the repos below are shared, the sessions
+ * never are, and each machine's dots stay invisible to everyone else until
+ * the whole-scene fade wipes them for the loop.
  *
  * Adapted from the session-memory kernel's before-side (repo row, session
- * halo, context graph, implode/forget), with the dock/morph plumbing removed.
+ * halo, context graph, implode), with the morph plumbing removed and the
+ * forget-fade replaced by the deflate-and-park behavior.
  */
 import {
   drift,
@@ -88,6 +91,15 @@ const PEOPLE: PersonDef[] = [
 /** Vertical offset from a person's home position to their laptop baseline. */
 const LAPTOP_DY = 108;
 
+/** Radius of a parked (fully deflated) session dot. */
+const DOT_R = 3;
+/** First dock spot: horizontal offset from the laptop center. */
+const DOCK_DX = 24;
+/** Each later run of the same person parks one step further right. */
+const DOCK_STEP = 10;
+/** Quiet fill for the inert parked dot. */
+const DOT_FILL = `rgba(${ACCENT_RGB}, 0.35)`;
+
 /**
  * Session runs. Staggered active windows keep 2-3 bubbles visible at once;
  * after the first wave dissolves, a second session appears for some people to
@@ -102,6 +114,16 @@ const RUNS: ReadonlyArray<{ person: number; start: number }> = [
   { person: 2, start: 8.5 },
   { person: 1, start: 9.5 },
 ];
+
+/** Per-person run counter: the Nth run of a person parks at the Nth spot. */
+const RUN_SEQ: number[] = (() => {
+  const counts = new Map<number, number>();
+  return RUNS.map((run) => {
+    const seq = counts.get(run.person) ?? 0;
+    counts.set(run.person, seq + 1);
+    return seq;
+  });
+})();
 
 // Inner context graph: 7 nodes seeded-random in a unit disc, fixed edges.
 const CTX_EDGES: ReadonlyArray<readonly [number, number]> = [
@@ -134,8 +156,10 @@ interface RunState {
   conn: number;
   /** Context implosion amount (dissolve inward). */
   implode: number;
-  /** Session-fade-away amount (amnesia). */
-  forget: number;
+  /** Deflate-and-park amount: 0 = full bubble, 1 = docked dot. */
+  dock: number;
+  /** Visibility of the session's accoutrements (badge, tether, connector). */
+  fade: number;
   x: number;
   y: number;
   scale: number;
@@ -148,22 +172,29 @@ function runState(i: number, t: number, elapsed: number): RunState {
   const build = smoothstep(0.25, 1.4, u);
   const conn = smoothstep(0.95, 1.5, u);
   const implode = smoothstep(1.6, 2.2, u);
-  const forget = smoothstep(2.0, 2.7, u);
+  const dock = smoothstep(1.9, 2.8, u);
+  const fade = 1 - smoothstep(1.9, 2.4, u);
 
   const person = PEOPLE[RUNS[i].person];
   const d = drift(0.21 + i * 0.19, elapsed, 1.6);
   const scale = lerp(0.82, 1, easeInOut(pop));
+
+  // Dock spot: a horizontal row beside the laptop, one step per earlier run.
+  const restX = person.x + DOCK_DX + RUN_SEQ[i] * DOCK_STEP;
+  const restY = person.y + LAPTOP_DY + 2;
+  const de = easeInOut(dock);
   return {
     u,
     pop,
     build,
     conn,
     implode,
-    forget,
-    x: person.x + d.x,
-    y: person.y + d.y,
+    dock,
+    fade,
+    x: lerp(person.x + d.x, restX, de),
+    y: lerp(person.y + d.y, restY, de),
     scale,
-    r: SESSION_R * scale,
+    r: lerp(SESSION_R * scale, DOT_R, de),
   };
 }
 
@@ -312,7 +343,7 @@ function drawTethers(
 ) {
   RUNS.forEach((run, i) => {
     const st = states[i];
-    const vis = st.pop * (1 - st.forget);
+    const vis = st.pop * st.fade;
     if (vis <= 0.001) return;
     const person = PEOPLE[run.person];
     const topY = person.y + LAPTOP_DY - 26; // just above the laptop screen
@@ -338,7 +369,7 @@ function drawRepoConnectors(
   RUNS.forEach((run, i) => {
     const st = states[i];
     if (st.conn <= 0.001) return;
-    const vis = st.conn * (1 - st.forget);
+    const vis = st.conn * st.fade;
     if (vis <= 0.001) return;
     const repo = REPOS[PEOPLE[run.person].repo];
     const ang = Math.atan2(repo.y - st.y, repo.x - st.x);
@@ -357,7 +388,7 @@ function drawRepoConnectors(
   });
 }
 
-// ---- Session bubble (halo + context graph + badge) ---------------------------
+// ---- Session bubble (halo + context graph + badge + parked dot) --------------
 function drawSession(
   ctx: CanvasRenderingContext2D,
   i: number,
@@ -366,29 +397,43 @@ function drawSession(
 ) {
   if (st.pop <= 0.001) return;
   const person = PEOPLE[RUNS[i].person];
-  const alpha = st.pop * (1 - st.forget) * A;
+  const alpha = st.pop * A;
   if (alpha <= 0.001) return;
 
   ctx.save();
 
-  // Halo: low-alpha accent glow.
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.07)`;
-  ctx.beginPath();
-  ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.05)`;
-  ctx.beginPath();
-  ctx.arc(st.x, st.y, st.r * 0.62, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.16)`;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-  ctx.stroke();
+  // Halo: low-alpha accent glow. It thins out as the bubble deflates; only
+  // the shrinking husk travels to the dock spot.
+  const husk = 1 - st.dock;
+  if (husk > 0.001) {
+    ctx.globalAlpha = alpha * husk;
+    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.07)`;
+    ctx.beginPath();
+    ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.05)`;
+    ctx.beginPath();
+    ctx.arc(st.x, st.y, st.r * 0.62, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.16)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Parked dot: solidifies as the husk deflates, then persists for the rest
+  // of the cycle. Quiet and inert: no glow, no label, no links to anything.
+  if (st.dock > 0.001) {
+    ctx.globalAlpha = alpha * st.dock;
+    ctx.fillStyle = DOT_FILL;
+    ctx.beginPath();
+    ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // Context graph inside the halo, built edge by edge, then imploding toward
-  // the center as the session dissolves.
+  // the center as the bubble deflates.
   const impl = st.implode;
   const nodeR = st.r * 0.78;
   const pts = CTX_GRAPHS[i].map((pt) => {
@@ -428,23 +473,25 @@ function drawSession(
     ctx.fill();
   });
 
-  // Initial-letter badge.
-  const bx = st.x - st.r * 0.78;
-  const by = st.y - st.r * 0.78;
-  const br = Math.max(6, 8 * st.scale);
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = FILL;
-  ctx.beginPath();
-  ctx.arc(bx, by, br, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.55)`;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.font = `9px ${MONO}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = TEXT_HEADER;
-  ctx.fillText(person.letter, bx, by + 0.5);
+  // Initial-letter badge: fades out during the deflate.
+  if (st.fade > 0.001) {
+    const bx = st.x - st.r * 0.78;
+    const by = st.y - st.r * 0.78;
+    const br = Math.max(6, 8 * st.scale);
+    ctx.globalAlpha = alpha * st.fade;
+    ctx.fillStyle = FILL;
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.55)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.font = `9px ${MONO}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = TEXT_HEADER;
+    ctx.fillText(person.letter, bx, by + 0.5);
+  }
 
   ctx.restore();
 }

@@ -22,7 +22,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Teammates' sessions come and go on their own machines, never linking up. */
+/** Sessions deflate into dots parked at each machine, never linking up. */
 export const Default: Story = {};
 
 /** Frozen on a single frame. */
