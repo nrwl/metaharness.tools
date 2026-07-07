@@ -61,7 +61,7 @@ export function drawSingleRepoCube(
     cy: CUBE_CY,
     size: CUBE_SIZE,
     angle: elapsed * 0.25,
-    tiltX: 0.25,
+    tiltX: -0.25,
     stroke: CUBE_STROKE,
     edgeAlpha: 0.6,
     faceFill: CUBE_FACE,

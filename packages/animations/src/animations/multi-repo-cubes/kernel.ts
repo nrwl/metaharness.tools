@@ -86,7 +86,7 @@ function drawRepoCube(
     cy,
     size,
     angle,
-    tiltX: 0.25,
+    tiltX: -0.25,
     stroke: CUBE_STROKE,
     edgeAlpha: 0.6,
     faceFill: CUBE_FACE,

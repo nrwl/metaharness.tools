@@ -92,7 +92,7 @@ export interface CubeOpts {
   size: number;
   /** Y-axis rotation in radians (caller owns the clock). */
   angle: number;
-  tiltX?: number; // default 0.25
+  tiltX?: number; // default -0.25 (slight top-down view)
   perspective?: number; // default 300
   stroke: string; // edge color
   edgeAlpha?: number; // default 0.65
@@ -113,7 +113,7 @@ export function drawCube(ctx: CanvasRenderingContext2D, opts: CubeOpts): void {
     cy,
     size,
     angle,
-    tiltX = 0.25,
+    tiltX = -0.25,
     perspective = 300,
     stroke,
     edgeAlpha = 0.65,
