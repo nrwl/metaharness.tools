@@ -5,58 +5,37 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
 const capabilities = [
   {
     title: 'Repository knowledge',
-    body: [
-      'A harness sees one repo at a time. A meta-harness gives the agent a map of the wider system: which repositories exist, how they depend on each other, and where a given concern actually lives.',
-      'With that graph in context, the agent can reason across boundaries and go find the right repository to read or work in, instead of assuming everything sits in one tree.',
-    ],
+    body: 'The agent gets a map of the whole system: which repositories exist, how they relate, and where a change belongs.',
     viz: 'repository graph: repos as nodes, dependency edges, one node highlighted in context',
   },
   {
     title: 'Provisioning and setup',
-    body: [
-      'Knowing about a repository is not the same as being ready to work in it. The meta-harness automates the setup: it provisions the repositories an agent needs, clones them into isolated worktrees, and runs the install and bootstrap scripts.',
-      'The manual dance of cloning, branching, and wiring up an environment becomes something that just happens before the agent starts.',
-    ],
+    body: 'It provisions the repos an agent needs, clones them into isolated worktrees, and runs the setup scripts before work starts.',
     viz: 'provisioning: repos clone into worktrees, setup scripts run, environment goes green',
   },
   {
     title: 'Work across repositories at once',
-    body: [
-      'Awareness is only half of it. A meta-harness lets agents change code across several repositories in one motion: spawning sub-agents to explore or edit each repo in parallel, then opening coordinated PRs so the changes land together instead of breaking each other.',
-      'This is what makes the cross-repo reality of modern work ergonomic rather than a manual stitching job.',
-    ],
+    body: 'Agents edit several repos in parallel and open coordinated PRs, so the changes land together instead of breaking each other.',
     viz: 'cross-repo change: orchestrator fans out to repos, coordinated PRs open together',
   },
   {
     title: 'Session durability',
-    body: [
-      'Sessions carry the reasoning behind a change, and today they vanish when the window closes. A meta-harness captures ongoing and finished sessions, stores them outside the context, and indexes them, vector search included, so they stay findable.',
-      'Agents can then pull a session back in to resume it, or reference it as prior context for new work, instead of starting cold every time.',
-    ],
+    body: 'Sessions are captured, stored, and indexed for search, so agents can resume them or pull them in as context instead of starting cold.',
     viz: 'session capture: sessions stored, indexed, and pulled back into new work',
   },
   {
     title: 'Multiplayer and collaboration',
-    body: [
-      "Real work in an organization is multiplayer. You do not only build on your own sessions, you extend a coworker's: to debug an issue, to understand the reasoning behind a feature, or to add something on top of it.",
-      'Shared, resumable sessions turn individual work into a hive mind, a shared memory the whole organization can draw on.',
-    ],
+    body: "Shared, resumable sessions let you build on a coworker's, turning individual runs into org-wide memory.",
     viz: 'shared sessions across coworkers forming an org-wide knowledge graph',
   },
   {
     title: 'Organizational rules and policies',
-    body: [
-      'Some concerns belong to the organization, not the individual run. A meta-harness enforces policy at its own layer, checking and verifying the prompts, tools, and actions agents use against the rules your organization sets.',
-      'Guardrails live in one place and apply to every harness underneath, in code rather than in a prompt each agent might ignore.',
-    ],
+    body: "Policy lives at the meta-harness layer, checking prompts, tools, and actions against your organization's rules in code.",
     viz: 'policy layer inspecting prompts and actions against org rules',
   },
   {
     title: 'Feedback loops',
-    body: [
-      'Agents do their best work in loops: repeating cycles of act, verify, and correct until a stop condition is met. A meta-harness makes those loops easy to wrap around your harness.',
-      'From a single goal-driven run to scheduled and event-driven loops, work keeps moving with less of a human in the moment.',
-    ],
+    body: 'Wrap act, verify, and correct loops around your harness, from a single goal-driven run to scheduled and event-driven loops.',
     viz: 'feedback loop: act, verify, correct cycling until a stop condition',
   },
 ];
@@ -101,42 +80,34 @@ const capabilities = [
 
     <div class="mt-16 space-y-12">
       <div
-        class="grid items-center gap-8 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,1fr)_18rem]"
+        class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
       >
-        <div class="max-w-xl">
+        <div>
           <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
             Swappable harnesses
           </h3>
           <p class="mt-3 text-base leading-relaxed text-neutral-400">
-            A meta-harness does not replace Claude Code, Codex, or OpenCode. It
-            wraps the harness and augments its capabilities.
-          </p>
-          <p class="mt-3 text-base leading-relaxed text-neutral-400">
-            Because that layer stays thin, <strong
-              class="font-medium text-neutral-200"
-              >the harness underneath becomes swappable</strong
-            >.
+            Wraps Claude Code, Codex, or OpenCode instead of replacing them, so
+            the harness underneath stays swappable.
           </p>
         </div>
 
-        <HarnessSwapDiagram client:visible style={{ minHeight: '13rem' }} />
+        <HarnessSwapDiagram client:visible />
       </div>
 
       {
         capabilities.map((item) => (
-          <div class="grid items-center gap-8 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <div class="max-w-xl">
+          <div class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+            <div>
               <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
                 {item.title}
               </h3>
-              {item.body.map((para) => (
-                <p class="mt-3 text-base leading-relaxed text-neutral-400">
-                  {para}
-                </p>
-              ))}
+              <p class="mt-3 text-base leading-relaxed text-neutral-400">
+                {item.body}
+              </p>
             </div>
 
-            <VizPlaceholder label={item.viz} ratio="aspect-square" />
+            <VizPlaceholder label={item.viz} ratio="aspect-[16/9]" />
           </div>
         ))
       }
