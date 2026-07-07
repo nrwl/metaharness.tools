@@ -18,20 +18,15 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
     <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
       <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
         <p>
-          Point a harness at a repository and it is remarkably capable inside
-          it. It reads the code, runs the tests, makes the change, opens the
-          PR. Within those walls it can act on almost anything.
+          You start a harness in a folder and it gets to work. That folder is
+          usually a repository, and inside it the agent is genuinely capable:
+          it reads the code, runs the tests, makes the change, opens the PR.
         </p>
         <p>
-          But everything it sees, everything it touches, and everything it
-          remembers <mark>ends at the repo boundary</mark>. The repository is
-          the harness's whole world. That is not an accident or a flaw: the
-          repo is the unit a harness is built to understand, the same way React
-          was built to render components and nothing more.
-        </p>
-        <p class="text-neutral-400">
-          Which was perfectly fine, as long as your work fit inside one repo
-          too.
+          But a harness has <mark>no notion of a repository</mark>. That is
+          not an accident or a flaw. The harness is the agentic primitive, and
+          it focuses on doing that one job well. React core draws the same
+          line: the UI layer, rendering components, nothing more.
         </p>
       </div>
 
