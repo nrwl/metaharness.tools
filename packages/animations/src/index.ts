@@ -79,6 +79,12 @@ export {
 } from './animations/isolated-sessions';
 export type { IsolatedSessionsProps } from './animations/isolated-sessions';
 
+export {
+  SessionDurability,
+  SESSION_DURABILITY_CYCLE,
+} from './animations/session-durability';
+export type { SessionDurabilityProps } from './animations/session-durability';
+
 export { PolicyGate, POLICY_GATE_CYCLE } from './animations/policy-gate';
 export type { PolicyGateProps } from './animations/policy-gate';
 

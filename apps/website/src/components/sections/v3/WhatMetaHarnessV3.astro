@@ -5,6 +5,7 @@ import {
   PolicyGate,
   ProvisioningSetup,
   RepositoryGraph,
+  SessionDurability,
   SessionTimeline,
 } from '@metaharness/animations';
 import VizPlaceholder from '../../VizPlaceholder.astro';
@@ -18,7 +19,7 @@ const capabilities = [
   {
     title: 'Session durability',
     body: 'Sessions are captured, stored, and indexed for search, so agents can resume them or pull them in as context instead of starting cold.',
-    viz: 'session capture: sessions stored, indexed, and pulled back into new work',
+    island: 'session-durability',
   },
   {
     title: 'Multiplayer and collaboration',
@@ -47,7 +48,7 @@ const capabilities = [
       <h2
         class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
       >
-        What a meta-harness does
+        Possible meta-harness capabilities
       </h2>
       <p class="mt-6 text-lg leading-relaxed text-neutral-300">
         The meta-harness is still a broad, fast-moving idea. There is no single
@@ -70,14 +71,19 @@ const capabilities = [
         harnesses and handles routing, composition, sandboxing, policy,
         observability, and collaboration.
       </p>
-      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
-        Here are some of the potential capabilities.
-      </p>
     </div>
 
-    <div class="mt-16 space-y-12">
+    <div class="mx-auto mt-16 flex max-w-3xl items-center gap-6">
+      <span class="h-px flex-1 bg-neutral-800" aria-hidden="true"></span>
+      <p class="text-center text-2xl italic text-neutral-200">
+        Here are some of the potential capabilities.
+      </p>
+      <span class="h-px flex-1 bg-neutral-800" aria-hidden="true"></span>
+    </div>
+
+    <div class="mt-12 space-y-12">
       <div
-        class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+        class="grid items-center gap-10 pt-2 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
       >
         <div>
           <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
@@ -138,6 +144,8 @@ const capabilities = [
 
             {item.island === 'session-timeline' ? (
               <SessionTimeline client:visible className="mx-auto" />
+            ) : item.island === 'session-durability' ? (
+              <SessionDurability client:visible className="mx-auto" />
             ) : item.island === 'feedback-loop' ? (
               <FeedbackLoop client:visible className="mx-auto" />
             ) : item.island === 'policy-gate' ? (
