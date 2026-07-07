@@ -52,7 +52,7 @@ const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const BASE_W = 960;
 const BASE_H = 600;
 
-const SESSION_R = 46;
+const SESSION_R = 62;
 
 interface RepoDef {
   id: string;
@@ -61,9 +61,9 @@ interface RepoDef {
 }
 
 const REPOS: RepoDef[] = [
-  { id: 'frontend', x: 360, y: 472 },
-  { id: 'design-system', x: 500, y: 522 },
-  { id: 'backend', x: 640, y: 478 },
+  { id: 'frontend', x: 250, y: 490 },
+  { id: 'design-system', x: 485, y: 550 },
+  { id: 'backend', x: 725, y: 500 },
 ];
 
 const REPO_EDGES = [
@@ -82,21 +82,21 @@ interface PersonDef {
 }
 
 const PEOPLE: PersonDef[] = [
-  { name: 'Juri', letter: 'J', x: 150, y: 236, repo: 0 },
-  { name: 'Victor', letter: 'V', x: 370, y: 222, repo: 2 },
-  { name: 'James', letter: 'J', x: 590, y: 246, repo: 1 },
-  { name: 'Nadia', letter: 'N', x: 810, y: 230, repo: 0 },
+  { name: 'Juri', letter: 'J', x: 130, y: 176, repo: 0 },
+  { name: 'Victor', letter: 'V', x: 365, y: 162, repo: 2 },
+  { name: 'James', letter: 'J', x: 600, y: 186, repo: 1 },
+  { name: 'Nadia', letter: 'N', x: 835, y: 170, repo: 0 },
 ];
 
 /** Vertical offset from a person's home position to their laptop baseline. */
-const LAPTOP_DY = 108;
+const LAPTOP_DY = 135;
 
 /** Radius of a parked (fully deflated) session dot. */
-const DOT_R = 3;
+const DOT_R = 4;
 /** First dock spot: horizontal offset from the laptop center. */
-const DOCK_DX = 24;
+const DOCK_DX = 30;
 /** Each later run of the same person parks one step further right. */
-const DOCK_STEP = 10;
+const DOCK_STEP = 12;
 /** Quiet fill for the inert parked dot. */
 const DOT_FILL = `rgba(${ACCENT_RGB}, 0.35)`;
 
@@ -267,21 +267,21 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.globalAlpha = pop * A;
     ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.12)`;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 17 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 20 * s, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = FILL;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 12 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 14 * s, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = ACCENT;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 8 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 10 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.font = `11px ${MONO}`;
+    ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = TEXT_LABEL;
-    ctx.fillText(repo.id, repo.x, repo.y + 28);
+    ctx.fillText(repo.id, repo.x, repo.y + 34);
     ctx.restore();
   });
 }
@@ -304,8 +304,8 @@ function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.lineWidth = 1;
 
     // Screen: rounded rect above the hinge.
-    const sw = 34 * s;
-    const sh = 22 * s;
+    const sw = 46 * s;
+    const sh = 30 * s;
     roundRectPath(ctx, x - sw / 2, by - sh, sw, sh, 3 * s);
     ctx.fillStyle = FILL;
     ctx.fill();
@@ -326,7 +326,7 @@ function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
 
     // Name under the machine.
     ctx.globalAlpha = pop * A;
-    ctx.font = `11px ${MONO}`;
+    ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = TEXT_LABEL;
@@ -466,7 +466,7 @@ function drawSession(
     ctx.arc(
       pt.x,
       pt.y,
-      Math.max(1.2, 3 * st.scale - impl * 1.5),
+      Math.max(1.4, 4 * st.scale - impl * 2),
       0,
       Math.PI * 2,
     );
