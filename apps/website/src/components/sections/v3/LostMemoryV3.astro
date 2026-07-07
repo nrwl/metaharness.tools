@@ -1,5 +1,5 @@
 ---
-import VizPlaceholder from '../../VizPlaceholder.astro';
+import { IsolatedSessions, SessionDissolve } from '@metaharness/animations';
 ---
 
 <section
@@ -38,10 +38,7 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
       </div>
 
       <div>
-        <VizPlaceholder
-          label="SessionDissolve island: you + agent on frontend cube, session fades out; then backend cube, fades again"
-          ratio="aspect-[16/10]"
-        />
+        <SessionDissolve client:visible className="mx-auto" />
       </div>
     </div>
 
@@ -86,10 +83,7 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
         </div>
 
         <div>
-          <VizPlaceholder
-            label="IsolatedSessions island: many teammates' session nodes appearing across the org, each staying an island, no edges"
-            ratio="aspect-[4/3]"
-          />
+          <IsolatedSessions client:visible className="mx-auto" />
         </div>
       </div>
     </div>

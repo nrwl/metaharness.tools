@@ -14,12 +14,17 @@ const meta = {
       control: { type: 'inline-radio' },
       options: ['auto', 0, 1, 2],
     },
+    variant: {
+      control: { type: 'inline-radio' },
+      options: ['full', 'simple'],
+    },
     width: { control: { type: 'number' } },
     height: { control: { type: 'number' } },
   },
   args: {
     paused: false,
     stage: 'auto',
+    variant: 'full',
   },
 } satisfies Meta<typeof MetaHarnessLayers>;
 
@@ -34,6 +39,15 @@ type Story = StoryObj<typeof meta>;
  * or clicking outside the panel closes it.
  */
 export const Default: Story = {};
+
+/**
+ * Reduced variant for an earlier page section: just the layering (compact
+ * empty harness rect + meta-harness with reifying chips), no LLM, no harness
+ * chips, no interactivity. Runs on its own compressed cycle.
+ */
+export const Simple: Story = {
+  args: { variant: 'simple' },
+};
 
 /** Stage 0 pinned: the bare LLM node, idle. */
 export const StageLLM: Story = {

@@ -32,6 +32,34 @@ export {
 } from './animations/session-memory';
 export type { SessionMemoryProps } from './animations/session-memory';
 
+export {
+  SingleRepoCube,
+  drawSingleRepoCube,
+  SINGLE_REPO_CUBE_CYCLE,
+} from './animations/single-repo-cube';
+export type { SingleRepoCubeProps } from './animations/single-repo-cube';
+
+export {
+  MultiRepoCubes,
+  drawMultiRepoCubes,
+  MULTI_REPO_CUBES_CYCLE,
+} from './animations/multi-repo-cubes';
+export type { MultiRepoCubesProps } from './animations/multi-repo-cubes';
+
+export {
+  SessionDissolve,
+  drawSessionDissolve,
+  SESSION_DISSOLVE_CYCLE,
+} from './animations/session-dissolve';
+export type { SessionDissolveProps } from './animations/session-dissolve';
+
+export {
+  IsolatedSessions,
+  drawIsolatedSessions,
+  ISOLATED_SESSIONS_CYCLE,
+} from './animations/isolated-sessions';
+export type { IsolatedSessionsProps } from './animations/isolated-sessions';
+
 // Shared canvas utilities, exposed for consumers that build their own canvases.
 export {
   setupCanvas,

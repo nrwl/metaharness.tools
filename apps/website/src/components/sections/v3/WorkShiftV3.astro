@@ -1,5 +1,5 @@
 ---
-import VizPlaceholder from '../../VizPlaceholder.astro';
+import { MultiRepoCubes } from '@metaharness/animations';
 
 const plumbing = [
   {
@@ -62,10 +62,7 @@ const plumbing = [
       </div>
 
       <div>
-        <VizPlaceholder
-          label="MultiRepoCubes island: frontend, backend, design system cubes, one agent in each, no connections"
-          ratio="aspect-[4/3]"
-        />
+        <MultiRepoCubes client:visible className="mx-auto" />
       </div>
     </div>
 

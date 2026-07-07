@@ -1,5 +1,5 @@
 ---
-import VizPlaceholder from '../../VizPlaceholder.astro';
+import { SingleRepoCube } from '@metaharness/animations';
 ---
 
 <section
@@ -32,10 +32,7 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
       </div>
 
       <div>
-        <VizPlaceholder
-          label="SingleRepoCube island: one frontend repo cube, AI agent glowing inside, hard boundary"
-          ratio="aspect-[4/3]"
-        />
+        <SingleRepoCube client:visible className="mx-auto" />
       </div>
     </div>
   </div>
