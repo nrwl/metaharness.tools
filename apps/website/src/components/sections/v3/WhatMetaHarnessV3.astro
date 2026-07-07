@@ -2,6 +2,7 @@
 import {
   FeedbackLoop,
   HarnessSwapDiagram,
+  PolicyGate,
   ProvisioningSetup,
   RepositoryGraph,
   SessionTimeline,
@@ -27,7 +28,7 @@ const capabilities = [
   {
     title: 'Organizational rules and policies',
     body: "Policy lives at the meta-harness layer, checking prompts, tools, and actions against your organization's rules in code.",
-    viz: 'policy layer inspecting prompts and actions against org rules',
+    island: 'policy-gate',
   },
   {
     title: 'Feedback loops',
@@ -139,6 +140,8 @@ const capabilities = [
               <SessionTimeline client:visible className="mx-auto" />
             ) : item.island === 'feedback-loop' ? (
               <FeedbackLoop client:visible className="mx-auto" />
+            ) : item.island === 'policy-gate' ? (
+              <PolicyGate client:visible className="mx-auto" />
             ) : (
               <VizPlaceholder label={item.viz ?? ''} ratio="aspect-[16/9]" />
             )}

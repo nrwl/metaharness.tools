@@ -79,6 +79,9 @@ export {
 } from './animations/isolated-sessions';
 export type { IsolatedSessionsProps } from './animations/isolated-sessions';
 
+export { PolicyGate, POLICY_GATE_CYCLE } from './animations/policy-gate';
+export type { PolicyGateProps } from './animations/policy-gate';
+
 // Shared canvas utilities, exposed for consumers that build their own canvases.
 export {
   setupCanvas,
