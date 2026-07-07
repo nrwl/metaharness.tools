@@ -1,13 +1,8 @@
 ---
-import { HarnessSwapDiagram } from '@metaharness/animations';
+import { HarnessSwapDiagram, RepositoryGraph } from '@metaharness/animations';
 import VizPlaceholder from '../../VizPlaceholder.astro';
 
 const capabilities = [
-  {
-    title: 'Repository knowledge',
-    body: 'The agent gets a map of the whole system: which repositories exist, how they relate, and where a change belongs.',
-    viz: 'repository graph: repos as nodes, dependency edges, one node highlighted in context',
-  },
   {
     title: 'Provisioning and setup',
     body: 'It provisions the repos an agent needs, clones them into isolated worktrees, and runs the setup scripts before work starts.',
@@ -93,6 +88,22 @@ const capabilities = [
         </div>
 
         <HarnessSwapDiagram client:visible />
+      </div>
+
+      <div
+        class="grid items-center gap-10 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+      >
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
+            Repository knowledge
+          </h3>
+          <p class="mt-3 text-base leading-relaxed text-neutral-400">
+            The agent gets a map of the whole system: which repositories exist,
+            how they relate, and where a change belongs.
+          </p>
+        </div>
+
+        <RepositoryGraph client:visible className="mx-auto" />
       </div>
 
       {

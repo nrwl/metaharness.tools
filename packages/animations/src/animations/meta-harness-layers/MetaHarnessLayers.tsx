@@ -816,7 +816,7 @@ export function MetaHarnessLayers({
             appear: ka,
           };
           if (exp.mode === 'sessions') drawSessionNetwork(ctx, kernelFrame);
-          else drawRepositoryGraph(ctx, kernelFrame);
+          else drawRepositoryGraph(ctx, kernelFrame, { labels: false });
           ctx.restore();
         }
 
