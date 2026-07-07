@@ -54,7 +54,13 @@ import { MetaHarnessLayers } from '@metaharness/animations';
     </div>
   </div>
 
-  <div class="mx-auto mt-14 max-w-5xl">
-    <MetaHarnessLayers client:visible variant="simple" className="mx-auto" />
+  <div class="mx-auto mt-6 max-w-5xl md:mt-8">
+    <MetaHarnessLayers
+      client:visible
+      variant="simple"
+      playOnce
+      height={420}
+      className="mx-auto"
+    />
   </div>
 </section>

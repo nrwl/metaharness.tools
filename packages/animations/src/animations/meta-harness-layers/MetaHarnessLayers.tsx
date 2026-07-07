@@ -36,6 +36,8 @@ export interface MetaHarnessLayersProps {
   className?: string;
   /** Freeze on a single static frame. */
   paused?: boolean;
+  /** Run once after entering the viewport, then freeze. */
+  playOnce?: boolean;
   /**
    * 'full' (default) is the complete diagram described above. 'simple' is a
    * reduced cut for an earlier page section: a pure layering picture (the LLM
@@ -432,6 +434,7 @@ function pinnedState(stage: 0 | 1 | 2): StageState {
 export function MetaHarnessLayers({
   className,
   paused = false,
+  playOnce = false,
   stage = 'auto',
   variant = 'full',
   width = DEFAULT_WIDTH,
@@ -477,6 +480,7 @@ export function MetaHarnessLayers({
     height,
     paused,
     active: inView,
+    stopAt: playOnce ? (simple ? T_SIMPLE.fadeOut[0] : T.fadeOut[0]) : undefined,
     draw: ({ ctx, width: w, height: h, elapsed, dt }) => {
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = BG;

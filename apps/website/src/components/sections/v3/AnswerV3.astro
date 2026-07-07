@@ -1,5 +1,5 @@
 ---
-import VizPlaceholder from '../../VizPlaceholder.astro';
+import { MetaHarnessLayers } from '@metaharness/animations';
 ---
 
 <section
@@ -31,10 +31,7 @@ import VizPlaceholder from '../../VizPlaceholder.astro';
     </div>
 
     <div class="mx-auto mt-14 max-w-5xl">
-      <VizPlaceholder
-        label="MetaHarnessLayers island: LLM core, harness ring, meta-harness ring closing the gaps"
-        ratio="aspect-[16/10]"
-      />
+      <MetaHarnessLayers client:visible className="mx-auto" />
     </div>
   </div>
 </section>

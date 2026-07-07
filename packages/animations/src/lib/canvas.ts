@@ -57,6 +57,8 @@ export interface UseCanvasAnimationOptions {
   paused?: boolean;
   /** When false, the loop stops (e.g. driven by {@link useInView}). */
   active?: boolean;
+  /** Stop and freeze once elapsed reaches this many seconds. */
+  stopAt?: number;
 }
 
 /**
@@ -70,7 +72,7 @@ export interface UseCanvasAnimationOptions {
 export function useCanvasAnimation(
   options: UseCanvasAnimationOptions,
 ): RefObject<HTMLCanvasElement | null> {
-  const { width, height, draw, paused = false, active = true } = options;
+  const { width, height, draw, paused = false, active = true, stopAt } = options;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Keep the latest draw callback without re-subscribing the effect each render.
@@ -103,6 +105,12 @@ export function useCanvasAnimation(
       return;
     }
 
+    if (stopAt !== undefined && elapsedRef.current >= stopAt) {
+      elapsedRef.current = stopAt;
+      paint(0);
+      return;
+    }
+
     let raf = 0;
     let last = performance.now();
 
@@ -110,15 +118,19 @@ export function useCanvasAnimation(
       // Clamp dt to avoid large jumps after tab-switch / long frames.
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
-      elapsedRef.current += dt;
+      const nextElapsed = elapsedRef.current + dt;
+      const shouldStop = stopAt !== undefined && nextElapsed >= stopAt;
+      const frameDt = shouldStop ? Math.max(0, stopAt - elapsedRef.current) : dt;
+      elapsedRef.current = shouldStop ? stopAt : nextElapsed;
       frameRef.current += 1;
-      paint(dt);
+      paint(frameDt);
+      if (shouldStop) return;
       raf = requestAnimationFrame(loop);
     };
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [width, height, paused, active]);
+  }, [width, height, paused, active, stopAt]);
 
   return canvasRef;
 }
