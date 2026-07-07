@@ -9,10 +9,16 @@
  * connected in any way: three boxes, three agents, no links. The scene holds
  * with slow per-cube rotation and breathing glows, fades out, and loops.
  *
- * Continuous motion (rotation, glow breathing) runs off the global `elapsed`
- * clock so nothing snaps at the loop point except the intended scene fade.
+ * Continuous motion (rotation, glow breathing) runs off `elapsed`. The reveal
+ * timeline can be clamped separately so page sections can hold the settled
+ * layout without freezing cube rotation.
  */
-import { clamp01, easeInOut, smoothstep, type KernelFrame } from '../../lib/anim';
+import {
+  clamp01,
+  easeInOut,
+  smoothstep,
+  type KernelFrame,
+} from '../../lib/anim';
 import { drawCube } from '../../lib/cube';
 
 /** Loop length in seconds. */
@@ -54,6 +60,9 @@ const GROW_DUR = 1.2;
 const FADE_OUT_START = 10.4;
 const FADE_OUT_END = 11.7;
 const FADE_IN_END = 0.5;
+
+/** Settled full-scene frame, before the loop fade-out starts. */
+export const MULTI_REPO_CUBES_HOLD_AT = FADE_OUT_START;
 
 interface RepoCubeState {
   cx: number;
@@ -127,9 +136,15 @@ function drawRepoCube(
 
 export function drawMultiRepoCubes(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  {
+    width,
+    height,
+    elapsed,
+    appear,
+    timelineElapsed = elapsed,
+  }: KernelFrame & { timelineElapsed?: number },
 ) {
-  const t = elapsed % MULTI_REPO_CUBES_CYCLE;
+  const t = timelineElapsed % MULTI_REPO_CUBES_CYCLE;
 
   // Scene-wide fade: ramp in at the top of each cycle, ramp out at the end.
   const fadeIn = smoothstep(0, FADE_IN_END, t);

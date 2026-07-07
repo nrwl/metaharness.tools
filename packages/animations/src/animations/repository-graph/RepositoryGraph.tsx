@@ -20,8 +20,6 @@ export interface RepositoryGraphProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function RepositoryGraph({
   className,
   paused = false,
@@ -38,8 +36,6 @@ export function RepositoryGraph({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
       drawRepositoryGraph(ctx, { width: w, height: h, elapsed, appear: 1 });
     },
   });

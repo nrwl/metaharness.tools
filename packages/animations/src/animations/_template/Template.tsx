@@ -6,9 +6,8 @@ import { useCanvasAnimation, useInView } from '../../lib/canvas';
  *
  * It is intentionally trivial: it exists only to prove the pipeline
  * (shared canvas utilities -> component -> Storybook story) end to end.
- * It fills the canvas with the site's dark background and draws a single
- * accent dot plus a label using {@link useCanvasAnimation} and
- * {@link useInView}. Real animation logic goes in your copy, not here.
+ * It draws a single accent dot plus a label using {@link useCanvasAnimation}
+ * and {@link useInView}. Real animation logic goes in your copy, not here.
  */
 export interface TemplateProps {
   /** Forwarded to the wrapper element. */
@@ -22,8 +21,6 @@ export interface TemplateProps {
 const WIDTH = 480;
 const HEIGHT = 300;
 
-// Site palette.
-const BG = '#0a0a0a';
 const ACCENT = '#d4b483'; // desaturated amber, ~oklch(0.8 0.08 75)
 const NEUTRAL = '#a3a3a3'; // neutral-400
 
@@ -36,9 +33,7 @@ export function Template({ className, paused = false, style }: TemplateProps) {
     paused,
     active: inView,
     draw: ({ ctx, width, height, elapsed }) => {
-      // Background.
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
 
       // Single accent dot with a subtle breathing opacity, just enough to
       // demonstrate the elapsed-time callback is driving frames.
@@ -51,8 +46,7 @@ export function Template({ className, paused = false, style }: TemplateProps) {
       ctx.globalAlpha = 1;
 
       // Label.
-      ctx.font =
-        '500 13px ui-sans-serif, system-ui, -apple-system, sans-serif';
+      ctx.font = '500 13px ui-sans-serif, system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = NEUTRAL;
       ctx.fillText('template', width / 2, height / 2 + 24);

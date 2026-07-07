@@ -46,6 +46,9 @@ export {
 } from './animations/multi-repo-cubes';
 export type { MultiRepoCubesProps } from './animations/multi-repo-cubes';
 
+export { HarnessSwapDiagram } from './animations/harness-swap-diagram';
+export type { HarnessSwapDiagramProps } from './animations/harness-swap-diagram';
+
 export {
   SessionDissolve,
   drawSessionDissolve,

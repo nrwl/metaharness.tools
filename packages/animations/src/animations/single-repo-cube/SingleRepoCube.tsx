@@ -21,8 +21,6 @@ export interface SingleRepoCubeProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function SingleRepoCube({
   className,
   paused = false,
@@ -39,8 +37,6 @@ export function SingleRepoCube({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
       drawSingleRepoCube(ctx, { width: w, height: h, elapsed, appear: 1 });
     },
   });

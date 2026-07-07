@@ -36,8 +36,6 @@ export interface SessionMemoryProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function SessionMemory({
   className,
   mode = 'auto',
@@ -56,8 +54,6 @@ export function SessionMemory({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
       const progress = morph.progressAt(elapsed);
       drawSessionMemory(ctx, {
         width: w,

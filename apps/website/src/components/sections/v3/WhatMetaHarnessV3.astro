@@ -1,0 +1,66 @@
+---
+import { HarnessSwapDiagram } from '@metaharness/animations';
+---
+
+<section id="capabilities" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="max-w-3xl">
+      <p class="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+        Capabilities
+      </p>
+      <h2
+        class="mt-4 text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+      >
+        What a meta-harness does
+      </h2>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        The meta-harness is still a broad, fast-moving idea. There is no single
+        fixed definition yet, and
+        <strong class="font-semibold text-neutral-50"
+          >the exact properties depend on the type of meta-harness and the scope
+          it takes on.</strong
+        >
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        Right now the term is used in two ways.{' '}
+        <strong class="font-semibold text-neutral-50">Harness optimization</strong>
+        {' '}is the Stanford Meta-Harness usage: an outer-loop system searches
+        over the harness around an LLM, tuning prompts, memory, retrieval,
+        context formatting, tools, completion checks, and runtime code.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        <strong class="font-semibold text-neutral-50">Harness orchestration</strong>
+        {' '}is the industry usage: a control layer sits above many agent
+        harnesses and handles routing, composition, sandboxing, policy,
+        observability, and collaboration.
+      </p>
+      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+        Here are some of the potential capabilities.
+      </p>
+    </div>
+
+    <div class="mt-16 space-y-12">
+      <div
+        class="grid items-center gap-8 border-t border-neutral-900 pt-12 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      >
+        <div class="max-w-xl">
+          <h3 class="text-lg font-semibold tracking-tight text-neutral-50">
+            Swappable harnesses
+          </h3>
+          <p class="mt-3 text-base leading-relaxed text-neutral-400">
+            A meta-harness does not replace Claude Code, Codex, or OpenCode. It
+            wraps the harness and augments its capabilities.
+          </p>
+          <p class="mt-3 text-base leading-relaxed text-neutral-400">
+            Because that layer stays thin, <strong
+              class="font-medium text-neutral-200"
+              >the harness underneath becomes swappable</strong
+            >.
+          </p>
+        </div>
+
+        <HarnessSwapDiagram client:visible style={{ minHeight: '13rem' }} />
+      </div>
+    </div>
+  </div>
+</section>

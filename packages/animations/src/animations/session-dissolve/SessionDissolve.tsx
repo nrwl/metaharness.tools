@@ -24,8 +24,6 @@ export interface SessionDissolveProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function SessionDissolve({
   className,
   paused = false,
@@ -42,8 +40,6 @@ export function SessionDissolve({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
       drawSessionDissolve(ctx, { width: w, height: h, elapsed, appear: 1 });
     },
   });

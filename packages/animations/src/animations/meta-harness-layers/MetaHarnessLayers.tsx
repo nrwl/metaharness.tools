@@ -17,19 +17,16 @@ import { drawRepositoryGraph } from '../repository-graph/kernel';
  *  - Middle: the harness (Claude Code / Codex) that feeds the LLM a system
  *    prompt, skills and MCP tools.
  *  - Outer: the meta-harness, whose signature idea is *reification*: objects a
- *    harness leaves un-reified (Organizations, Users, Sessions, Repositories,
- *    Code changes, Memories) start as dashed chips and solidify one by one,
- *    becoming first-class.
+ *    harness leaves un-reified (Organizations, Users, session tracking,
+ *    multi-repositories, Code changes, Memories) start as dashed chips and
+ *    solidify one by one, becoming first-class.
  *
  * Layout is data-first (see {@link HARNESS_CHIPS} / {@link META_CHIPS}) and
  * drawing is split into per-layer functions so pieces can later be extracted
  * as reusable components.
  *
- * Interactivity: once reified, the "Sessions" and "Repositories" chips are
- * clickable — the core diagram recedes and an in-context panel opens in the
- * middle of the meta-harness, running the corresponding network kernel
- * (SessionNetwork / RepositoryGraph). Esc, clicking the chip again, or
- * clicking outside the panel closes it.
+ * The diagram is intentionally non-interactive on the site: the chips are
+ * storyline labels, not controls.
  */
 export interface MetaHarnessLayersProps {
   /** Forwarded to the wrapper element. */
@@ -63,7 +60,6 @@ export interface MetaHarnessLayersProps {
 // the feed pulses travelling into the LLM, the reify flash, the meta layer's
 // post-reify breathing, and hover/expand affordances on the clickable chips.
 // ---------------------------------------------------------------------------
-const BG = '#0a0a0a';
 const FILL = '#171717';
 const OUTLINE_META_C: RGB = [38, 38, 38]; // #262626, breathes toward ACCENT
 const OUTLINE_HARNESS = '#404040';
@@ -73,10 +69,10 @@ const TEXT_HEADER = '#e5e5e5';
 const ACCENT = '#d4b483';
 const ACCENT_RGB = '212, 180, 131';
 
-const FONT_LABEL = "12px ui-sans-serif, system-ui, -apple-system, sans-serif";
+const FONT_LABEL = '12px ui-sans-serif, system-ui, -apple-system, sans-serif';
 const FONT_HEADER =
-  "600 13px ui-sans-serif, system-ui, -apple-system, sans-serif";
-const FONT_SUB = "11px ui-sans-serif, system-ui, -apple-system, sans-serif";
+  '600 13px ui-sans-serif, system-ui, -apple-system, sans-serif';
+const FONT_SUB = '11px ui-sans-serif, system-ui, -apple-system, sans-serif';
 
 // ---------------------------------------------------------------------------
 // Brand marks rendered inside the LLM node. Single-path icons from Simple
@@ -118,7 +114,7 @@ const META_RECT = { w: 876, h: 556 };
 const HARNESS_RECT_SIMPLE = { w: 300, h: 200 };
 const META_RECT_SIMPLE = { w: 560, h: 360 };
 const HARNESS_CHIP = { w: 116, h: 34 };
-const META_CHIP = { w: 128, h: 36 };
+const META_CHIP = { w: 168, h: 44 };
 
 interface ChipDef {
   id: string;
@@ -143,8 +139,20 @@ const HARNESS_CHIPS: ChipDef[] = [
 const META_CHIPS: ChipDef[] = [
   { id: 'organizations', label: 'Organizations', x: -152, y: -232, seed: 0.17 },
   { id: 'users', label: 'Users', x: 152, y: -232, seed: 0.41 },
-  { id: 'sessions', label: 'Sessions', x: -338, y: -44, seed: 0.63 },
-  { id: 'repositories', label: 'Repositories', x: 338, y: -44, seed: 0.29 },
+  {
+    id: 'sessions',
+    label: 'Session tracking\nand resuming',
+    x: -338,
+    y: -44,
+    seed: 0.63,
+  },
+  {
+    id: 'repositories',
+    label: 'Multi-Repositories',
+    x: 338,
+    y: -44,
+    seed: 0.29,
+  },
   { id: 'code-changes', label: 'Code changes', x: -152, y: 232, seed: 0.74 },
   { id: 'memories', label: 'Memories', x: 152, y: 232, seed: 0.91 },
 ];
@@ -238,7 +246,8 @@ function drift(seed: number, elapsed: number, amp = 2.4): Pt {
 }
 
 // ---------------------------------------------------------------------------
-// Click-to-expand in-context panel
+// Click-to-expand in-context panel. Disabled by default on the site because the
+// diagram should read as a static storyline layer, not a control surface.
 // ---------------------------------------------------------------------------
 type ExpandMode = 'sessions' | 'repositories';
 
@@ -268,10 +277,7 @@ interface Rect {
   h: number;
 }
 
-const CLICKABLE_CHIPS: ReadonlySet<string> = new Set([
-  'sessions',
-  'repositories',
-]);
+const CLICKABLE_CHIPS: ReadonlySet<string> = new Set();
 const EXPAND_DUR = 0.6; // seconds for the panel open/close transition
 const HOVER_DUR = 0.15; // seconds for the chip hover ease
 // In-context panel the network kernels render into (centered on the canvas).
@@ -373,7 +379,8 @@ function autoState(pt: number): StageState {
   const fadeOut = smoothstep(T.fadeOut[0], T.fadeOut[1], pt);
   const alive = 1 - fadeOut;
 
-  const harnessRect = smoothstep(T.harnessRect[0], T.harnessRect[1], pt) * alive;
+  const harnessRect =
+    smoothstep(T.harnessRect[0], T.harnessRect[1], pt) * alive;
   const harnessChips =
     smoothstep(T.harnessChips[0], T.harnessChips[1], pt) * alive;
   const metaRect = smoothstep(T.metaRect[0], T.metaRect[1], pt) * alive;
@@ -480,11 +487,13 @@ export function MetaHarnessLayers({
     height,
     paused,
     active: inView,
-    stopAt: playOnce ? (simple ? T_SIMPLE.fadeOut[0] : T.fadeOut[0]) : undefined,
+    stopAt: playOnce
+      ? simple
+        ? T_SIMPLE.fadeOut[0]
+        : T.fadeOut[0]
+      : undefined,
     draw: ({ ctx, width: w, height: h, elapsed, dt }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
 
       const cx = w / 2;
       const cy = h / 2;
@@ -839,8 +848,7 @@ export function MetaHarnessLayers({
     };
     const hitAt = (p: Pt) =>
       hitsRef.current.find(
-        (r) =>
-          p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h,
+        (r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h,
       );
     const onMove = (e: MouseEvent) => {
       const hit = hitAt(toLogical(e));
@@ -1088,7 +1096,12 @@ function drawMetaChip(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = reify > 0.5 ? TEXT_HEADER : TEXT_LABEL;
-  ctx.fillText(label, center.x, center.y + 0.5);
+  const lines = label.split('\n');
+  const lineHeight = 13;
+  const firstY = center.y - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((line, index) => {
+    ctx.fillText(line, center.x, firstY + index * lineHeight + 0.5);
+  });
 
   // Expand affordance at the right edge of clickable, reified chips.
   if (clickable && reify > 0.9) {

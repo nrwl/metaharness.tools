@@ -1,6 +1,6 @@
 import { type CSSProperties } from 'react';
 import { useCanvasAnimation, useInView } from '../../lib/canvas';
-import { drawMultiRepoCubes } from './kernel';
+import { drawMultiRepoCubes, MULTI_REPO_CUBES_HOLD_AT } from './kernel';
 
 /**
  * MultiRepoCubes
@@ -15,6 +15,8 @@ export interface MultiRepoCubesProps {
   className?: string;
   /** Freeze on a single static frame. */
   paused?: boolean;
+  /** Run the reveal once, then keep the settled cubes idling. */
+  playOnce?: boolean;
   /** Logical drawing width in CSS pixels. */
   width?: number;
   /** Logical drawing height in CSS pixels. */
@@ -22,11 +24,10 @@ export interface MultiRepoCubesProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function MultiRepoCubes({
   className,
   paused = false,
+  playOnce = false,
   width = 640,
   height = 420,
   style,
@@ -40,9 +41,15 @@ export function MultiRepoCubes({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
-      drawMultiRepoCubes(ctx, { width: w, height: h, elapsed, appear: 1 });
+      drawMultiRepoCubes(ctx, {
+        width: w,
+        height: h,
+        elapsed,
+        appear: 1,
+        timelineElapsed: playOnce
+          ? Math.min(elapsed, MULTI_REPO_CUBES_HOLD_AT)
+          : elapsed,
+      });
     },
   });
 

@@ -36,8 +36,6 @@ export interface CrossRepoFlowProps {
   style?: CSSProperties;
 }
 
-const BG = '#0a0a0a';
-
 export function CrossRepoFlow({
   className,
   mode = 'auto',
@@ -56,8 +54,6 @@ export function CrossRepoFlow({
     active: inView,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, w, h);
       const progress = morph.progressAt(elapsed);
       drawCrossRepoFlow(ctx, {
         width: w,
