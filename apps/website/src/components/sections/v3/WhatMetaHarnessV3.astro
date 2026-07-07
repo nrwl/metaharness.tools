@@ -1,5 +1,6 @@
 ---
 import {
+  CrossRepoShip,
   FeedbackLoop,
   HarnessSwapDiagram,
   PolicyGate,
@@ -10,11 +11,16 @@ import {
 } from '@metaharness/animations';
 import VizPlaceholder from '../../VizPlaceholder.astro';
 
-const capabilities = [
+const capabilities: {
+  title: string;
+  body: string;
+  island?: string;
+  viz?: string;
+}[] = [
   {
     title: 'Work across repositories at once',
     body: 'Agents edit several repos in parallel and open coordinated PRs, so the changes land together instead of breaking each other.',
-    viz: 'cross-repo change: orchestrator fans out to repos, coordinated PRs open together',
+    island: 'cross-repo-ship',
   },
   {
     title: 'Session durability',
@@ -142,7 +148,9 @@ const capabilities = [
               </p>
             </div>
 
-            {item.island === 'session-timeline' ? (
+            {item.island === 'cross-repo-ship' ? (
+              <CrossRepoShip client:visible className="mx-auto" />
+            ) : item.island === 'session-timeline' ? (
               <SessionTimeline client:visible className="mx-auto" />
             ) : item.island === 'session-durability' ? (
               <SessionDurability client:visible className="mx-auto" />

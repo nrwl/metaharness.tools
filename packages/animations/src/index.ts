@@ -33,6 +33,12 @@ export { CrossRepoFlow, drawCrossRepoFlow } from './animations/cross-repo-flow';
 export type { CrossRepoFlowProps } from './animations/cross-repo-flow';
 
 export {
+  CrossRepoShip,
+  CROSS_REPO_SHIP_CYCLE,
+} from './animations/cross-repo-ship';
+export type { CrossRepoShipProps } from './animations/cross-repo-ship';
+
+export {
   SessionMemory,
   drawSessionMemory,
   SESSION_MEMORY_CYCLE,
