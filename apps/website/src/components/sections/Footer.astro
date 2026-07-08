@@ -3,27 +3,26 @@
 ---
 
 <footer class="border-t border-neutral-200 px-6 py-12 dark:border-neutral-900">
-  <div
-    class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"
+  <a
+    href="https://trypolygraph.com"
+    target="_blank"
+    rel="noopener"
+    class="group mx-auto flex max-w-6xl items-center justify-center gap-2 text-sm text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-100"
   >
-    <p class="text-sm text-neutral-500 dark:text-neutral-500">
-      Made with love by
-      <a
-        href="https://trypolygraph.com"
-        target="_blank"
-        rel="noopener"
-        class="underline-offset-4 transition-colors hover:text-neutral-900 hover:underline dark:hover:text-neutral-100"
-      >
-        Polygraph
-      </a>
-    </p>
-    <a
-      href="https://trypolygraph.com"
-      target="_blank"
-      rel="noopener"
-      class="text-sm text-neutral-600 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-neutral-100"
-    >
-      trypolygraph.com
-    </a>
-  </div>
+    <span>Made with love by</span>
+    <img
+      src="/images/polygraph-lockup-light-bg.svg"
+      alt="Polygraph"
+      width="678"
+      height="137"
+      class="block h-5 w-auto opacity-80 transition-opacity group-hover:opacity-100 dark:hidden"
+    />
+    <img
+      src="/images/polygraph-lockup-dark-bg.svg"
+      alt="Polygraph"
+      width="678"
+      height="137"
+      class="hidden h-5 w-auto opacity-80 transition-opacity group-hover:opacity-100 dark:block"
+    />
+  </a>
 </footer>
