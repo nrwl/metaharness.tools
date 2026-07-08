@@ -21,22 +21,10 @@ import {
   type KernelFrame,
   type Pt,
 } from '../../lib/anim';
+import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 
 /** Seconds per loop. */
 export const SESSION_DISSOLVE_CYCLE = 11;
-
-// ---------------------------------------------------------------------------
-// Palette (site dark theme)
-// ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const NODE_TINT = '#e1cba8';
-const NODE_TINT_RGB = '225, 203, 168';
-const FILL = '#171717';
-const OUTLINE = '#262626';
-const LINE = '#404040';
-const TEXT_LABEL = '#a3a3a3';
-const TEXT_HEADER = '#e5e5e5';
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const SANS = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
@@ -139,7 +127,7 @@ function runState(i: number, t: number): RunState {
 // ---------------------------------------------------------------------------
 export function drawSessionDissolve(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
   const t = elapsed % SESSION_DISSOLVE_CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
@@ -153,11 +141,11 @@ export function drawSessionDissolve(
   ctx.scale(sc, sc);
   ctx.translate(-BASE_W / 2, -BASE_H / 2);
 
-  drawRepoLayer(ctx, t, A);
+  drawRepoLayer(ctx, t, A, palette);
   for (let i = 0; i < RUNS.length; i++) {
     const st = runState(i, t);
-    drawConnector(ctx, i, st, A);
-    drawSession(ctx, i, st, A);
+    drawConnector(ctx, i, st, A, palette);
+    drawSession(ctx, i, st, A, palette);
   }
 
   ctx.restore();
@@ -165,7 +153,17 @@ export function drawSessionDissolve(
 }
 
 // ---- Repo row --------------------------------------------------------------
-function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
+function drawRepoLayer(
+  ctx: CanvasRenderingContext2D,
+  t: number,
+  A: number,
+  palette: VizPalette,
+) {
+  const ACCENT = palette.accent;
+  const ACCENT_RGB = palette.accentRgb;
+  const FILL = palette.surface;
+  const LINE = palette.line;
+  const TEXT_LABEL = palette.textLabel;
   REPO_EDGES.forEach((edge, e) => {
     const reveal = smoothstep(0.7 + e * 0.3, 1.4 + e * 0.3, t);
     if (reveal <= 0.001) return;
@@ -225,6 +223,7 @@ function drawConnector(
   i: number,
   st: RunState,
   A: number,
+  palette: VizPalette,
 ) {
   if (st.conn <= 0.001) return;
   const vis = st.conn * (1 - st.forget);
@@ -233,7 +232,7 @@ function drawConnector(
   const ang = Math.atan2(repo.y - FOCAL.y, repo.x - FOCAL.x);
   ctx.save();
   ctx.globalAlpha = vis * 0.45 * A;
-  ctx.strokeStyle = ACCENT;
+  ctx.strokeStyle = palette.accent;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(
@@ -251,10 +250,19 @@ function drawSession(
   i: number,
   st: RunState,
   A: number,
+  palette: VizPalette,
 ) {
   if (st.pop <= 0.001) return;
   const alpha = st.pop * (1 - st.forget) * A;
   if (alpha <= 0.001) return;
+
+  const ACCENT_RGB = palette.accentRgb;
+  const NODE_TINT = palette.accentSoft;
+  const NODE_TINT_RGB = palette.nodeTintRgb;
+  const FILL = palette.surface;
+  const OUTLINE = palette.outline;
+  const LINE = palette.line;
+  const TEXT_HEADER = palette.textHeader;
 
   ctx.save();
 

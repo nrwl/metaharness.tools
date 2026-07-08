@@ -21,22 +21,147 @@ const { links = defaultLinks } = Astro.props;
 ---
 
 <header
-  class="sticky top-0 z-50 border-b border-neutral-900/80 bg-neutral-950/70 backdrop-blur"
+  class="sticky top-0 z-50 border-b border-neutral-200 bg-white/70 backdrop-blur dark:border-neutral-900/80 dark:bg-neutral-950/70"
 >
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
     <a
       href="#top"
-      class="font-mono text-sm font-medium tracking-tight text-neutral-100"
+      class="font-mono text-sm font-medium tracking-tight text-neutral-900 dark:text-neutral-100"
     >
       metaharness.tools
     </a>
-    <ul class="hidden items-center gap-6 text-sm text-neutral-400 md:flex">
+    <div class="flex items-center gap-2 md:gap-4">
+      <ul
+        class="hidden items-center gap-6 text-sm text-neutral-600 dark:text-neutral-400 md:flex"
+      >
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div
+        id="theme-switcher"
+        role="group"
+        aria-label="Theme"
+        class="inline-flex items-center gap-0.5 rounded-md border border-neutral-200 p-0.5 dark:border-neutral-800"
+      >
+        <button
+          type="button"
+          data-theme-value="light"
+          aria-label="Light theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-theme-value="system"
+          aria-label="System theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+            <path d="M8 21h8"></path>
+            <path d="M12 17v4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-theme-value="dark"
+          aria-label="Dark theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+      </div>
+      <button
+        id="mobile-menu-toggle"
+        type="button"
+        aria-label="Toggle navigation menu"
+        aria-controls="mobile-nav-panel"
+        aria-expanded="false"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none md:hidden dark:text-neutral-400 dark:hover:text-neutral-100 dark:focus-visible:ring-offset-neutral-950"
+      >
+        <svg
+          class="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+  <div
+    id="mobile-nav-panel"
+    class="hidden border-t border-neutral-200 bg-white/95 dark:border-neutral-900/80 dark:bg-neutral-950/95 md:hidden"
+  >
+    <ul
+      class="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-3 text-sm text-neutral-600 dark:text-neutral-400"
+    >
       {
         links.map((link) => (
           <li>
             <a
               href={link.href}
-              class="transition-colors hover:text-neutral-100"
+              class="block rounded-md px-2 py-2 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:hover:bg-neutral-900 dark:hover:text-neutral-100"
             >
               {link.label}
             </a>
@@ -44,5 +169,89 @@ const { links = defaultLinks } = Astro.props;
         ))
       }
     </ul>
-  </nav>
+  </div>
 </header>
+
+<script is:inline>
+  (function () {
+    var KEY = 'theme';
+    var mql = window.matchMedia('(prefers-color-scheme: dark)');
+    var buttons = Array.prototype.slice.call(
+      document.querySelectorAll('#theme-switcher [data-theme-value]'),
+    );
+    if (!buttons.length) return;
+
+    function stored() {
+      try {
+        return localStorage.getItem(KEY) || 'system';
+      } catch (e) {
+        return 'system';
+      }
+    }
+    function apply(mode) {
+      var dark = mode === 'dark' || (mode === 'system' && mql.matches);
+      document.documentElement.classList.toggle('dark', dark);
+    }
+    function reflect(mode) {
+      buttons.forEach(function (b) {
+        var on = b.getAttribute('data-theme-value') === mode;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (on) b.setAttribute('data-active', '');
+        else b.removeAttribute('data-active');
+      });
+    }
+    function set(mode) {
+      try {
+        localStorage.setItem(KEY, mode);
+      } catch (e) {}
+      apply(mode);
+      reflect(mode);
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        set(b.getAttribute('data-theme-value'));
+      });
+    });
+
+    // Follow OS changes only while in system mode.
+    mql.addEventListener('change', function () {
+      if (stored() === 'system') apply('system');
+    });
+
+    reflect(stored());
+  })();
+
+  (function () {
+    var button = document.getElementById('mobile-menu-toggle');
+    var panel = document.getElementById('mobile-nav-panel');
+    if (!button || !panel) return;
+
+    function setOpen(open) {
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.classList.toggle('hidden', !open);
+    }
+
+    button.addEventListener('click', function () {
+      setOpen(button.getAttribute('aria-expanded') !== 'true');
+    });
+
+    panel.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        setOpen(false);
+      });
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') setOpen(false);
+    });
+
+    window.addEventListener(
+      'resize',
+      function () {
+        if (window.matchMedia('(min-width: 768px)').matches) setOpen(false);
+      },
+      { passive: true },
+    );
+  })();
+</script>

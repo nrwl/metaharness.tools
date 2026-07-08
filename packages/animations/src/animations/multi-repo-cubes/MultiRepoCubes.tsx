@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 import { useCanvasAnimation, useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import { drawMultiRepoCubes, MULTI_REPO_CUBES_HOLD_AT } from './kernel';
 
 /**
@@ -33,12 +34,16 @@ export function MultiRepoCubes({
   style,
 }: MultiRepoCubesProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
+  const palette = usePalette();
+  const mode = useThemeMode();
 
   const canvasRef = useCanvasAnimation({
     width,
     height,
     paused,
     active: inView,
+    // Repaint frozen/paused frames the moment the theme flips.
+    redrawKey: mode,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
       drawMultiRepoCubes(ctx, {
@@ -46,6 +51,7 @@ export function MultiRepoCubes({
         height: h,
         elapsed,
         appear: 1,
+        palette,
         timelineElapsed: playOnce
           ? Math.min(elapsed, MULTI_REPO_CUBES_HOLD_AT)
           : elapsed,
@@ -61,7 +67,12 @@ export function MultiRepoCubes({
     >
       <canvas
         ref={canvasRef}
-        style={{ display: 'block', width: '100%', height: 'auto' }}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '100%',
+        }}
       />
     </div>
   );

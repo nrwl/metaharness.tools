@@ -6,9 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import {
   CLAUDE,
   CONSOLE_FONT,
+  consoleVars,
   Cursor,
   FPS,
   FrameProvider,
@@ -59,25 +61,33 @@ const MASCOT = [
   '.XXXXXX.',
   '.X.XX.X.',
 ];
-const Mascot: React.FC<{ accent: string; cell?: number }> = ({ accent, cell = 6 }) => (
+const Mascot: React.FC<{ accent: string; cell?: number }> = ({
+  accent,
+  cell = 6,
+}) => (
   <svg
     width={MASCOT[0].length * cell}
     height={MASCOT.length * cell}
     style={{ display: 'block', shapeRendering: 'crispEdges', flex: 'none' }}
   >
     {MASCOT.flatMap((row, r) =>
-      row.split('').map((c, x) =>
-        c === '.' ? null : (
-          <rect
-            key={`${r}-${x}`}
-            x={x * cell}
-            y={r * cell}
-            width={cell}
-            height={cell}
-            fill={c === 'O' ? '#171310' : accent}
-          />
+      row
+        .split('')
+        .map((c, x) =>
+          c === '.' ? null : (
+            <rect
+              key={`${r}-${x}`}
+              x={x * cell}
+              y={r * cell}
+              width={cell}
+              height={cell}
+              // `fill` presentation attribute can't resolve var(); use style.
+              // The eye stays a fixed near-black — reads on the accent mascot in
+              // both themes.
+              style={{ fill: c === 'O' ? '#171310' : accent }}
+            />
+          ),
         ),
-      ),
     )}
   </svg>
 );
@@ -90,7 +100,9 @@ const Header: React.FC = () => (
         <span style={{ fontWeight: 700 }}>Claude Code</span>{' '}
         <span style={{ color: CLAUDE.muted }}>v2.1</span>
       </div>
-      <div style={{ color: CLAUDE.muted }}>Opus 4.8 · resuming a stored session</div>
+      <div style={{ color: CLAUDE.muted }}>
+        Opus 4.8 · resuming a stored session
+      </div>
     </div>
   </div>
 );
@@ -100,7 +112,14 @@ const STAR_CYCLE = ['·', '✢', '✦', '✶', '✻', '✶', '✦', '✢'];
 const StarSpinner: React.FC<{ color: string }> = ({ color }) => {
   const frame = useFrame();
   return (
-    <span style={{ color, width: '1ch', display: 'inline-block', textAlign: 'center' }}>
+    <span
+      style={{
+        color,
+        width: '1ch',
+        display: 'inline-block',
+        textAlign: 'center',
+      }}
+    >
       {STAR_CYCLE[Math.floor(frame / 3) % STAR_CYCLE.length]}
     </span>
   );
@@ -119,10 +138,28 @@ interface LogDef {
 }
 const LOG: LogDef[] = [
   { at: LOG_START + 4, done: 'Located session impl-cancel-order · 568d33ca' },
-  { at: LOG_START + 18, working: 'Restoring session context…', done: 'Restored context · 3 repos · 128 files', doneAt: LOG_START + 42 },
-  { at: LOG_START + 46, working: 'Provisioning worktrees…', done: 'Worktrees ready', doneAt: LOG_START + 72 },
-  { at: LOG_START + 76, working: 'Replaying conversation state…', done: '42 messages · 6 tool calls replayed', doneAt: LOG_START + 100 },
-  { at: LOG_START + 104, done: 'Session resumed · continuing where it left off' },
+  {
+    at: LOG_START + 18,
+    working: 'Restoring session context…',
+    done: 'Restored context · 3 repos · 128 files',
+    doneAt: LOG_START + 42,
+  },
+  {
+    at: LOG_START + 46,
+    working: 'Provisioning worktrees…',
+    done: 'Worktrees ready',
+    doneAt: LOG_START + 72,
+  },
+  {
+    at: LOG_START + 76,
+    working: 'Replaying conversation state…',
+    done: '42 messages · 6 tool calls replayed',
+    doneAt: LOG_START + 100,
+  },
+  {
+    at: LOG_START + 104,
+    done: 'Session resumed · continuing where it left off',
+  },
 ];
 
 const LogLine: React.FC<{ def: LogDef }> = ({ def }) => {
@@ -149,7 +186,7 @@ const LogLine: React.FC<{ def: LogDef }> = ({ def }) => {
         <StarSpinner color={CLAUDE.accent} />
       )}
       <span style={{ color: done ? CLAUDE.muted : CLAUDE.text }}>
-        {done ? def.done : def.working ?? def.done}
+        {done ? def.done : (def.working ?? def.done)}
       </span>
     </div>
   );
@@ -207,6 +244,7 @@ const Terminal: React.FC = () => {
         padding: 24,
         background: CLAUDE.bg,
         border: `1px solid ${CLAUDE.border}`,
+        boxShadow: CLAUDE.shadow,
         borderRadius: 14,
         overflow: 'hidden',
         fontFamily: CONSOLE_FONT,
@@ -259,11 +297,21 @@ function useLoopFrame(active: boolean, seek: number | undefined): number {
   return seek ?? frame;
 }
 
-export function SessionDurability({ className, style, seek }: SessionDurabilityProps) {
+export function SessionDurability({
+  className,
+  style,
+  seek,
+}: SessionDurabilityProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
+  const palette = usePalette();
+  const mode = useThemeMode();
+
+  // The terminal card + chrome read the shared console theme (consoleVars), so
+  // every terminal across the site flips identically with the site toggle.
+  const vars = consoleVars(mode);
 
   useEffect(() => {
     const el = ref.current;
@@ -278,21 +326,33 @@ export function SessionDurability({ className, style, seek }: SessionDurabilityP
     if (!cv) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;
-    const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2);
+    const dpr = Math.min(
+      typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+      2,
+    );
     if (cv.width !== STAGE_W * dpr) {
       cv.width = STAGE_W * dpr;
       cv.height = STAGE_H * dpr;
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-    drawSessionDurability(ctx, frame);
-  }, [frame]);
+    drawSessionDurability(ctx, frame, palette);
+    // `palette` in deps so a theme toggle repaints even a frozen (seek) frame.
+  }, [frame, palette]);
 
   return (
     <div
       ref={ref}
       className={className}
-      style={{ width: '100%', aspectRatio: `${STAGE_W} / ${STAGE_H}`, ...style }}
+      style={{
+        ...vars,
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
+        aspectRatio: `${STAGE_W} / ${STAGE_H}`,
+        ...style,
+      }}
       aria-label="Session durability: teammate sessions are captured into a central store, then one is resumed in a Claude terminal"
     >
       <style>{`

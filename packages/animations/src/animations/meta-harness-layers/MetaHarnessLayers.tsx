@@ -1,5 +1,7 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { useCanvasAnimation, useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
+import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 import { drawSessionNetwork } from '../session-network/kernel';
 import { drawRepositoryGraph } from '../repository-graph/kernel';
 
@@ -56,18 +58,99 @@ export interface MetaHarnessLayersProps {
 }
 
 // ---------------------------------------------------------------------------
-// Palette (site dark theme). Accent is reserved for "alive" signals only:
-// the feed pulses travelling into the LLM, the reify flash, the meta layer's
+// Palette. Resolved from the shared semantic {@link VizPalette} each frame into
+// this module-scope holder so the module-scope draw helpers below can read it
+// (same pattern as `fadeMul`). Accent is reserved for "alive" signals only: the
+// feed pulses travelling into the LLM, the reify flash, the meta layer's
 // post-reify breathing, and hover/expand affordances on the clickable chips.
 // ---------------------------------------------------------------------------
-const FILL = '#171717';
-const OUTLINE_META_C: RGB = [38, 38, 38]; // #262626, breathes toward ACCENT
-const OUTLINE_HARNESS = '#404040';
-const OUTLINE_LLM = '#262626'; // deliberately quiet — emphasis sits on the meta layer
-const TEXT_LABEL = '#a3a3a3';
-const TEXT_HEADER = '#e5e5e5';
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
+/** Parse '#rrggbb' -> RGB triplet. */
+function hexToRgb(hex: string): RGB {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+/** Parse an 'r, g, b' triplet string -> RGB. */
+function tripletToRgb(s: string): RGB {
+  const p = s.split(',').map((n) => parseFloat(n.trim()));
+  return [p[0], p[1], p[2]];
+}
+
+interface ThemeColors {
+  fill: string; // node/panel body (surface)
+  outlineMetaC: RGB; // meta border base, breathes toward accentC (outline)
+  outlineHarness: string; // structural connector line (line)
+  outlineLlm: string; // quiet LLM border (outline)
+  textLabel: string;
+  textHeader: string;
+  textDim: string; // faint hint text
+  accent: string;
+  accentRgb: string;
+  accentC: RGB;
+  openai: string; // OpenAI knot mark (neutral foreground)
+  panelFill: string; // expanded-panel body
+  panelBorder: string; // expanded-panel border
+  surfaceC: RGB; // meta-chip fill base
+  chipWarmC: RGB; // meta-chip fill warmed toward accent on hover
+  metaBaseC: RGB; // reified non-clickable border base
+  metaBrightC: RGB; // reified non-clickable border, emphasised
+  metaClickBaseC: RGB; // reified clickable border base
+  metaClickBrightC: RGB; // reified clickable border, emphasised
+}
+
+/** Populate {@link TH} from a resolved palette (called at the top of draw). */
+function resolveTheme(p: VizPalette): void {
+  const surfaceC = hexToRgb(p.surface);
+  const textFaintC = hexToRgb(p.textFaint);
+  const textDimC = hexToRgb(p.textDim);
+  const textLabelC = hexToRgb(p.textLabel);
+  const accentC = tripletToRgb(p.accentRgb);
+  TH.fill = p.surface;
+  TH.outlineMetaC = hexToRgb(p.outline);
+  TH.outlineHarness = p.line;
+  TH.outlineLlm = p.outline;
+  TH.textLabel = p.textLabel;
+  TH.textHeader = p.textHeader;
+  TH.textDim = p.textDim;
+  TH.accent = p.accent;
+  TH.accentRgb = p.accentRgb;
+  TH.accentC = accentC;
+  TH.openai = p.textHeader;
+  TH.panelFill = p.surface;
+  TH.panelBorder = p.line;
+  TH.surfaceC = surfaceC;
+  // Subtle warm shift toward accent on hover (dormant: clickable chips are off).
+  TH.chipWarmC = mixRgb(surfaceC, accentC, 0.05);
+  TH.metaBaseC = textFaintC; // #525252 in dark
+  TH.metaBrightC = mixRgb(textFaintC, textDimC, 0.45); // ~#606060 in dark
+  TH.metaClickBaseC = mixRgb(textFaintC, textDimC, 0.9); // ~#6f6f6f in dark
+  TH.metaClickBrightC = mixRgb(textDimC, textLabelC, 0.3); // ~#828282 in dark
+}
+
+const TH: ThemeColors = {
+  fill: DARK_PALETTE.surface,
+  outlineMetaC: hexToRgb(DARK_PALETTE.outline),
+  outlineHarness: DARK_PALETTE.line,
+  outlineLlm: DARK_PALETTE.outline,
+  textLabel: DARK_PALETTE.textLabel,
+  textHeader: DARK_PALETTE.textHeader,
+  textDim: DARK_PALETTE.textDim,
+  accent: DARK_PALETTE.accent,
+  accentRgb: DARK_PALETTE.accentRgb,
+  accentC: tripletToRgb(DARK_PALETTE.accentRgb),
+  openai: DARK_PALETTE.textHeader,
+  panelFill: DARK_PALETTE.surface,
+  panelBorder: DARK_PALETTE.line,
+  surfaceC: hexToRgb(DARK_PALETTE.surface),
+  chipWarmC: [31, 28, 22],
+  metaBaseC: hexToRgb(DARK_PALETTE.textFaint),
+  metaBrightC: [96, 96, 96],
+  metaClickBaseC: [111, 111, 111],
+  metaClickBrightC: [130, 130, 130],
+};
 
 const FONT_LABEL = '12px ui-sans-serif, system-ui, -apple-system, sans-serif';
 const FONT_HEADER =
@@ -203,7 +286,6 @@ function easeInOut(t: number): number {
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 type RGB = readonly [number, number, number];
-const ACCENT_C: RGB = [212, 180, 131];
 const mixRgb = (a: RGB, b: RGB, t: number): RGB => [
   lerp(a[0], b[0], t),
   lerp(a[1], b[1], t),
@@ -281,7 +363,8 @@ const CLICKABLE_CHIPS: ReadonlySet<string> = new Set();
 const EXPAND_DUR = 0.6; // seconds for the panel open/close transition
 const HOVER_DUR = 0.15; // seconds for the chip hover ease
 // In-context panel the network kernels render into (centered on the canvas).
-const PANEL = { w: 496, h: 384, r: 10, fill: '#111111', border: '#404040' };
+// Colors (fill/border) come from TH.panelFill / TH.panelBorder at draw time.
+const PANEL = { w: 496, h: 384, r: 10 };
 const PANEL_SMALL = { w: 520, h: 370 }; // fallback if chips would overlap
 
 // ---------------------------------------------------------------------------
@@ -343,7 +426,7 @@ function drawLayer(
   const x = center.x - w / 2;
   const y = center.y - h / 2;
   roundRectPath(ctx, x, y, w, h, radius);
-  ctx.fillStyle = FILL;
+  ctx.fillStyle = TH.fill;
   ga(ctx, eased * 0.55);
   ctx.fill();
   ga(ctx, eased);
@@ -355,7 +438,7 @@ function drawLayer(
   ctx.font = FONT_HEADER;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = TH.textHeader;
   ctx.fillText(header, x + 16, y + 18);
 
   ctx.restore();
@@ -454,6 +537,8 @@ export function MetaHarnessLayers({
   const harnessRect = simple ? HARNESS_RECT_SIMPLE : HARNESS_RECT;
   const metaRect = simple ? META_RECT_SIMPLE : META_RECT;
   const { ref, inView } = useInView<HTMLDivElement>();
+  const palette = usePalette();
+  const mode = useThemeMode();
   // Click-to-expand state (refs: the rAF loop reads them, no re-render needed).
   const expandRef = useRef<ExpandState>({
     mode: null,
@@ -487,12 +572,17 @@ export function MetaHarnessLayers({
     height,
     paused,
     active: inView,
+    // Repaint frozen/paused frames the moment the theme flips.
+    redrawKey: mode,
     stopAt: playOnce
       ? simple
         ? T_SIMPLE.fadeOut[0]
         : T.fadeOut[0]
       : undefined,
     draw: ({ ctx, width: w, height: h, elapsed, dt }) => {
+      // Resolve the semantic palette into the module-scope holder the draw
+      // helpers read (mirrors the `fadeMul` pattern).
+      resolveTheme(palette);
       ctx.clearRect(0, 0, w, h);
 
       const cx = w / 2;
@@ -537,7 +627,7 @@ export function MetaHarnessLayers({
       const metaEmph =
         smoothstep(0.9, 1, Math.min(...st.reify)) * easeInOut(st.metaRect);
       const metaBreath = metaEmph * (0.15 + 0.1 * Math.sin(elapsed * 1.1));
-      const metaStroke = rgbCss(mixRgb(OUTLINE_META_C, ACCENT_C, metaBreath));
+      const metaStroke = rgbCss(mixRgb(TH.outlineMetaC, TH.accentC, metaBreath));
       // Core group (LLM + harness + connectors) alpha: full in stages 0/1,
       // ~0.75 once the meta layer is up (stage 2).
       const coreDim = lerp(1, 0.75, easeInOut(st.metaRect));
@@ -566,7 +656,7 @@ export function MetaHarnessLayers({
         ctx.font = FONT_SUB;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = TEXT_LABEL;
+        ctx.fillStyle = TH.textLabel;
         ctx.fillText(
           'Capability augmentation layer',
           metaCenter.x - metaRect.w / 2 + 16,
@@ -664,7 +754,7 @@ export function MetaHarnessLayers({
           harnessRect.w,
           harnessRect.h,
           18,
-          OUTLINE_HARNESS,
+          TH.outlineHarness,
           st.harnessRect,
           'Harness',
         );
@@ -675,7 +765,7 @@ export function MetaHarnessLayers({
           ctx.font = FONT_SUB;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          ctx.fillStyle = TEXT_LABEL;
+          ctx.fillStyle = TH.textLabel;
           ctx.fillText(
             'Claude Code / Codex',
             harnessCenter.x - harnessRect.w / 2 + 16,
@@ -761,7 +851,7 @@ export function MetaHarnessLayers({
           const ah = 3.5;
           ctx.save();
           ctx.globalAlpha = 0.5 * et;
-          ctx.strokeStyle = ACCENT;
+          ctx.strokeStyle = TH.accent;
           ctx.lineWidth = 1;
           ctx.lineJoin = 'round';
           ctx.beginPath();
@@ -789,10 +879,10 @@ export function MetaHarnessLayers({
         ctx.save();
         ctx.globalAlpha = et;
         roundRectPath(ctx, spx, spy, spw, sph, PANEL.r * ps);
-        ctx.fillStyle = PANEL.fill;
+        ctx.fillStyle = TH.panelFill;
         ctx.fill();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = PANEL.border;
+        ctx.strokeStyle = TH.panelBorder;
         ctx.stroke();
         ctx.restore();
 
@@ -814,6 +904,7 @@ export function MetaHarnessLayers({
             height: DEFAULT_HEIGHT,
             elapsed: elapsed - exp.kernelStart,
             appear: ka,
+            palette,
           };
           if (exp.mode === 'sessions') drawSessionNetwork(ctx, kernelFrame);
           else drawRepositoryGraph(ctx, kernelFrame, { labels: false });
@@ -826,7 +917,7 @@ export function MetaHarnessLayers({
         ctx.font = FONT_SUB;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
-        ctx.fillStyle = '#737373';
+        ctx.fillStyle = TH.textDim;
         ctx.fillText('esc to close', spx + spw, spy + sph + 8);
         ctx.restore();
       }
@@ -907,7 +998,12 @@ export function MetaHarnessLayers({
     >
       <canvas
         ref={canvasRef}
-        style={{ display: 'block', width: '100%', height: 'auto' }}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '100%',
+        }}
       />
     </div>
   );
@@ -925,7 +1021,7 @@ function drawConnector(
   if (alpha <= 0.001) return;
   ctx.save();
   ga(ctx, alpha);
-  ctx.strokeStyle = OUTLINE_HARNESS;
+  ctx.strokeStyle = TH.outlineHarness;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
@@ -951,13 +1047,13 @@ function drawPulse(
     pos.y,
     radius * 2.4,
   );
-  grad.addColorStop(0, `rgba(${ACCENT_RGB}, 0.9)`);
-  grad.addColorStop(1, `rgba(${ACCENT_RGB}, 0)`);
+  grad.addColorStop(0, `rgba(${TH.accentRgb}, 0.9)`);
+  grad.addColorStop(1, `rgba(${TH.accentRgb}, 0)`);
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, radius * 2.4, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = ACCENT;
+  ctx.fillStyle = TH.accent;
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, radius * 0.8, 0, Math.PI * 2);
   ctx.fill();
@@ -976,15 +1072,15 @@ function drawHarnessChip(
   ctx.save();
   ga(ctx, eased);
   roundRectPath(ctx, x, y, HARNESS_CHIP.w, HARNESS_CHIP.h, 8);
-  ctx.fillStyle = FILL;
+  ctx.fillStyle = TH.fill;
   ctx.fill();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = OUTLINE_HARNESS;
+  ctx.strokeStyle = TH.outlineHarness;
   ctx.stroke();
   ctx.font = FONT_LABEL;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = TEXT_LABEL;
+  ctx.fillStyle = TH.textLabel;
   ctx.fillText(label, center.x, center.y + 0.5);
   ctx.restore();
 }
@@ -1003,7 +1099,7 @@ function drawExpandGlyph(
   const hd = 3; // arrowhead tick length
   ctx.save();
   ga(ctx, alpha);
-  ctx.strokeStyle = TEXT_LABEL;
+  ctx.strokeStyle = TH.textLabel;
   ctx.lineWidth = 1;
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -1049,7 +1145,7 @@ function drawMetaChip(
 
   roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
   // Fill warms slightly toward the accent on hover.
-  ctx.fillStyle = rgbCss(mixRgb([23, 23, 23], [31, 28, 22], hover));
+  ctx.fillStyle = rgbCss(mixRgb(TH.surfaceC, TH.chipWarmC, hover));
   ctx.fill();
 
   // Reify flash: accent-tinted fill + glow at the moment of solidifying.
@@ -1057,7 +1153,7 @@ function drawMetaChip(
     ctx.save();
     ga(ctx, eased * flash * 0.9);
     roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.18)`;
+    ctx.fillStyle = `rgba(${TH.accentRgb}, 0.18)`;
     ctx.fill();
     ctx.restore();
   }
@@ -1069,7 +1165,7 @@ function drawMetaChip(
     ctx.save();
     ga(ctx, eased * (1 - reify));
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = OUTLINE_HARNESS;
+    ctx.strokeStyle = TH.outlineHarness;
     roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
     ctx.stroke();
     ctx.restore();
@@ -1080,12 +1176,12 @@ function drawMetaChip(
   if (reify > 0.001) {
     ctx.save();
     ga(ctx, eased * reify);
-    const base: RGB = clickable ? [111, 111, 111] : [82, 82, 82];
-    const bright: RGB = clickable ? [130, 130, 130] : [96, 96, 96];
-    const solid = mixRgb(mixRgb(base, bright, emph), ACCENT_C, hover);
+    const base: RGB = clickable ? TH.metaClickBaseC : TH.metaBaseC;
+    const bright: RGB = clickable ? TH.metaClickBrightC : TH.metaBrightC;
+    const solid = mixRgb(mixRgb(base, bright, emph), TH.accentC, hover);
     ctx.strokeStyle =
       flash > 0.01
-        ? `rgba(${ACCENT_RGB}, ${clamp01(0.5 + flash * 0.5)})`
+        ? `rgba(${TH.accentRgb}, ${clamp01(0.5 + flash * 0.5)})`
         : rgbCss(solid);
     roundRectPath(ctx, x, y, META_CHIP.w, META_CHIP.h, 8);
     ctx.stroke();
@@ -1095,7 +1191,7 @@ function drawMetaChip(
   ctx.font = FONT_LABEL;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = reify > 0.5 ? TEXT_HEADER : TEXT_LABEL;
+  ctx.fillStyle = reify > 0.5 ? TH.textHeader : TH.textLabel;
   const lines = label.split('\n');
   const lineHeight = 13;
   const firstY = center.y - ((lines.length - 1) * lineHeight) / 2;
@@ -1127,10 +1223,10 @@ function drawLLM(ctx: CanvasRenderingContext2D, center: Pt, alpha: number) {
   // Node body — deliberately quiet (no glow, static neutral border): once the
   // meta layer reifies, the emphasis lives out there, not on the LLM.
   roundRectPath(ctx, x, y, LLM.w, LLM.h, 14);
-  ctx.fillStyle = FILL;
+  ctx.fillStyle = TH.fill;
   ctx.fill();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = OUTLINE_LLM;
+  ctx.strokeStyle = TH.outlineLlm;
   ctx.stroke();
 
   // Brand marks (Claude spark + OpenAI knot), a centered row above the label.
@@ -1145,14 +1241,14 @@ function drawLLM(ctx: CanvasRenderingContext2D, center: Pt, alpha: number) {
     ctx.save();
     ctx.translate(center.x - rowW / 2, iconY);
     ctx.scale(scale, scale);
-    ctx.fillStyle = ACCENT; // Claude spark in the node's accent tint
+    ctx.fillStyle = TH.accent; // Claude spark in the node's accent tint
     ctx.fill(paths.claude);
     ctx.restore();
 
     ctx.save();
     ctx.translate(center.x - rowW / 2 + iconSize + gap, iconY);
     ctx.scale(scale, scale);
-    ctx.fillStyle = '#d4d4d4'; // OpenAI knot in neutral
+    ctx.fillStyle = TH.openai; // OpenAI knot in neutral foreground
     ctx.fill(paths.openai);
     ctx.restore();
   }
@@ -1161,7 +1257,7 @@ function drawLLM(ctx: CanvasRenderingContext2D, center: Pt, alpha: number) {
   ctx.textAlign = 'center';
   ctx.font = FONT_HEADER;
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = TH.textHeader;
   ctx.fillText('LLM', center.x, center.y + 26);
 
   ctx.restore();

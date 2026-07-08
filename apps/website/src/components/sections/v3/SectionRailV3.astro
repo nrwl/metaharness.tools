@@ -62,14 +62,19 @@ const barWidth = (label: string) => {
     bottom: 0;
     left: 0;
     width: 25rem;
-    background: rgba(10, 10, 10, 0.96);
-    border: 1px solid #1f1f1f;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e5e5e5;
     border-left: 0;
     border-radius: 0 0.5rem 0.5rem 0;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+  }
+  :global(.dark) .rail-panel {
+    background: rgba(10, 10, 10, 0.96);
+    border-color: #1f1f1f;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   }
   #section-rail:hover .rail-panel {
     opacity: 1;
@@ -93,7 +98,7 @@ const barWidth = (label: string) => {
     display: block;
     width: var(--bar-w);
     height: 1px;
-    background: #3a3a3a;
+    background: #a3a3a3;
     transition:
       width 0.3s ease,
       background 0.3s ease;
@@ -104,7 +109,7 @@ const barWidth = (label: string) => {
     top: 50%;
     transform: translateY(-50%);
     padding: 0.125rem 0.5rem;
-    color: #737373;
+    color: #525252;
     opacity: 0;
     pointer-events: none;
     transition:
@@ -112,24 +117,39 @@ const barWidth = (label: string) => {
       color 0.2s ease;
     white-space: nowrap;
   }
+  :global(.dark) .rail-bar {
+    background: #3a3a3a;
+  }
+  :global(.dark) .rail-label {
+    color: #737373;
+  }
   #section-rail:hover .rail-label {
     pointer-events: auto;
   }
   a[data-active] .rail-bar {
     width: calc(var(--bar-w) + 0.5rem);
-    background: #a3a3a3;
+    background: #525252;
   }
   #section-rail:hover a[data-active] .rail-bar {
     width: calc(var(--bar-w) + 0.5rem);
+    background: #171717;
+  }
+  :global(.dark) #section-rail:hover a[data-active] .rail-bar {
     background: #f5f5f5;
   }
   #section-rail:hover .rail-label {
     opacity: 1;
   }
   #section-rail:hover a[data-active] .rail-label {
+    color: #171717;
+  }
+  :global(.dark) #section-rail:hover a[data-active] .rail-label {
     color: #e5e5e5;
   }
   #section-rail:hover a:hover .rail-label {
+    color: #171717;
+  }
+  :global(.dark) #section-rail:hover a:hover .rail-label {
     color: #f5f5f5;
   }
 </style>
@@ -143,7 +163,7 @@ const barWidth = (label: string) => {
     const update = () => {
       rail.classList.toggle(
         'rail-hidden',
-        window.scrollY < window.innerHeight * 0.5
+        window.scrollY < window.innerHeight * 0.5,
       );
       const mid = window.scrollY + window.innerHeight / 2;
       let active = ids[0];
@@ -173,7 +193,7 @@ const barWidth = (label: string) => {
           });
         }
       },
-      { passive: true }
+      { passive: true },
     );
     window.addEventListener('resize', update, { passive: true });
     update();

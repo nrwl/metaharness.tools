@@ -27,41 +27,20 @@ import {
   type KernelFrame,
   type Pt,
 } from '../../lib/anim';
+import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 
 /** Seconds per loop. */
 export const CYCLE = 17.6;
 
 // ---------------------------------------------------------------------------
-// Palette — site dark theme (accent gold instead of Polygraph's #fbbf24).
+// Palette — colors come from the theme {@link VizPalette} threaded on the
+// frame; helpers receive it so the whole scene flips with the site toggle.
 // ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const NODE_TINT = '225, 203, 168'; // accent mixed toward white (context nodes)
-const FILL = '#171717';
-const OUTLINE = '#262626';
-const LINE = '#404040';
-const EDGE_RGB = '163, 169, 150';
-const NODE_TEXT = '#f5f5f5';
-const TEXT_HEADER = '#e5e5e5';
-const TEXT_LABEL = '#a3a3a3';
-const TEXT_DIM = '#737373';
-const TEXT_FAINT = '#525252';
-const CARD_FILL = '#1c1c1c';
-
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const SANS = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
 
-/** Author tint fills (Polygraph 8-way palette; earthy, on-theme). */
-const TINTS = [
-  '#92400e',
-  '#3f453d',
-  '#404040',
-  '#51584f',
-  '#78350f',
-  '#525252',
-  '#5b4636',
-  '#3a4a44',
-];
+/** Author tint fills: 8-way earthy set (resolved from `palette.tints`). */
+const TINT_COUNT = 8;
 
 // ---------------------------------------------------------------------------
 // Layout, authored on a 960x600 logical canvas.
@@ -140,7 +119,8 @@ interface Session {
   id: string;
   day: number;
   initial: string;
-  tint: string;
+  /** Index into `palette.tints` for the avatar fill (resolved at draw time). */
+  tintIdx: number;
   chevron: boolean;
   status: 'open' | 'done' | 'stale';
   /** Hero (act-1) name/letter/repos; empty for non-hero sessions. */
@@ -216,7 +196,7 @@ function build() {
         id: `s${idx}`,
         day: di,
         initial: INITIALS[idx % INITIALS.length],
-        tint: TINTS[idx % TINTS.length],
+        tintIdx: idx % TINT_COUNT,
         chevron: rnd() < 0.45,
         status: rnd() < 0.22 ? 'done' : rnd() < 0.12 ? 'stale' : 'open',
         name: '',
@@ -446,7 +426,7 @@ function timelineOf(i: number, t: number, elapsed: number) {
 // ---------------------------------------------------------------------------
 export function drawSessionTimeline(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
   const t = elapsed % CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
@@ -465,9 +445,9 @@ export function drawSessionTimeline(
   ctx.scale(sc, sc);
   ctx.translate(-BASE_W / 2, -BASE_H / 2);
 
-  drawStars(ctx, tlP * 0.9 * A);
-  drawColumns(ctx, headerP * A);
-  if (repoFade > 0.001) drawRepoLayer(ctx, t, A * repoFade);
+  drawStars(ctx, tlP * 0.9 * A, palette);
+  drawColumns(ctx, headerP * A, palette);
+  if (repoFade > 0.001) drawRepoLayer(ctx, t, A * repoFade, palette);
 
   // Reference edges (curved), gated by both endpoints' presence.
   for (const e of G.edges) {
@@ -483,7 +463,7 @@ export function drawSessionTimeline(
       pa,
       pb,
       e.bow,
-      `rgba(${EDGE_RGB}, ${0.28 * reveal * dim * A})`,
+      `rgba(${palette.edgeRgb}, ${0.28 * reveal * dim * A})`,
       1.5,
     );
   }
@@ -502,10 +482,10 @@ export function drawSessionTimeline(
         ps,
         po,
         e.bow,
-        `rgba(${ACCENT_RGB}, ${0.85 * selectP * Math.min(po.present, 1) * A})`,
+        `rgba(${palette.accentRgb}, ${0.85 * selectP * Math.min(po.present, 1) * A})`,
         2.1,
         pulseU,
-        `rgba(${ACCENT_RGB}, ${0.95 * selectP * Math.min(po.present, 1) * A})`,
+        `rgba(${palette.accentRgb}, ${0.95 * selectP * Math.min(po.present, 1) * A})`,
         2.4,
       );
     }
@@ -521,22 +501,30 @@ export function drawSessionTimeline(
       if (rich > 0.001) {
         const hl = { ...h, x: live.x, y: live.y };
         if (repoFade > 0.001) {
-          drawHeroConnectors(ctx, s, hl, h.conn * rich * repoFade * A);
+          drawHeroConnectors(ctx, s, hl, h.conn * rich * repoFade * A, palette);
         }
-        drawHeroRich(ctx, s, hl, rich * A);
+        drawHeroRich(ctx, s, hl, rich * A, palette);
       }
     }
     if (live.present > 0.001) {
       const isSel = i === G.sel;
       const isNbr = G.neighbors.has(i);
       const focus = isSel || isNbr ? 1 : lerp(1, 0.16, selectP);
-      drawTimelineNode(ctx, s, live, live.present * A, focus, isSel ? selectP : 0);
+      drawTimelineNode(
+        ctx,
+        s,
+        live,
+        live.present * A,
+        focus,
+        isSel ? selectP : 0,
+        palette,
+      );
     }
   }
 
   if (selectP > 0.001) {
     const ps = timelineOf(G.sel, t, elapsed);
-    drawCard(ctx, ps, selectP * A);
+    drawCard(ctx, ps, selectP * A, palette);
   }
 
   ctx.restore();
@@ -544,10 +532,14 @@ export function drawSessionTimeline(
 }
 
 // ---- Starfield -------------------------------------------------------------
-function drawStars(ctx: CanvasRenderingContext2D, alpha: number) {
+function drawStars(
+  ctx: CanvasRenderingContext2D,
+  alpha: number,
+  palette: VizPalette,
+) {
   if (alpha <= 0.001) return;
   ctx.save();
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = palette.star;
   for (const st of G.stars) {
     ctx.globalAlpha = st.a * alpha;
     ctx.beginPath();
@@ -558,14 +550,18 @@ function drawStars(ctx: CanvasRenderingContext2D, alpha: number) {
 }
 
 // ---- Date columns ----------------------------------------------------------
-function drawColumns(ctx: CanvasRenderingContext2D, alpha: number) {
+function drawColumns(
+  ctx: CanvasRenderingContext2D,
+  alpha: number,
+  palette: VizPalette,
+) {
   if (alpha <= 0.001) return;
   ctx.save();
   ctx.textAlign = 'center';
   G.headers.forEach((h, i) => {
     if (i > 0) {
       ctx.globalAlpha = alpha * 0.5;
-      ctx.strokeStyle = '#2a2a2a';
+      ctx.strokeStyle = palette.divider;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(h.leftX, 96);
@@ -573,19 +569,24 @@ function drawColumns(ctx: CanvasRenderingContext2D, alpha: number) {
       ctx.stroke();
     }
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = TEXT_DIM;
+    ctx.fillStyle = palette.textDim;
     ctx.textBaseline = 'alphabetic';
     ctx.font = `11px ${MONO}`;
     ctx.fillText(h.label, h.midX, 46);
     ctx.globalAlpha = alpha * 0.75;
-    ctx.fillStyle = TEXT_FAINT;
+    ctx.fillStyle = palette.textFaint;
     ctx.fillText(`${h.count} sessions`, h.midX, 62);
   });
   ctx.restore();
 }
 
 // ---- Repo backdrop (original session-network layer, fading out) ------------
-function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
+function drawRepoLayer(
+  ctx: CanvasRenderingContext2D,
+  t: number,
+  A: number,
+  palette: VizPalette,
+) {
   REPO_EDGES.forEach(([ai, bi, label], e) => {
     const reveal = smoothstep(0.7 + e * 0.35, 1.5 + e * 0.35, t);
     if (reveal <= 0.001) return;
@@ -598,7 +599,7 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     const by = b.y - Math.sin(ang) * 20;
     ctx.save();
     ctx.globalAlpha = 0.9 * A;
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = palette.line;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
@@ -614,7 +615,7 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.font = `10px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = palette.textLabel;
     ctx.fillText(label, 0, -7);
     ctx.restore();
   });
@@ -629,15 +630,15 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     const s = lerp(0.6, 1, easeInOut(pop));
     ctx.save();
     ctx.globalAlpha = pop * A;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.12)`;
+    ctx.fillStyle = `rgba(${palette.accentRgb}, 0.12)`;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 19 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = palette.surface;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 14 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = ACCENT;
+    ctx.fillStyle = palette.accent;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 10 * s, 0, Math.PI * 2);
     ctx.fill();
@@ -645,7 +646,7 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.font = `11px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = palette.textLabel;
     ctx.fillText(repo.id, repo.x, repo.y + 30);
     ctx.restore();
   });
@@ -657,15 +658,16 @@ function drawHeroRich(
   s: Session,
   h: HeroState,
   alpha: number,
+  palette: VizPalette,
 ) {
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.07)`;
+  ctx.fillStyle = `rgba(${palette.accentRgb}, 0.07)`;
   ctx.beginPath();
   ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.16)`;
+  ctx.strokeStyle = `rgba(${palette.accentRgb}, 0.16)`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
@@ -680,7 +682,7 @@ function drawHeroRich(
     const er = smoothstep(k / E, k / E + 0.25, h.build);
     if (er <= 0.001) return;
     ctx.globalAlpha = alpha * er;
-    ctx.strokeStyle = `rgba(${NODE_TINT}, 0.35)`;
+    ctx.strokeStyle = `rgba(${palette.nodeTintRgb}, 0.35)`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pts[a].x, pts[a].y);
@@ -691,7 +693,7 @@ function drawHeroRich(
     const nr = smoothstep((j / 7) * 0.8, (j / 7) * 0.8 + 0.2, h.build);
     if (nr <= 0.001) return;
     ctx.globalAlpha = alpha * nr;
-    ctx.fillStyle = `rgb(${NODE_TINT})`;
+    ctx.fillStyle = `rgb(${palette.nodeTintRgb})`;
     ctx.beginPath();
     ctx.arc(p.x, p.y, 3.2 * h.scale * nr, 0, Math.PI * 2);
     ctx.fill();
@@ -702,17 +704,17 @@ function drawHeroRich(
   const by = h.y - h.r * 0.78;
   const br = Math.max(7, 9 * h.scale);
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = FILL;
+  ctx.fillStyle = palette.surface;
   ctx.beginPath();
   ctx.arc(bx, by, br, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.55)`;
+  ctx.strokeStyle = `rgba(${palette.accentRgb}, 0.55)`;
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.font = `9px ${MONO}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = palette.textHeader;
   ctx.fillText(s.letter, bx, by + 0.5);
 
   // "session" tag under the bubble, so it reads as a session being visualized.
@@ -721,7 +723,7 @@ function drawHeroRich(
     ctx.font = `9px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = palette.textLabel;
     ctx.fillText('session', h.x, h.y + h.r + 14);
   }
 
@@ -733,17 +735,17 @@ function drawHeroRich(
     const cy = h.y - ch / 2;
     ctx.globalAlpha = h.card * alpha;
     roundRectPath(ctx, cx, cy, cw, ch, 8);
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = palette.surface;
     ctx.fill();
-    ctx.strokeStyle = OUTLINE;
+    ctx.strokeStyle = palette.outline;
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.font = `12px ${SANS}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = TEXT_HEADER;
+    ctx.fillStyle = palette.textHeader;
     ctx.fillText(s.name, cx + 10, cy + 18);
-    ctx.fillStyle = LINE;
+    ctx.fillStyle = palette.line;
     ctx.fillRect(cx + 10, cy + 26, 62, 3);
     ctx.fillRect(cx + 10, cy + 33, 44, 3);
   }
@@ -757,11 +759,12 @@ function drawHeroConnectors(
   s: Session,
   h: HeroState,
   alpha: number,
+  palette: VizPalette,
 ) {
   if (alpha <= 0.001) return;
   ctx.save();
   ctx.globalAlpha = alpha * 0.5;
-  ctx.strokeStyle = ACCENT;
+  ctx.strokeStyle = palette.accent;
   ctx.lineWidth = 1;
   for (const ri of s.repos) {
     const repo = REPOS[ri];
@@ -782,6 +785,7 @@ function drawTimelineNode(
   alpha: number,
   focus: number,
   sel: number,
+  palette: VizPalette,
 ) {
   const pop = easeOutBack(clamp01(alpha));
   const r = NODE_R * lerp(0.9, 1, pop) * lerp(1, 1.16, sel);
@@ -789,24 +793,24 @@ function drawTimelineNode(
   ctx.globalAlpha = alpha * focus;
 
   if (sel > 0.001) {
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, ${0.2 * sel})`;
+    ctx.fillStyle = `rgba(${palette.accentRgb}, ${0.2 * sel})`;
     ctx.beginPath();
     ctx.arc(live.x, live.y, r * 1.95, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // Avatar (tint fill).
-  ctx.fillStyle = s.tint;
+  ctx.fillStyle = palette.tints[s.tintIdx];
   ctx.beginPath();
   ctx.arc(live.x, live.y, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.lineWidth = sel > 0.001 ? 2.5 : 1;
-  ctx.strokeStyle = sel > 0.001 ? ACCENT : `rgba(255, 255, 255, 0.22)`;
+  ctx.strokeStyle = sel > 0.001 ? palette.accent : `rgba(${palette.edgeRgb}, 0.22)`;
   ctx.beginPath();
   ctx.arc(live.x, live.y, r, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = NODE_TEXT;
+  ctx.fillStyle = palette.nodeText;
   ctx.font = `600 ${Math.round(r * 0.82)}px ${SANS}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -815,7 +819,7 @@ function drawTimelineNode(
   // Status dot (non-open).
   if (s.status !== 'open') {
     ctx.globalAlpha = alpha * focus;
-    ctx.fillStyle = s.status === 'done' ? '#3b82f6' : '#9ca3af';
+    ctx.fillStyle = s.status === 'done' ? palette.statusDone : palette.statusStale;
     ctx.beginPath();
     ctx.arc(live.x + r * 0.72, live.y + r * 0.72, Math.max(2.4, r * 0.22), 0, Math.PI * 2);
     ctx.fill();
@@ -824,7 +828,7 @@ function drawTimelineNode(
   // Gold "older relations" chevron.
   if (s.chevron) {
     ctx.globalAlpha = alpha * focus * 0.9;
-    ctx.strokeStyle = ACCENT;
+    ctx.strokeStyle = palette.accent;
     ctx.lineWidth = 1.5;
     ctx.lineCap = 'round';
     const cx = live.x - r - 4;
@@ -877,7 +881,12 @@ function strokeCurve(
 }
 
 // ---- Detail card -----------------------------------------------------------
-function drawCard(ctx: CanvasRenderingContext2D, node: Pt, alpha: number) {
+function drawCard(
+  ctx: CanvasRenderingContext2D,
+  node: Pt,
+  alpha: number,
+  palette: VizPalette,
+) {
   const cw = 232;
   const ch = 96;
   const right = node.x + 20 + cw < BASE_W;
@@ -886,7 +895,7 @@ function drawCard(ctx: CanvasRenderingContext2D, node: Pt, alpha: number) {
 
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.5)`;
+  ctx.strokeStyle = `rgba(${palette.accentRgb}, 0.5)`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(node.x, node.y);
@@ -894,32 +903,32 @@ function drawCard(ctx: CanvasRenderingContext2D, node: Pt, alpha: number) {
   ctx.stroke();
 
   roundRectPath(ctx, cx, cy, cw, ch, 10);
-  ctx.fillStyle = CARD_FILL;
+  ctx.fillStyle = palette.cardFill;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.strokeStyle = `rgba(${palette.edgeRgb}, 0.12)`;
   ctx.lineWidth = 1;
   ctx.stroke();
 
   const px = cx + 14;
-  ctx.fillStyle = '#3f453d';
+  ctx.fillStyle = palette.tints[1];
   ctx.beginPath();
   ctx.arc(px + 9, cy + 20, 9, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = palette.textHeader;
   ctx.font = `600 13px ${SANS}`;
   ctx.fillText(CARD.name, px + 26, cy + 18);
-  ctx.fillStyle = TEXT_DIM;
+  ctx.fillStyle = palette.textDim;
   ctx.font = `11px ${MONO}`;
   ctx.fillText(CARD.handle, px + 26, cy + 31);
 
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = palette.textHeader;
   ctx.font = `13px ${SANS}`;
   wrapText(ctx, CARD.title, px, cy + 54, cw - 28, 16, 2);
 
-  ctx.fillStyle = TEXT_FAINT;
+  ctx.fillStyle = palette.textFaint;
   ctx.font = `11px ${MONO}`;
   ctx.fillText(CARD.meta, px, cy + ch - 12);
   ctx.restore();

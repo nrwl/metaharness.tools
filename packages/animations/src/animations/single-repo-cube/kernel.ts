@@ -12,21 +12,13 @@
  */
 import { smoothstep, type KernelFrame } from '../../lib/anim';
 import { drawCube } from '../../lib/cube';
+import { DARK_PALETTE } from '../../lib/palette';
 
 /**
  * Nominal loop length in seconds. The visual runs continuously with no scene
  * fade; exported for consistency with the other kernels.
  */
 export const SINGLE_REPO_CUBE_CYCLE = 8;
-
-// ---------------------------------------------------------------------------
-// Palette (site dark theme)
-// ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const CUBE_STROKE = '#737373';
-const CUBE_FACE = '#a3a3a3';
-const TEXT_LABEL = '#a3a3a3';
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
@@ -43,8 +35,17 @@ const LABEL_Y = 320;
 
 export function drawSingleRepoCube(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
+  // Resolve the theme palette to the kernel's local color names; the rest of the
+  // draw reads these so the cube re-themes when the site toggle flips. The dark
+  // values equal the originals, so dark mode stays pixel-identical.
+  const ACCENT = palette.accent;
+  const ACCENT_RGB = palette.accentRgb;
+  const CUBE_STROKE = palette.textDim; // gray wireframe edges (#737373 dark)
+  const CUBE_FACE = palette.textLabel; // faint face fill (#a3a3a3 dark, @5% alpha)
+  const TEXT_LABEL = palette.textLabel;
+
   // One-time build-in over the first ~0.6s.
   const A = appear * smoothstep(0, 0.6, elapsed);
   if (A <= 0.001) return;

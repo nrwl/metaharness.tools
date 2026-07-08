@@ -105,6 +105,21 @@ const structuredData = {
       )
     }
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      (function () {
+        try {
+          // Theme is 'light' | 'dark' | 'system'; unset defaults to 'system'.
+          var t = localStorage.getItem('theme') || 'system';
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <title>{pageTitle}</title>
   </head>
   <body>

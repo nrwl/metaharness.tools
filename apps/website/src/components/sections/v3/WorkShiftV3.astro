@@ -1,5 +1,6 @@
 ---
 import { MultiRepoCubes } from '@metaharness/animations';
+import VizSurface from '../../VizSurface.astro';
 
 const plumbing = [
   {
@@ -29,26 +30,28 @@ const plumbing = [
   <div class="mx-auto max-w-6xl">
     <div class="max-w-3xl">
       <h2
-        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-4xl"
+        class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-neutral-50"
       >
         The nature of your work changes
       </h2>
     </div>
 
-    <div class="mt-12 grid items-center gap-12 lg:grid-cols-2">
+    <div class="mt-12 grid min-w-0 items-center gap-12 lg:grid-cols-2">
       <div class="lg:order-last">
-        <div class="space-y-6 text-lg leading-relaxed text-neutral-300">
+        <div
+          class="space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+        >
           <p>
-            AI agents take over more and more of the lower-level
-            implementation, and <mark>you level up a floor</mark>. Your focus
-            shifts to the system architecture, the integration points, the way
-            data flows end to end: not just what the frontend renders, but how
-            the backend retrieves and exposes it. Your work potentially
-            stretches across repositories.
+            AI agents take over more and more of the lower-level implementation,
+            and <mark>you level up a floor</mark>. Your focus shifts to the
+            system architecture, the integration points, the way data flows end
+            to end: not just what the frontend renders, but how the backend
+            retrieves and exposes it. Your work potentially stretches across
+            repositories.
           </p>
           <p>
             Your scope is now the frontend, the backend, the design system. <strong
-              class="font-semibold text-neutral-50"
+              class="font-semibold text-neutral-900 dark:text-neutral-50"
               >By default, the harness still operates inside a single box, with
               no notion of the repos around it.</strong
             >
@@ -56,22 +59,28 @@ const plumbing = [
         </div>
       </div>
 
-      <div>
-        <MultiRepoCubes client:visible playOnce className="mx-auto" />
+      <div class="min-w-0">
+        <VizSurface>
+          <MultiRepoCubes client:visible playOnce className="mx-auto" />
+        </VizSurface>
       </div>
     </div>
 
-    <div class="mt-16 border-t border-neutral-900 pt-12">
+    <div
+      class="mt-16 border-t border-neutral-200 pt-12 dark:border-neutral-900"
+    >
       <div class="max-w-3xl">
         <h3
-          class="text-xl font-semibold tracking-tight text-neutral-50 sm:text-2xl"
+          class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
         >
           You become the plumbing
         </h3>
-        <p class="mt-4 text-lg leading-relaxed text-neutral-300">
+        <p
+          class="mt-4 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+        >
           The harness, though, is local to each of those repos. To make agents
-          work across the frontend and the backend at once, you do the
-          stitching yourself. Concretely, today:
+          work across the frontend and the backend at once, you do the stitching
+          yourself. Concretely, today:
         </p>
       </div>
 
@@ -79,14 +88,14 @@ const plumbing = [
         {
           plumbing.map((step) => (
             <li class="flex gap-4">
-              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 font-mono text-xs text-accent">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white font-mono text-xs text-accent dark:border-neutral-700 dark:bg-neutral-950">
                 {step.num}
               </span>
               <div>
-                <h4 class="text-base font-semibold text-neutral-100">
+                <h4 class="text-base font-semibold text-neutral-900 dark:text-neutral-100">
                   {step.title}
                 </h4>
-                <p class="mt-1 text-base leading-relaxed text-neutral-400">
+                <p class="mt-1 text-base leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {step.body}
                 </p>
               </div>

@@ -1,11 +1,7 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { clamp01, easeInOut, smoothstep } from '../../lib/anim';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import claudeCodeLogo from '../harness-swap-diagram/logos/claude-code.svg?url';
 import codexLogo from '../harness-swap-diagram/logos/codex.svg?url';
 
@@ -48,19 +44,10 @@ const HARNESS_PT = { x: CX - R, y: CY }; // angle π
 const META_PT = { x: CX + R, y: CY }; // angle 0
 const ENDS_PT = { x: ENDS.cx - ENDS.w / 2, y: CY };
 
-// palette (site dark theme)
-const BOX_BG = '#171717';
-const BOX_BORDER = '#262626';
-const TEXT = '#e5e5e5';
-const MUTED = '#a3a3a3';
-const FAINT = '#737373';
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const ARC = '#52525b';
-const GREEN = '#5bd6a0';
-const GREEN_RGB = '91, 214, 160';
-
-const ptOnCircle = (a: number) => ({ x: CX + R * Math.cos(a), y: CY + R * Math.sin(a) });
+const ptOnCircle = (a: number) => ({
+  x: CX + R * Math.cos(a),
+  y: CY + R * Math.sin(a),
+});
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
@@ -101,7 +88,9 @@ const STARTS = SEGS.reduce<number[]>((acc, _s, i) => {
 
 /** Frame intervals during which segments of a given kind are active. */
 const intervalsFor = (kind: SegKind): Array<[number, number]> =>
-  SEGS.flatMap((s, i) => (s.kind === kind ? [[STARTS[i], STARTS[i] + s.dur] as [number, number]] : []));
+  SEGS.flatMap((s, i) =>
+    s.kind === kind ? [[STARTS[i], STARTS[i] + s.dur] as [number, number]] : [],
+  );
 const IV = {
   work: intervalsFor('work'),
   top: intervalsFor('top'),
@@ -115,13 +104,19 @@ const IV = {
  * Smooth 0..1 "how active is this element right now", ramping in/out `ramp`
  * frames beyond each interval so neighbouring elements cross-fade. Loop-aware.
  */
-function hotness(frame: number, intervals: Array<[number, number]>, ramp = 9): number {
+function hotness(
+  frame: number,
+  intervals: Array<[number, number]>,
+  ramp = 9,
+): number {
   let h = 0;
   for (const [s, e] of intervals) {
     for (const off of [-CYCLE, 0, CYCLE]) {
       const a = s + off;
       const b = e + off;
-      const v = clamp01((frame - (a - ramp)) / ramp) * clamp01((b + ramp - frame) / ramp);
+      const v =
+        clamp01((frame - (a - ramp)) / ramp) *
+        clamp01((b + ramp - frame) / ramp);
       h = Math.max(h, smoothstep(0, 1, v));
     }
   }
@@ -156,7 +151,8 @@ function loopState(frame: number): LoopState {
   const seg = SEGS[i];
   const p = seg.dur ? clamp01(t / seg.dur) : 1;
   const e = easeInOut(p); // dot eases to near-stop at each node, glides mid-arc
-  const met = SEGS.slice(0, i).some((s) => s.kind === 'check' && s.met) || !!seg.met;
+  const met =
+    SEGS.slice(0, i).some((s) => s.kind === 'check' && s.met) || !!seg.met;
 
   // continuous position around the loop; the pulse is occluded by the opaque
   // boxes at the nodes, so no opacity blink is needed there.
@@ -240,6 +236,23 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
   const frame = useLoopFrame(inView, seek);
   const s = loopState(frame);
 
+  // Resolve the shared semantic palette to local color consts (the dark values
+  // equal the animation's original hardcoded colors, so dark mode is preserved).
+  const palette = usePalette();
+  const mode = useThemeMode();
+  const BOX_BG = palette.surface;
+  const BOX_BORDER = palette.outline;
+  const TEXT = palette.textHeader;
+  const MUTED = palette.textLabel;
+  const FAINT = palette.textDim;
+  const ACCENT = palette.accent;
+  const ACCENT_RGB = palette.accentRgb;
+  const ARC = palette.textFaint;
+  const GREEN = palette.statusOk;
+  const GREEN_RGB = palette.statusOkRgb;
+  // Meta-harness box: an accent-warmed surface (orig #1b1712 on the dark theme).
+  const META_BG = `color-mix(in srgb, ${ACCENT} 8%, ${BOX_BG})`;
+
   // eased activity levels (0..1) for every element
   const harnessH = hotness(frame, IV.work);
   const metaH = hotness(frame, IV.check);
@@ -254,32 +267,98 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
     <div
       ref={ref}
       className={className}
-      style={{ position: 'relative', width: '100%', aspectRatio: `${VW} / ${VH}`, ...style }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
+        aspectRatio: `${VW} / ${VH}`,
+        ...style,
+      }}
       aria-label="A goal-driven feedback loop: the harness works, the meta-harness checks the stop condition and sends it back until the goal is met, then the loop ends"
     >
       <svg
         viewBox={`0 0 ${VW} ${VH}`}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          overflow: 'visible',
+        }}
       >
         <defs>
-          <marker id="fl-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <marker
+            id="fl-arrow"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
             <path d="M 0 1 L 9 5 L 0 9 z" fill={ARC} />
           </marker>
-          <marker id="fl-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <marker
+            id="fl-arrow-accent"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
             <path d="M 0 1 L 9 5 L 0 9 z" fill={ACCENT} />
           </marker>
-          <marker id="fl-arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <marker
+            id="fl-arrow-green"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
             <path d="M 0 1 L 9 5 L 0 9 z" fill={GREEN} />
           </marker>
         </defs>
 
         {/* top arc: base gray + accent overlay that cross-fades in */}
-        <path d={TOP_PATH} fill="none" stroke={ARC} strokeWidth={1.6} opacity={0.5} markerEnd="url(#fl-arrow)" />
-        <path d={TOP_PATH} fill="none" stroke={ACCENT} strokeWidth={2.4} opacity={topH} markerEnd="url(#fl-arrow-accent)" />
+        <path
+          d={TOP_PATH}
+          fill="none"
+          stroke={ARC}
+          strokeWidth={1.6}
+          opacity={0.5}
+          markerEnd="url(#fl-arrow)"
+        />
+        <path
+          d={TOP_PATH}
+          fill="none"
+          stroke={ACCENT}
+          strokeWidth={2.4}
+          opacity={topH}
+          markerEnd="url(#fl-arrow-accent)"
+        />
 
         {/* bottom arc */}
-        <path d={BOTTOM_PATH} fill="none" stroke={ARC} strokeWidth={1.6} opacity={0.5} markerEnd="url(#fl-arrow)" />
-        <path d={BOTTOM_PATH} fill="none" stroke={ACCENT} strokeWidth={2.4} opacity={bottomH} markerEnd="url(#fl-arrow-accent)" />
+        <path
+          d={BOTTOM_PATH}
+          fill="none"
+          stroke={ARC}
+          strokeWidth={1.6}
+          opacity={0.5}
+          markerEnd="url(#fl-arrow)"
+        />
+        <path
+          d={BOTTOM_PATH}
+          fill="none"
+          stroke={ACCENT}
+          strokeWidth={2.4}
+          opacity={bottomH}
+          markerEnd="url(#fl-arrow-accent)"
+        />
 
         {/* exit arrow: base gray + green overlay */}
         <line
@@ -304,22 +383,68 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
         />
 
         {/* arc labels (faint base + accent overlay) */}
-        <text x={CX} y={42} textAnchor="middle" fontSize={22} fontStyle="italic" fontFamily="ui-sans-serif, system-ui, sans-serif" fill={FAINT}>
+        <text
+          x={CX}
+          y={42}
+          textAnchor="middle"
+          fontSize={22}
+          fontStyle="italic"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+          fill={FAINT}
+        >
           tries to stop
         </text>
-        <text x={CX} y={42} textAnchor="middle" fontSize={22} fontStyle="italic" fontFamily="ui-sans-serif, system-ui, sans-serif" fill={ACCENT} opacity={topH}>
+        <text
+          x={CX}
+          y={42}
+          textAnchor="middle"
+          fontSize={22}
+          fontStyle="italic"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+          fill={ACCENT}
+          opacity={topH}
+        >
           tries to stop
         </text>
-        <text x={CX} y={462} textAnchor="middle" fontSize={22} fontStyle="italic" fontFamily="ui-sans-serif, system-ui, sans-serif" fill={FAINT}>
+        <text
+          x={CX}
+          y={462}
+          textAnchor="middle"
+          fontSize={22}
+          fontStyle="italic"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+          fill={FAINT}
+        >
           condition not met, sent back to work
         </text>
-        <text x={CX} y={462} textAnchor="middle" fontSize={22} fontStyle="italic" fontFamily="ui-sans-serif, system-ui, sans-serif" fill={ACCENT} opacity={bottomH}>
+        <text
+          x={CX}
+          y={462}
+          textAnchor="middle"
+          fontSize={22}
+          fontStyle="italic"
+          fontFamily="ui-sans-serif, system-ui, sans-serif"
+          fill={ACCENT}
+          opacity={bottomH}
+        >
           condition not met, sent back to work
         </text>
 
         {/* travelling pulse (occluded by the opaque boxes at each node) */}
-        <circle cx={s.x} cy={s.y} r={16} fill={`rgba(${s.met ? GREEN_RGB : ACCENT_RGB}, 0.18)`} opacity={s.dotOpacity} />
-        <circle cx={s.x} cy={s.y} r={6.5} fill={s.met ? GREEN : ACCENT} opacity={s.dotOpacity} />
+        <circle
+          cx={s.x}
+          cy={s.y}
+          r={16}
+          fill={`rgba(${s.met ? GREEN_RGB : ACCENT_RGB}, 0.18)`}
+          opacity={s.dotOpacity}
+        />
+        <circle
+          cx={s.x}
+          cy={s.y}
+          r={6.5}
+          fill={s.met ? GREEN : ACCENT}
+          opacity={s.dotOpacity}
+        />
       </svg>
 
       {/* harness box */}
@@ -335,10 +460,28 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
         }}
       >
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <img src={claudeCodeLogo} alt="" aria-hidden="true" style={{ width: 20, height: 20 }} />
-          <img src={codexLogo} alt="" aria-hidden="true" style={{ width: 20, height: 20, filter: 'invert(1)', opacity: 0.85 }} />
+          <img
+            src={claudeCodeLogo}
+            alt=""
+            aria-hidden="true"
+            style={{ width: 20, height: 20 }}
+          />
+          <img
+            src={codexLogo}
+            alt=""
+            aria-hidden="true"
+            style={{
+              width: 20,
+              height: 20,
+              // Codex mark ships black; invert to light only on the dark surface.
+              filter: mode === 'dark' ? 'invert(1)' : 'none',
+              opacity: 0.85,
+            }}
+          />
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>Harness works</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>
+          Harness works
+        </div>
         <div style={{ fontSize: 13, color: MUTED }}>on the task</div>
       </div>
 
@@ -348,17 +491,31 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
           ...boxStyle(META),
           borderRadius: 14,
           border: `1px solid ${ACCENT}`,
-          background: '#1b1712',
+          background: META_BG,
           boxShadow: glow(metaH, ACCENT_RGB, 7),
           padding: '16px 18px',
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: ACCENT }}>
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: ACCENT,
+          }}
+        >
           Meta-harness
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginTop: 4 }}>Checks the condition</div>
-        <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>each time it tries to stop</div>
+        <div
+          style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginTop: 4 }}
+        >
+          Checks the condition
+        </div>
+        <div style={{ fontSize: 12.5, color: MUTED, marginTop: 2 }}>
+          each time it tries to stop
+        </div>
       </div>
 
       {/* loop ends box (goes green when the goal is met) */}
@@ -372,8 +529,23 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 600, color: mix(TEXT, GREEN, endsH) }}>Loop ends</div>
-        <div style={{ fontSize: 13, color: MUTED, marginTop: 3, fontStyle: 'italic' }}>
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: mix(TEXT, GREEN, endsH),
+          }}
+        >
+          Loop ends
+        </div>
+        <div
+          style={{
+            fontSize: 13,
+            color: MUTED,
+            marginTop: 3,
+            fontStyle: 'italic',
+          }}
+        >
           goal met, or the turn limit is reached
         </div>
       </div>
