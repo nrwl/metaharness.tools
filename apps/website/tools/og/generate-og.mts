@@ -242,7 +242,7 @@ function tree() {
       height: H,
       position: 'relative',
       flexDirection: 'column',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       padding: '74px 78px 66px',
       background: C.bg,
       color: C.text,
@@ -251,17 +251,6 @@ function tree() {
     [
       diagram(),
       box({ flexDirection: 'column', gap: 30, maxWidth: 560 }, [
-        txt(
-          {
-            fontFamily: 'JetBrains Mono',
-            fontWeight: 700,
-            fontSize: 20,
-            color: C.accent,
-            letterSpacing: 5,
-          },
-          'AI AGENT META-HARNESSES',
-        ),
-        box({ width: 156, height: 2, background: C.accent }),
         txt(
           {
             fontFamily: 'Inter',
@@ -287,9 +276,9 @@ function tree() {
       ]),
       box(
         {
-          borderTop: `1px solid ${C.line}`,
-          paddingTop: 24,
-          justifyContent: 'space-between',
+          position: 'absolute',
+          left: 78,
+          bottom: 48,
           alignItems: 'center',
         },
         [
@@ -301,16 +290,6 @@ function tree() {
               color: C.text,
             },
             'metaharness.tools',
-          ),
-          txt(
-            {
-              fontFamily: 'JetBrains Mono',
-              fontWeight: 500,
-              fontSize: 18,
-              color: C.dim,
-              letterSpacing: 2,
-            },
-            'A meta-harness by Nx',
           ),
         ],
       ),
