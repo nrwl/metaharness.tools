@@ -35,9 +35,13 @@ const pageDescription = comingSoon ? 'Coming soon.' : description;
     <script is:inline>
       (function () {
         try {
-          var t = localStorage.getItem('theme');
-          // Default dark: only explicit 'light' removes the dark class.
-          document.documentElement.classList.toggle('dark', t !== 'light');
+          // Theme is 'light' | 'dark' | 'system'; unset defaults to 'system'.
+          var t = localStorage.getItem('theme') || 'system';
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
         } catch (e) {
           document.documentElement.classList.add('dark');
         }

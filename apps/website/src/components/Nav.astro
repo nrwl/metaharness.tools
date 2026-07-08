@@ -47,45 +47,83 @@ const { links = defaultLinks } = Astro.props;
           ))
         }
       </ul>
-      <button
-        id="theme-toggle"
-        type="button"
-        aria-label="Toggle theme"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:text-neutral-400 dark:hover:text-neutral-100 dark:focus-visible:ring-offset-neutral-950"
+      <div
+        id="theme-switcher"
+        role="group"
+        aria-label="Theme"
+        class="inline-flex items-center gap-0.5 rounded-md border border-neutral-200 p-0.5 dark:border-neutral-800"
       >
-        <svg
-          class="hidden h-4 w-4 dark:block"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+        <button
+          type="button"
+          data-theme-value="light"
+          aria-label="Light theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
         >
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2"></path>
-          <path d="M12 20v2"></path>
-          <path d="m4.93 4.93 1.41 1.41"></path>
-          <path d="m17.66 17.66 1.41 1.41"></path>
-          <path d="M2 12h2"></path>
-          <path d="M20 12h2"></path>
-          <path d="m6.34 17.66-1.41 1.41"></path>
-          <path d="m19.07 4.93-1.41 1.41"></path>
-        </svg>
-        <svg
-          class="h-4 w-4 dark:hidden"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-theme-value="system"
+          aria-label="System theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
         >
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-        </svg>
-      </button>
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+            <path d="M8 21h8"></path>
+            <path d="M12 17v4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-theme-value="dark"
+          aria-label="Dark theme"
+          aria-pressed="false"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+      </div>
       <button
         id="mobile-menu-toggle"
         type="button"
@@ -135,14 +173,54 @@ const { links = defaultLinks } = Astro.props;
 </header>
 
 <script is:inline>
-  document
-    .getElementById('theme-toggle')
-    ?.addEventListener('click', function () {
-      var isDark = document.documentElement.classList.toggle('dark');
+  (function () {
+    var KEY = 'theme';
+    var mql = window.matchMedia('(prefers-color-scheme: dark)');
+    var buttons = Array.prototype.slice.call(
+      document.querySelectorAll('#theme-switcher [data-theme-value]'),
+    );
+    if (!buttons.length) return;
+
+    function stored() {
       try {
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        return localStorage.getItem(KEY) || 'system';
+      } catch (e) {
+        return 'system';
+      }
+    }
+    function apply(mode) {
+      var dark = mode === 'dark' || (mode === 'system' && mql.matches);
+      document.documentElement.classList.toggle('dark', dark);
+    }
+    function reflect(mode) {
+      buttons.forEach(function (b) {
+        var on = b.getAttribute('data-theme-value') === mode;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (on) b.setAttribute('data-active', '');
+        else b.removeAttribute('data-active');
+      });
+    }
+    function set(mode) {
+      try {
+        localStorage.setItem(KEY, mode);
       } catch (e) {}
+      apply(mode);
+      reflect(mode);
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        set(b.getAttribute('data-theme-value'));
+      });
     });
+
+    // Follow OS changes only while in system mode.
+    mql.addEventListener('change', function () {
+      if (stored() === 'system') apply('system');
+    });
+
+    reflect(stored());
+  })();
 
   (function () {
     var button = document.getElementById('mobile-menu-toggle');
