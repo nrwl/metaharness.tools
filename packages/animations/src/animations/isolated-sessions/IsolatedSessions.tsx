@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 import { useCanvasAnimation, useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import { drawIsolatedSessions } from './kernel';
 
 /**
@@ -32,15 +33,25 @@ export function IsolatedSessions({
   style,
 }: IsolatedSessionsProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
+  const palette = usePalette();
+  const mode = useThemeMode();
 
   const canvasRef = useCanvasAnimation({
     width,
     height,
     paused,
     active: inView,
+    // Repaint frozen/paused frames the moment the theme flips.
+    redrawKey: mode,
     draw: ({ ctx, width: w, height: h, elapsed }) => {
       ctx.clearRect(0, 0, w, h);
-      drawIsolatedSessions(ctx, { width: w, height: h, elapsed, appear: 1 });
+      drawIsolatedSessions(ctx, {
+        width: w,
+        height: h,
+        elapsed,
+        appear: 1,
+        palette,
+      });
     },
   });
 

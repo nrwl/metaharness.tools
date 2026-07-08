@@ -176,12 +176,56 @@ export const Mono: React.FC<{
 export { clamp01 };
 
 // ---------------------------------------------------------------------------
-// Palettes — kept identical to the two source terminals.
+// Console theme — the canonical Claude Code console tokens (lightConsole /
+// darkConsole from the Remotion `@packages/motion` source), the single source
+// of truth for every terminal card across the site so they can't drift apart.
+// Consumers spread `consoleVars(mode)` onto their root (projecting the `--pv-cc-*`
+// custom properties the CLAUDE token object reads) and style their card from
+// CLAUDE.bg / .border / .shadow so all terminals share one warm-neutral look.
 // ---------------------------------------------------------------------------
-/** ConsoleDemoDark (Claude Code console) tokens. */
-export const CLAUDE = {
+export interface ConsoleTheme {
+  /** card background */
+  bg: string;
+  /** card border (very subtle) */
+  border: string;
+  /** soft drop shadow under the card (web-tuned, subtler than the video's) */
+  shadow: string;
+  /** primary text */
+  text: string;
+  /** secondary text (version, subtitle, cwd) */
+  muted: string;
+  /** faint detail text (tool result tails) */
+  dim: string;
+  /** background of a highlighted user-prompt row */
+  promptHighlight: string;
+  /** block cursor color */
+  cursor: string;
+  /** brand / status accent (terracotta) */
+  accent: string;
+  /** success bullet (completed tool call) */
+  success: string;
+  /** hairline rules (around the input row) */
+  rule: string;
+}
+
+export const LIGHT_CONSOLE: ConsoleTheme = {
+  bg: '#faf9f5',
+  border: 'rgba(20, 18, 14, 0.08)',
+  shadow: '0 8px 24px rgba(40, 34, 24, 0.10), 0 1px 3px rgba(40, 34, 24, 0.08)',
+  text: '#1f1d1a',
+  muted: '#8a857c',
+  dim: '#b3aea4',
+  promptHighlight: 'rgba(20, 18, 14, 0.05)',
+  cursor: '#1f1d1a',
+  accent: '#c15f3c',
+  success: '#3f9d6d',
+  rule: 'rgba(20, 18, 14, 0.10)',
+};
+
+export const DARK_CONSOLE: ConsoleTheme = {
   bg: '#191713',
   border: 'rgba(255, 250, 240, 0.10)',
+  shadow: '0 12px 32px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.40)',
   text: '#ece8e1',
   muted: '#9a958c',
   dim: '#6b675f',
@@ -190,20 +234,61 @@ export const CLAUDE = {
   accent: '#e08a63',
   success: '#6cc295',
   rule: 'rgba(255, 250, 240, 0.10)',
+};
+
+export const consoleTheme = (mode: 'light' | 'dark'): ConsoleTheme =>
+  mode === 'dark' ? DARK_CONSOLE : LIGHT_CONSOLE;
+
+/** The console theme projected as the `--pv-cc-*` custom properties CLAUDE reads. */
+export function consoleVars(mode: 'light' | 'dark'): CSSProperties {
+  const t = consoleTheme(mode);
+  return {
+    '--pv-cc-bg': t.bg,
+    '--pv-cc-border': t.border,
+    '--pv-cc-shadow': t.shadow,
+    '--pv-cc-text': t.text,
+    '--pv-cc-muted': t.muted,
+    '--pv-cc-dim': t.dim,
+    '--pv-cc-highlight': t.promptHighlight,
+    '--pv-cc-accent': t.accent,
+    '--pv-cc-success': t.success,
+    '--pv-cc-rule': t.rule,
+  } as CSSProperties;
+}
+
+// ---------------------------------------------------------------------------
+// Palettes — the source terminals' tokens, projected as CSS custom properties so
+// the diagram re-themes with the site toggle. The CLAUDE console tokens read the
+// `--pv-cc-*` vars from consoleVars(); the POLY provisioning tokens read `--pv-pg-*`
+// (resolved by ProvisioningSetup from the shared VizPalette).
+// ---------------------------------------------------------------------------
+/** Claude Code console tokens — read the shared console theme (consoleVars). */
+export const CLAUDE = {
+  bg: 'var(--pv-cc-bg)',
+  border: 'var(--pv-cc-border)',
+  shadow: 'var(--pv-cc-shadow)',
+  text: 'var(--pv-cc-text)',
+  muted: 'var(--pv-cc-muted)',
+  dim: 'var(--pv-cc-dim)',
+  promptHighlight: 'var(--pv-cc-highlight)',
+  cursor: 'var(--pv-cc-text)',
+  accent: 'var(--pv-cc-accent)',
+  success: 'var(--pv-cc-success)',
+  rule: 'var(--pv-cc-rule)',
 } as const;
 
 /** Polygraph provisioning terminal tokens (amber / limed-ash). */
 export const POLY = {
-  amber: '#FBBF24',
-  amberRgb: '245, 158, 11',
-  text: '#FFFBEB',
-  muted: '#A3A99F',
-  faint: '#737B6E',
-  cardBg: '#0A0C09',
-  shellBg: '#050604',
-  border: 'rgba(245, 158, 11, 0.16)',
-  rule: '#3F453D',
-  green: '#5bd6a0',
-  blue: '#6aa3ff',
-  magenta: '#e0709a',
+  amber: 'var(--pv-pg-amber)',
+  amberRgb: '245, 158, 11', // unused in this port
+  text: 'var(--pv-pg-text)',
+  muted: 'var(--pv-pg-muted)',
+  faint: 'var(--pv-pg-faint)',
+  cardBg: 'var(--pv-pg-cardbg)',
+  shellBg: '#050604', // unused in this port
+  border: 'var(--pv-pg-border)',
+  rule: 'var(--pv-pg-rule)',
+  green: 'var(--pv-pg-green)',
+  blue: '#6aa3ff', // unused in this port
+  magenta: '#e0709a', // unused in this port
 } as const;

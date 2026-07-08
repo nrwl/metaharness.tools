@@ -20,18 +20,19 @@ import {
   type KernelFrame,
 } from '../../lib/anim';
 import { drawCube } from '../../lib/cube';
+import { DARK_PALETTE } from '../../lib/palette';
 
 /** Loop length in seconds. */
 export const MULTI_REPO_CUBES_CYCLE = 12;
 
-// ---------------------------------------------------------------------------
-// Palette (site dark theme, matches SingleRepoCube)
-// ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const CUBE_STROKE = '#737373';
-const CUBE_FACE = '#a3a3a3';
-const TEXT_LABEL = '#a3a3a3';
+/** Resolved cube colors for one theme (matches SingleRepoCube). */
+interface CubeColors {
+  accent: string;
+  accentRgb: string;
+  cubeStroke: string;
+  cubeFace: string;
+  textLabel: string;
+}
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
@@ -82,6 +83,7 @@ function drawRepoCube(
   ctx: CanvasRenderingContext2D,
   elapsed: number,
   state: RepoCubeState,
+  colors: CubeColors,
 ) {
   const { cx, cy, size, angle, alpha, pulsePhase, label } = state;
   if (alpha <= 0.001) return;
@@ -96,9 +98,9 @@ function drawRepoCube(
     size,
     angle,
     tiltX: 0.25,
-    stroke: CUBE_STROKE,
+    stroke: colors.cubeStroke,
     edgeAlpha: 0.6,
-    faceFill: CUBE_FACE,
+    faceFill: colors.cubeFace,
     faceFillAlpha: 0.05,
     alpha,
   });
@@ -107,15 +109,15 @@ function drawRepoCube(
   const pulse = 0.8 + 0.2 * Math.sin(elapsed * 1.4 + pulsePhase);
   const glowR = 30 * pulse * s;
   const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-  glow.addColorStop(0, `rgba(${ACCENT_RGB}, 0.5)`);
-  glow.addColorStop(1, `rgba(${ACCENT_RGB}, 0)`);
+  glow.addColorStop(0, `rgba(${colors.accentRgb}, 0.5)`);
+  glow.addColorStop(1, `rgba(${colors.accentRgb}, 0)`);
   ctx.globalAlpha = alpha;
   ctx.fillStyle = glow;
   ctx.beginPath();
   ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = ACCENT;
+  ctx.fillStyle = colors.accent;
   ctx.beginPath();
   ctx.arc(cx, cy, 5 * s, 0, Math.PI * 2);
   ctx.fill();
@@ -124,11 +126,11 @@ function drawRepoCube(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = `11px ${MONO}`;
-  ctx.fillStyle = ACCENT;
+  ctx.fillStyle = colors.accent;
   ctx.fillText('AI agent', cx, cy + 22 * s);
 
   ctx.font = `12px ${MONO}`;
-  ctx.fillStyle = TEXT_LABEL;
+  ctx.fillStyle = colors.textLabel;
   ctx.fillText(label, cx, cy + size);
 
   ctx.globalAlpha = 1;
@@ -141,9 +143,19 @@ export function drawMultiRepoCubes(
     height,
     elapsed,
     appear,
+    palette = DARK_PALETTE,
     timelineElapsed = elapsed,
   }: KernelFrame & { timelineElapsed?: number },
 ) {
+  // Resolve theme tokens to the local cube palette (matches SingleRepoCube).
+  const colors: CubeColors = {
+    accent: palette.accent,
+    accentRgb: palette.accentRgb,
+    cubeStroke: palette.textDim,
+    cubeFace: palette.textLabel,
+    textLabel: palette.textLabel,
+  };
+
   const t = timelineElapsed % MULTI_REPO_CUBES_CYCLE;
 
   // Scene-wide fade: ramp in at the top of each cycle, ramp out at the end.
@@ -170,7 +182,7 @@ export function drawMultiRepoCubes(
     alpha: scene,
     pulsePhase: 0,
     label: FRONTEND.label,
-  });
+  }, colors);
 
   // The two new cubes scale and fade in, staggered. Their glows and labels
   // ride the same alpha. Slightly different rotation speeds and phases keep
@@ -184,7 +196,7 @@ export function drawMultiRepoCubes(
     alpha: scene * designIn,
     pulsePhase: 2.1,
     label: DESIGN.label,
-  });
+  }, colors);
 
   const backendIn = easeInOut(clamp01((t - BACKEND_IN) / GROW_DUR));
   drawRepoCube(ctx, elapsed, {
@@ -195,7 +207,7 @@ export function drawMultiRepoCubes(
     alpha: scene * backendIn,
     pulsePhase: 4.4,
     label: BACKEND.label,
-  });
+  }, colors);
 
   ctx.restore();
   ctx.globalAlpha = 1;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { clamp01, easeInOut, smoothstep } from '../../lib/anim';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import claudeCodeLogo from '../harness-swap-diagram/logos/claude-code.svg?url';
 import codexLogo from '../harness-swap-diagram/logos/codex.svg?url';
 
@@ -42,18 +43,6 @@ const R = (META.cx - HARNESS.cx) / 2;
 const HARNESS_PT = { x: CX - R, y: CY }; // angle π
 const META_PT = { x: CX + R, y: CY }; // angle 0
 const ENDS_PT = { x: ENDS.cx - ENDS.w / 2, y: CY };
-
-// palette (site dark theme)
-const BOX_BG = '#171717';
-const BOX_BORDER = '#262626';
-const TEXT = '#e5e5e5';
-const MUTED = '#a3a3a3';
-const FAINT = '#737373';
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const ARC = '#52525b';
-const GREEN = '#5bd6a0';
-const GREEN_RGB = '91, 214, 160';
 
 const ptOnCircle = (a: number) => ({
   x: CX + R * Math.cos(a),
@@ -246,6 +235,23 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const frame = useLoopFrame(inView, seek);
   const s = loopState(frame);
+
+  // Resolve the shared semantic palette to local color consts (the dark values
+  // equal the animation's original hardcoded colors, so dark mode is preserved).
+  const palette = usePalette();
+  const mode = useThemeMode();
+  const BOX_BG = palette.surface;
+  const BOX_BORDER = palette.outline;
+  const TEXT = palette.textHeader;
+  const MUTED = palette.textLabel;
+  const FAINT = palette.textDim;
+  const ACCENT = palette.accent;
+  const ACCENT_RGB = palette.accentRgb;
+  const ARC = palette.textFaint;
+  const GREEN = palette.statusOk;
+  const GREEN_RGB = palette.statusOkRgb;
+  // Meta-harness box: an accent-warmed surface (orig #1b1712 on the dark theme).
+  const META_BG = `color-mix(in srgb, ${ACCENT} 8%, ${BOX_BG})`;
 
   // eased activity levels (0..1) for every element
   const harnessH = hotness(frame, IV.work);
@@ -467,7 +473,8 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
             style={{
               width: 20,
               height: 20,
-              filter: 'invert(1)',
+              // Codex mark ships black; invert to light only on the dark surface.
+              filter: mode === 'dark' ? 'invert(1)' : 'none',
               opacity: 0.85,
             }}
           />
@@ -484,7 +491,7 @@ export function FeedbackLoop({ className, style, seek }: FeedbackLoopProps) {
           ...boxStyle(META),
           borderRadius: 14,
           border: `1px solid ${ACCENT}`,
-          background: '#1b1712',
+          background: META_BG,
           boxShadow: glow(metaH, ACCENT_RGB, 7),
           padding: '16px 18px',
           fontFamily: 'ui-sans-serif, system-ui, sans-serif',
