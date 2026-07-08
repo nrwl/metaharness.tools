@@ -48,7 +48,6 @@ interface Colors {
   nodeTint: string;
   nodeTintRgb: string;
   fill: string;
-  line: string;
   textLabel: string;
   textHeader: string;
 }
@@ -60,7 +59,6 @@ function resolveColors(palette: VizPalette): Colors {
     nodeTint: palette.accentSoft,
     nodeTintRgb: palette.nodeTintRgb,
     fill: palette.surface,
-    line: palette.line,
     textLabel: palette.textLabel,
     textHeader: palette.textHeader,
   };
