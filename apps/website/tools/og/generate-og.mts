@@ -12,11 +12,15 @@ const REPO = path.resolve(__dirname, '../../../..');
 const OUT_FILE = path.join(REPO, 'apps/website/public/og.png');
 const require = createRequire(import.meta.url);
 
-// Polygraph brand lockup (amber mark + white wordmark) for the dark card.
+// Polygraph brand lockup (orange mark + white wordmark) for the dark card.
+// Strip inline style="" attrs first: they carry a `fill:color(display-p3 …)`
+// declaration resvg can't parse, which made the orange mark render black. The
+// plain fill="#F59E0B" / fill="white" presentation attributes then win.
 const POLYGRAPH_LOCKUP = `data:image/svg+xml;base64,${Buffer.from(
   readFileSync(
     path.join(REPO, 'apps/website/public/images/polygraph-lockup-dark-bg.svg'),
-  ),
+    'utf8',
+  ).replace(/\s+style="[^"]*"/g, ''),
 ).toString('base64')}`;
 
 const W = 1200;
@@ -298,23 +302,23 @@ function tree() {
           left: 78,
           bottom: 48,
           alignItems: 'center',
-          gap: 12,
+          gap: 10,
         },
         [
           txt(
             {
               fontFamily: 'Inter',
               fontWeight: 400,
-              fontSize: 22,
+              fontSize: 18,
               color: C.muted,
             },
             'Made with love by',
           ),
           el('img', {
             src: POLYGRAPH_LOCKUP,
-            width: 139,
-            height: 28,
-            style: { width: 139, height: 28 },
+            width: 114,
+            height: 23,
+            style: { width: 114, height: 23 },
           }),
         ],
       ),
