@@ -1,5 +1,6 @@
 import { type CSSProperties } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import claudeCodeLogo from './logos/claude-code.svg?url';
 import codexLogo from './logos/codex.svg?url';
 import opencodeLogo from './logos/opencode.svg?url';
@@ -16,11 +17,26 @@ export function HarnessSwapDiagram({
   // The card swap is a pure CSS keyframe loop; SSR renders it, so without a gate
   // its clock runs from page load even off-screen. Hold it paused until in view.
   const { ref, inView } = useInView<HTMLDivElement>();
+  const palette = usePalette();
+  const mode = useThemeMode();
+  // Project the shared palette as CSS custom properties; the <style> block below
+  // reads them so the diagram re-themes reactively with the site toggle.
+  const vars = {
+    '--hs-accent': palette.accent,
+    '--hs-surface': palette.surface,
+    '--hs-outline': palette.outline,
+    '--hs-line': palette.line,
+    '--hs-text': palette.textHeader,
+    '--hs-label': palette.textLabel,
+    '--hs-dim': palette.textDim,
+    // Codex mark ships black: invert to light only on the dark surface.
+    '--hs-logo-invert': mode === 'dark' ? '1' : '0',
+  } as CSSProperties;
   return (
     <div
       ref={ref}
       className={`mh-harness-swap${className ? ` ${className}` : ''}`}
-      style={style}
+      style={{ ...vars, ...style }}
       data-run={inView ? 'true' : 'false'}
       aria-label="Meta-harness layer swapping harnesses"
     >
@@ -73,9 +89,9 @@ export function HarnessSwapDiagram({
           flex-direction: column;
           gap: 1.4rem;
           padding: 1.4rem;
-          border: 1px solid #262626;
+          border: 1px solid var(--hs-outline);
           border-radius: 22px;
-          background: rgb(23 23 23 / 0.32);
+          background: color-mix(in srgb, var(--hs-surface) 32%, transparent);
         }
 
         .mh-harness-swap__header {
@@ -92,21 +108,21 @@ export function HarnessSwapDiagram({
         }
 
         .mh-harness-swap__shell-label {
-          color: #e5e5e5;
+          color: var(--hs-text);
         }
 
         .mh-harness-swap__slot-label {
-          color: #a3a3a3;
+          color: var(--hs-label);
         }
 
         .mh-harness-swap__shell-subtitle {
           font-size: 0.72rem;
-          color: #a3a3a3;
+          color: var(--hs-label);
         }
 
         .mh-harness-swap__slot-subtitle {
           font-size: 0.72rem;
-          color: #737373;
+          color: var(--hs-dim);
         }
 
         .mh-harness-swap__slot {
@@ -114,9 +130,9 @@ export function HarnessSwapDiagram({
           flex-direction: column;
           gap: 1rem;
           padding: 1.1rem;
-          border: 1px solid #404040;
+          border: 1px solid var(--hs-line);
           border-radius: 18px;
-          background: rgb(23 23 23 / 0.54);
+          background: color-mix(in srgb, var(--hs-surface) 54%, transparent);
         }
 
         .mh-harness-swap__stage {
@@ -131,10 +147,10 @@ export function HarnessSwapDiagram({
           align-items: center;
           justify-content: center;
           gap: 0.6rem;
-          border: 1px solid #262626;
+          border: 1px solid var(--hs-outline);
           border-radius: 10px;
-          background: #171717;
-          color: #e5e5e5;
+          background: var(--hs-surface);
+          color: var(--hs-text);
           opacity: 0;
           transform: translateY(0.4rem) scale(0.98);
           animation: mh-harness-swap 7.2s infinite;
@@ -153,8 +169,8 @@ export function HarnessSwapDiagram({
         }
 
         .mh-harness-swap__card--codex img {
-          /* Codex mark ships black; site is dark-only, so invert to light. */
-          filter: invert(1);
+          /* Codex mark ships black; invert to light only on the dark surface. */
+          filter: invert(var(--hs-logo-invert));
         }
 
         .mh-harness-swap__card span {
@@ -163,7 +179,7 @@ export function HarnessSwapDiagram({
         }
 
         .mh-harness-swap__card--claude {
-          color: rgb(212 180 131);
+          color: var(--hs-accent);
         }
 
         .mh-harness-swap__card--codex {

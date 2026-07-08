@@ -2,6 +2,7 @@
  * Shared math / easing / PRNG helpers used by the animation kernels.
  * Kernels are pure draw modules (no React), so everything here is also pure.
  */
+import type { VizPalette } from './palette';
 
 export const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
@@ -85,6 +86,11 @@ export interface KernelFrame {
    * caller). 1 when the kernel runs standalone.
    */
   appear: number;
+  /**
+   * Resolved theme colors. Optional so un-migrated kernels keep compiling; a
+   * migrated kernel should fall back to {@link DARK_PALETTE} when it is absent.
+   */
+  palette?: VizPalette;
 }
 
 /**

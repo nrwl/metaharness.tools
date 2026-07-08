@@ -59,6 +59,12 @@ export interface UseCanvasAnimationOptions {
   active?: boolean;
   /** Stop and freeze once elapsed reaches this many seconds. */
   stopAt?: number;
+  /**
+   * Opaque value that forces a repaint when it changes (in addition to the
+   * running loop). Pass the theme mode so a paused/frozen frame re-draws with
+   * the new palette the moment the user flips the toggle.
+   */
+  redrawKey?: string | number;
 }
 
 /**
@@ -72,7 +78,15 @@ export interface UseCanvasAnimationOptions {
 export function useCanvasAnimation(
   options: UseCanvasAnimationOptions,
 ): RefObject<HTMLCanvasElement | null> {
-  const { width, height, draw, paused = false, active = true, stopAt } = options;
+  const {
+    width,
+    height,
+    draw,
+    paused = false,
+    active = true,
+    stopAt,
+    redrawKey,
+  } = options;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Keep the latest draw callback without re-subscribing the effect each render.
@@ -130,7 +144,7 @@ export function useCanvasAnimation(
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [width, height, paused, active, stopAt]);
+  }, [width, height, paused, active, stopAt, redrawKey]);
 
   return canvasRef;
 }
