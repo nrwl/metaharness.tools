@@ -76,8 +76,18 @@ interface Pane {
 }
 const PANES: Pane[] = [
   { repo: 'myorg/poly-ms-products', clone: CLONE_START, objs: 18, deltas: 4 },
-  { repo: 'myorg/poly-ms-orders', clone: CLONE_START + 14, objs: 21, deltas: 5 },
-  { repo: 'myorg/poly-ms-gateway', clone: CLONE_START + 28, objs: 10, deltas: 2 },
+  {
+    repo: 'myorg/poly-ms-orders',
+    clone: CLONE_START + 14,
+    objs: 21,
+    deltas: 5,
+  },
+  {
+    repo: 'myorg/poly-ms-gateway',
+    clone: CLONE_START + 28,
+    objs: 10,
+    deltas: 2,
+  },
 ];
 
 // pixel mascot for the Claude Code header
@@ -89,25 +99,30 @@ const MASCOT = [
   '.XXXXXX.',
   '.X.XX.X.',
 ];
-const Mascot: React.FC<{ accent: string; cell?: number }> = ({ accent, cell = 7 }) => (
+const Mascot: React.FC<{ accent: string; cell?: number }> = ({
+  accent,
+  cell = 7,
+}) => (
   <svg
     width={MASCOT[0].length * cell}
     height={MASCOT.length * cell}
     style={{ display: 'block', shapeRendering: 'crispEdges', flex: 'none' }}
   >
     {MASCOT.flatMap((row, r) =>
-      row.split('').map((c, x) =>
-        c === '.' ? null : (
-          <rect
-            key={`${r}-${x}`}
-            x={x * cell}
-            y={r * cell}
-            width={cell}
-            height={cell}
-            fill={c === 'O' ? '#171310' : accent}
-          />
+      row
+        .split('')
+        .map((c, x) =>
+          c === '.' ? null : (
+            <rect
+              key={`${r}-${x}`}
+              x={x * cell}
+              y={r * cell}
+              width={cell}
+              height={cell}
+              fill={c === 'O' ? '#171310' : accent}
+            />
+          ),
         ),
-      ),
     )}
   </svg>
 );
@@ -123,7 +138,9 @@ const ClaudeHeader: React.FC = () => (
         <span style={{ fontWeight: 700 }}>Claude Code</span>{' '}
         <span style={{ color: CLAUDE.muted }}>v2.1</span>
       </div>
-      <div style={{ color: CLAUDE.muted }}>Opus 4.8 with high effort · Claude Max</div>
+      <div style={{ color: CLAUDE.muted }}>
+        Opus 4.8 with high effort · Claude Max
+      </div>
       <div style={{ color: CLAUDE.muted }}>~/code/acme</div>
     </div>
   </div>
@@ -138,7 +155,18 @@ const reveal = (frame: number, at: number, dur = 12): CSSProperties => ({
 const STAR_CYCLE = ['·', '✢', '✦', '✶', '✻', '✶', '✦', '✢'];
 const StarSpinner: React.FC<{ color: string }> = ({ color }) => {
   const frame = useFrame();
-  return <span style={{ color, width: '1ch', display: 'inline-block', textAlign: 'center' }}>{STAR_CYCLE[Math.floor(frame / 3) % STAR_CYCLE.length]}</span>;
+  return (
+    <span
+      style={{
+        color,
+        width: '1ch',
+        display: 'inline-block',
+        textAlign: 'center',
+      }}
+    >
+      {STAR_CYCLE[Math.floor(frame / 3) % STAR_CYCLE.length]}
+    </span>
+  );
 };
 
 const ClaudeBody: React.FC = () => {
@@ -162,7 +190,14 @@ const ClaudeBody: React.FC = () => {
       </div>
 
       {/* step 1: invoke the meta-harness to fetch the relevant repos */}
-      <div style={{ ...reveal(frame, FETCH), marginTop: 16, display: 'flex', gap: 10 }}>
+      <div
+        style={{
+          ...reveal(frame, FETCH),
+          marginTop: 16,
+          display: 'flex',
+          gap: 10,
+        }}
+      >
         {fetched ? (
           <span style={{ color: CLAUDE.success }}>✓</span>
         ) : (
@@ -176,7 +211,14 @@ const ClaudeBody: React.FC = () => {
       </div>
 
       {/* step 2: provision the repos (lingers before the transform) */}
-      <div style={{ ...reveal(frame, PROVISION), marginTop: 12, display: 'flex', gap: 10 }}>
+      <div
+        style={{
+          ...reveal(frame, PROVISION),
+          marginTop: 12,
+          display: 'flex',
+          gap: 10,
+        }}
+      >
         <StarSpinner color={CLAUDE.accent} />
         <span style={{ color: CLAUDE.accent }}>Provisioning repos…</span>
       </div>
@@ -200,7 +242,14 @@ const SessionStarted: React.FC = () => {
       ),
       at: 4,
     },
-    { t: <><span style={{ color: POLY.muted }}>Title: </span>impl-cancel-order</>, at: 30 },
+    {
+      t: (
+        <>
+          <span style={{ color: POLY.muted }}>Title: </span>impl-cancel-order
+        </>
+      ),
+      at: 30,
+    },
     {
       t: (
         <>
@@ -210,8 +259,23 @@ const SessionStarted: React.FC = () => {
       ),
       at: 38,
     },
-    { t: <><span style={{ color: POLY.muted }}>Session root: </span>{REPO_ROOT}</>, at: 46 },
-    { t: <span style={{ color: POLY.muted }}>Verifying Polygraph plugin installation…</span>, at: 58 },
+    {
+      t: (
+        <>
+          <span style={{ color: POLY.muted }}>Session root: </span>
+          {REPO_ROOT}
+        </>
+      ),
+      at: 46,
+    },
+    {
+      t: (
+        <span style={{ color: POLY.muted }}>
+          Verifying Polygraph plugin installation…
+        </span>
+      ),
+      at: 58,
+    },
   ];
   return (
     <div>
@@ -236,28 +300,43 @@ const SessionStarted: React.FC = () => {
 // Agent panes (right column) — repos cloning into worktrees
 // ---------------------------------------------------------------------------
 const cloneLine = (local: number, objs: number, deltas: number): ReactNode => {
-  if (local < 0) return <span style={{ color: POLY.faint }}>queued · setup</span>;
+  if (local < 0)
+    return <span style={{ color: POLY.faint }}>queued · setup</span>;
   if (local < CLONE_HEAD)
-    return <span style={{ color: POLY.muted }}>{`Cloning into worktree…`}</span>;
+    return (
+      <span style={{ color: POLY.muted }}>{`Cloning into worktree…`}</span>
+    );
   const recv = local - CLONE_HEAD;
   if (recv < CLONE_RAMP) {
     const pct = Math.round((recv / CLONE_RAMP) * 100);
     const n = Math.round((pct / 100) * objs);
-    return <span style={{ color: POLY.muted }}>{`Receiving objects: ${pct}% (${n}/${objs})`}</span>;
+    return (
+      <span
+        style={{ color: POLY.muted }}
+      >{`Receiving objects: ${pct}% (${n}/${objs})`}</span>
+    );
   }
-  const dPct = Math.min(100, Math.round(((recv - CLONE_RAMP) / CLONE_DELTA) * 100));
+  const dPct = Math.min(
+    100,
+    Math.round(((recv - CLONE_RAMP) / CLONE_DELTA) * 100),
+  );
   const dn = Math.round((dPct / 100) * deltas);
   const done = dPct >= 100;
   if (done)
     return (
-      <span style={{ color: POLY.green }}>
-        ✓ worktree ready · setup ✓
-      </span>
+      <span style={{ color: POLY.green }}>✓ worktree ready · setup ✓</span>
     );
-  return <span style={{ color: POLY.muted }}>{`Resolving deltas: ${dPct}% (${dn}/${deltas})`}</span>;
+  return (
+    <span
+      style={{ color: POLY.muted }}
+    >{`Resolving deltas: ${dPct}% (${dn}/${deltas})`}</span>
+  );
 };
 
-const AgentPane: React.FC<{ pane: Pane; appear: number }> = ({ pane, appear }) => {
+const AgentPane: React.FC<{ pane: Pane; appear: number }> = ({
+  pane,
+  appear,
+}) => {
   const frame = useFrame();
   const local = frame - pane.clone;
   const done = local >= CLONE_TOTAL;
@@ -274,7 +353,9 @@ const AgentPane: React.FC<{ pane: Pane; appear: number }> = ({ pane, appear }) =
       }}
     >
       <Mono color={POLY.text} size={14}>
-        <span style={{ color: done ? POLY.green : POLY.amber }}>{done ? '✓ ' : '● '}</span>
+        <span style={{ color: done ? POLY.green : POLY.amber }}>
+          {done ? '✓ ' : '● '}
+        </span>
         <span style={{ fontWeight: 700 }}>{pane.repo}</span>
       </Mono>
       <Mono size={13} style={{ marginTop: 5 }}>
@@ -287,11 +368,11 @@ const AgentPane: React.FC<{ pane: Pane; appear: number }> = ({ pane, appear }) =
 // ---------------------------------------------------------------------------
 // Bottom input row (shared) — typed prompt, then the ready prompt window
 // ---------------------------------------------------------------------------
-const InputRow: React.FC<{ typed: string; typing: boolean; ready: boolean }> = ({
-  typed,
-  typing,
-  ready,
-}) => {
+const InputRow: React.FC<{
+  typed: string;
+  typing: boolean;
+  ready: boolean;
+}> = ({ typed, typing, ready }) => {
   const frame = useFrame();
   return (
     <div style={{ flex: 'none' }}>
@@ -305,7 +386,11 @@ const InputRow: React.FC<{ typed: string; typing: boolean; ready: boolean }> = (
           whiteSpace: 'pre',
         }}
       >
-        <span style={{ color: ready ? POLY.muted : CLAUDE.muted, marginRight: 8 }}>❯</span>
+        <span
+          style={{ color: ready ? POLY.muted : CLAUDE.muted, marginRight: 8 }}
+        >
+          ❯
+        </span>
         {typing ? typed : ''}
         <Cursor color={ready ? POLY.text : CLAUDE.cursor} blink={!typing} />
       </div>
@@ -319,7 +404,9 @@ const InputRow: React.FC<{ typed: string; typing: boolean; ready: boolean }> = (
         }}
       >
         poly-ms-frontend · Opus 4.8 (1M context) · 95%
-        <span style={{ marginLeft: 22, color: POLY.muted }}>● high · /effort</span>
+        <span style={{ marginLeft: 22, color: POLY.muted }}>
+          ● high · /effort
+        </span>
       </div>
     </div>
   );
@@ -333,10 +420,14 @@ const Scene: React.FC = () => {
   const tw = useTyped(PROMPT, { startFrame: TYPE_START, cps: 27 });
   const typingPrompt = frame < SUBMIT;
 
-  const appear = interpolate(frame, [0, INTRO], [0, 1], { easing: easeOutCubic });
+  const appear = interpolate(frame, [0, INTRO], [0, 1], {
+    easing: easeOutCubic,
+  });
   const cycleFade = interpolate(frame, [FADE[0], FADE[1]], [1, 0]);
   const A = appear * cycleFade;
-  const introScale = interpolate(frame, [0, INTRO], [0.98, 1], { easing: easeOutCubic });
+  const introScale = interpolate(frame, [0, INTRO], [0.98, 1], {
+    easing: easeOutCubic,
+  });
 
   const xform = interpolate(frame, [XFORM, XFORM + XFORM_DUR], [0, 1], {
     easing: easeInOutCubic,
@@ -389,12 +480,18 @@ const Scene: React.FC = () => {
           </div>
 
           {/* body */}
-          <div style={{ flex: 1, minHeight: 0, marginTop: 18, opacity: 1 - xform }}>
+          <div
+            style={{ flex: 1, minHeight: 0, marginTop: 18, opacity: 1 - xform }}
+          >
             <ClaudeBody />
           </div>
 
           {/* shared input row */}
-          <InputRow typed={tw.shown} typing={typingPrompt} ready={frame >= XFORM} />
+          <InputRow
+            typed={tw.shown}
+            typing={typingPrompt}
+            ready={frame >= XFORM}
+          />
         </div>
 
         {/* agent column */}
@@ -455,7 +552,11 @@ function useLoopFrame(active: boolean, seek: number | undefined): number {
   return seek ?? frame;
 }
 
-export function ProvisioningSetup({ className, style, seek }: ProvisioningSetupProps) {
+export function ProvisioningSetup({
+  className,
+  style,
+  seek,
+}: ProvisioningSetupProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
@@ -472,7 +573,14 @@ export function ProvisioningSetup({ className, style, seek }: ProvisioningSetupP
     <div
       ref={ref}
       className={className}
-      style={{ width: '100%', aspectRatio: `${STAGE_W} / ${STAGE_H}`, ...style }}
+      style={{
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
+        aspectRatio: `${STAGE_W} / ${STAGE_H}`,
+        ...style,
+      }}
       aria-label="A meta-harness provisioning repositories: cloning into isolated worktrees and starting a session"
     >
       <style>{`
@@ -491,7 +599,14 @@ export function ProvisioningSetup({ className, style, seek }: ProvisioningSetupP
           font-display: block;
         }
       `}</style>
-      <div style={{ width: STAGE_W, height: STAGE_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+      <div
+        style={{
+          width: STAGE_W,
+          height: STAGE_H,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+      >
         <FrameProvider value={frame}>
           <Scene />
         </FrameProvider>

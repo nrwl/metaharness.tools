@@ -193,7 +193,12 @@ const Spinner: React.FC<{ color: string }> = ({ color }) => {
   const frame = useFrame();
   return (
     <span
-      style={{ color, width: '1ch', display: 'inline-block', textAlign: 'center' }}
+      style={{
+        color,
+        width: '1ch',
+        display: 'inline-block',
+        textAlign: 'center',
+      }}
     >
       {STAR[Math.floor(frame / 3) % STAR.length]}
     </span>
@@ -219,18 +224,20 @@ const Mascot: React.FC<{ accent: string; cell?: number }> = ({
     style={{ display: 'block', shapeRendering: 'crispEdges', flex: 'none' }}
   >
     {MASCOT.flatMap((row, r) =>
-      row.split('').map((c, x) =>
-        c === '.' ? null : (
-          <rect
-            key={`${r}-${x}`}
-            x={x * cell}
-            y={r * cell}
-            width={cell}
-            height={cell}
-            fill={c === 'O' ? '#171310' : accent}
-          />
+      row
+        .split('')
+        .map((c, x) =>
+          c === '.' ? null : (
+            <rect
+              key={`${r}-${x}`}
+              x={x * cell}
+              y={r * cell}
+              width={cell}
+              height={cell}
+              fill={c === 'O' ? '#171310' : accent}
+            />
+          ),
         ),
-      ),
     )}
   </svg>
 );
@@ -244,7 +251,9 @@ const Header: React.FC = () => (
     <div style={{ lineHeight: 1.4, fontFamily: CONSOLE_FONT, fontSize: 14 }}>
       <div style={{ color: CLAUDE.text }}>
         <span style={{ fontWeight: 700 }}>Claude Code</span>{' '}
-        <span style={{ color: CLAUDE.muted }}>· wrapped by acme meta-harness</span>
+        <span style={{ color: CLAUDE.muted }}>
+          · wrapped by acme meta-harness
+        </span>
       </div>
       <div style={{ color: CLAUDE.muted }}>
         every action checked against org policy
@@ -316,8 +325,10 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
         ) : (
           <Spinner color={CLAUDE.accent} />
         )}
-        <span style={{ marginLeft: 8, color: done ? CLAUDE.muted : CLAUDE.text }}>
-          {done ? step.text : step.runText ?? step.text}
+        <span
+          style={{ marginLeft: 8, color: done ? CLAUDE.muted : CLAUDE.text }}
+        >
+          {done ? step.text : (step.runText ?? step.text)}
         </span>
       </div>
     );
@@ -335,7 +346,9 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
         }}
       >
         <span>
-          <span style={{ color: stamped ? color : CLAUDE.accent, marginRight: 9 }}>
+          <span
+            style={{ color: stamped ? color : CLAUDE.accent, marginRight: 9 }}
+          >
             ●
           </span>
           <span style={{ fontWeight: 700 }}>{step.tool}</span>
@@ -443,7 +456,9 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
             <Mono size={11.5} color={POLY.muted} style={{ marginBottom: 10 }}>
               eval&nbsp;
               <span style={{ color: POLY.text }}>
-                {step.text.length > 24 ? step.text.slice(0, 23) + '…' : step.text}
+                {step.text.length > 24
+                  ? step.text.slice(0, 23) + '…'
+                  : step.text}
               </span>
             </Mono>
             <Mono size={13} color={POLY.text} style={{ marginBottom: 8 }}>
@@ -666,7 +681,14 @@ export function PolicyGate({ className, style, seek }: PolicyGateProps) {
     <div
       ref={ref}
       className={className}
-      style={{ width: '100%', aspectRatio: `${STAGE_W} / ${STAGE_H}`, ...style }}
+      style={{
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
+        aspectRatio: `${STAGE_W} / ${STAGE_H}`,
+        ...style,
+      }}
       aria-label="A Claude Code session working on a task while a meta-harness policy hook checks each action against org rules: allowing, denying, and transforming them"
     >
       <style>{`

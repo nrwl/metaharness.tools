@@ -907,7 +907,12 @@ export function MetaHarnessLayers({
     >
       <canvas
         ref={canvasRef}
-        style={{ display: 'block', width: '100%', height: 'auto' }}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '100%',
+        }}
       />
     </div>
   );
