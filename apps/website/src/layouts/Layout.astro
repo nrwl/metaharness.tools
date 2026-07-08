@@ -32,6 +32,14 @@ const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site);
 const imageUrl = new URL(image, Astro.site);
 const canonicalHref = canonicalUrl.toString();
 const imageHref = imageUrl.toString();
+
+// Google Analytics — load only in production builds so local dev doesn't pollute metrics.
+const isProd = import.meta.env.PROD;
+const gaMeasurementId = 'G-HN13G1HPCR';
+const gaInit = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${gaMeasurementId}');`;
 const robots = comingSoon || noindex ? 'noindex,nofollow' : undefined;
 const organization = {
   '@type': 'Organization',
@@ -114,6 +122,18 @@ const structuredData = {
       )
     }
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {
+      isProd && (
+        <>
+          <script
+            is:inline
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+          />
+          <script is:inline set:html={gaInit} />
+        </>
+      )
+    }
     <script is:inline>
       (function () {
         try {
