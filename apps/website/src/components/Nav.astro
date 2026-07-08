@@ -51,14 +51,14 @@ const { links = defaultLinks } = Astro.props;
         id="theme-switcher"
         role="group"
         aria-label="Theme"
-        class="inline-flex items-center gap-0.5 rounded-md border border-neutral-200 p-0.5 dark:border-neutral-800"
+        class="group inline-flex items-center gap-0.5 rounded-md border border-transparent p-0.5 transition-all duration-150 ease-out hover:border-neutral-200 focus-within:border-neutral-200 dark:hover:border-neutral-800 dark:focus-within:border-neutral-800"
       >
         <button
           type="button"
           data-theme-value="light"
           aria-label="Light theme"
           aria-pressed="false"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+          class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[5px] text-neutral-500 opacity-100 transition-all duration-150 ease-out hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent group-hover:[&:not([data-active])]:w-7 group-hover:[&:not([data-active])]:pointer-events-auto group-hover:[&:not([data-active])]:opacity-100 group-focus-within:[&:not([data-active])]:w-7 group-focus-within:[&:not([data-active])]:pointer-events-auto group-focus-within:[&:not([data-active])]:opacity-100 [&:not([data-active])]:pointer-events-none [&:not([data-active])]:w-0 [&:not([data-active])]:opacity-0 dark:text-neutral-400 dark:hover:text-neutral-100"
         >
           <svg
             class="h-4 w-4"
@@ -86,7 +86,7 @@ const { links = defaultLinks } = Astro.props;
           data-theme-value="system"
           aria-label="System theme"
           aria-pressed="false"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+          class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[5px] text-neutral-500 opacity-100 transition-all duration-150 ease-out hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent group-hover:[&:not([data-active])]:w-7 group-hover:[&:not([data-active])]:pointer-events-auto group-hover:[&:not([data-active])]:opacity-100 group-focus-within:[&:not([data-active])]:w-7 group-focus-within:[&:not([data-active])]:pointer-events-auto group-focus-within:[&:not([data-active])]:opacity-100 [&:not([data-active])]:pointer-events-none [&:not([data-active])]:w-0 [&:not([data-active])]:opacity-0 dark:text-neutral-400 dark:hover:text-neutral-100"
         >
           <svg
             class="h-4 w-4"
@@ -108,7 +108,7 @@ const { links = defaultLinks } = Astro.props;
           data-theme-value="dark"
           aria-label="Dark theme"
           aria-pressed="false"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent dark:text-neutral-400 dark:hover:text-neutral-100"
+          class="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[5px] text-neutral-500 opacity-100 transition-all duration-150 ease-out hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none data-[active]:text-accent group-hover:[&:not([data-active])]:w-7 group-hover:[&:not([data-active])]:pointer-events-auto group-hover:[&:not([data-active])]:opacity-100 group-focus-within:[&:not([data-active])]:w-7 group-focus-within:[&:not([data-active])]:pointer-events-auto group-focus-within:[&:not([data-active])]:opacity-100 [&:not([data-active])]:pointer-events-none [&:not([data-active])]:w-0 [&:not([data-active])]:opacity-0 dark:text-neutral-400 dark:hover:text-neutral-100"
         >
           <svg
             class="h-4 w-4"
