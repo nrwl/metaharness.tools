@@ -253,6 +253,17 @@ function tree() {
       box({ flexDirection: 'column', gap: 30, maxWidth: 560 }, [
         txt(
           {
+            fontFamily: 'JetBrains Mono',
+            fontWeight: 700,
+            fontSize: 20,
+            color: C.accent,
+            letterSpacing: 5,
+          },
+          'THE META-HARNESS MANUAL',
+        ),
+        box({ width: 156, height: 2, background: C.accent }),
+        txt(
+          {
             fontFamily: 'Inter',
             fontWeight: 700,
             fontSize: 66,
