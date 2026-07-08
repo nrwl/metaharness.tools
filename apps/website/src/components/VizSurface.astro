@@ -1,0 +1,29 @@
+---
+interface Props {
+  aspect?: string;
+  class?: string;
+  minHeight?: string;
+}
+
+const {
+  aspect = 'aspect-[16/10]',
+  class: className = '',
+  minHeight = '',
+} = Astro.props;
+
+// Canvas islands SSR as a zero-height <canvas> and collapse before hydration, so
+// they get a reserved aspect box that flex-centers the canvas inside it. Fluid DOM
+// diagrams already SSR at full height and self-center; for them (aspect="none") we
+// drop the aspect box AND the flex-centering — a plain block lets the diagram fill
+// the panel width instead of shrink-wrapping to its min-content width.
+const fluid = aspect === 'none';
+const layout = fluid
+  ? 'min-w-0 overflow-hidden'
+  : `flex min-w-0 items-center justify-center overflow-hidden ${aspect}`;
+---
+
+<div
+  class={`${layout} rounded-xl bg-neutral-950 p-4 ring-1 ring-neutral-800 ${minHeight} ${className}`}
+>
+  <slot />
+</div>

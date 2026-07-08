@@ -1,22 +1,25 @@
 ---
 import { MetaHarnessLayers } from '@metaharness/animations';
+import VizSurface from '../../VizSurface.astro';
 ---
 
 <section
   id="answer"
-  class="border-y border-neutral-900 bg-neutral-900/40 px-6 py-24 md:py-32"
+  class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-24 md:py-32 dark:border-neutral-900 dark:bg-neutral-900/40"
 >
   <div class="mx-auto max-w-6xl">
     <div class="mx-auto max-w-3xl">
       <h2
-        class="text-3xl font-semibold tracking-tight text-neutral-50 sm:text-5xl"
+        class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
       >
         The answer: meta-harnesses
       </h2>
     </div>
 
     <div class="mx-auto mt-14 max-w-3xl">
-      <p class="mt-8 text-lg leading-relaxed text-neutral-300">
+      <p
+        class="mt-8 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
         You have seen this move before. React gave you the core, and you chose
         the router, the data-fetching library, the component library, and
         stitched them together yourself. It worked, and it did not transfer:
@@ -24,19 +27,24 @@ import { MetaHarnessLayers } from '@metaharness/animations';
         packaged the proven choices into a meta-framework which made React apps
         faster and more stable to build.
       </p>
-      <p class="mt-6 text-lg leading-relaxed text-neutral-300">
+      <p
+        class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
         A meta-harness makes the same move around your harness. It fills the
         gaps with proven solutions to support your workflow.
 
-        <strong class="font-semibold text-neutral-50"
+        <strong class="font-semibold text-neutral-900 dark:text-neutral-50"
           >Your agent gets more capable, more autonomous and you get more
           productive.</strong
         >
       </p>
     </div>
 
-    <div class="mx-auto mt-14 max-w-5xl">
-      <MetaHarnessLayers client:visible playOnce className="mx-auto" />
+    <div class="mx-auto mt-14 max-w-5xl min-w-0">
+      <!-- interim: dark surface until Phase 2 DOM animations -->
+      <VizSurface>
+        <MetaHarnessLayers client:visible playOnce className="mx-auto" />
+      </VizSurface>
     </div>
   </div>
 </section>

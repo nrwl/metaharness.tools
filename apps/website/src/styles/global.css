@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Desaturated amber accent, used sparingly for eyebrows and links. */
@@ -11,10 +12,15 @@ html {
 }
 
 body {
-  background-color: var(--color-neutral-950);
-  color: var(--color-neutral-100);
+  background-color: white;
+  color: var(--color-neutral-900);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  background-color: var(--color-neutral-950);
+  color: var(--color-neutral-100);
 }
 
 /* Subtle inline highlight. Not the default yellow-on-dark. */

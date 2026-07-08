@@ -13,32 +13,36 @@ interface Props {
 const { id, index, title, analogy, parallel, vizLabel } = Astro.props;
 ---
 
-<article class="border-t border-neutral-900 pt-14">
+<article class="border-t border-neutral-200 pt-14 dark:border-neutral-900">
   <div class="mx-auto max-w-3xl">
     <div class="flex items-baseline gap-3">
-      <span class="font-mono text-sm text-neutral-600">{index}</span>
+      <span class="font-mono text-sm text-neutral-600 dark:text-neutral-600"
+        >{index}</span
+      >
       <h3
         id={id}
-        class="text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl"
+        class="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-50"
       >
         {title}
       </h3>
     </div>
 
-    <div class="mt-6 space-y-5 text-lg leading-relaxed text-neutral-300">
+    <div
+      class="mt-6 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+    >
       <slot />
     </div>
 
     <blockquote
-      class="mt-8 border-l border-neutral-700 pl-5 text-lg italic leading-relaxed text-neutral-400"
+      class="mt-8 border-l border-neutral-300 pl-5 text-lg italic leading-relaxed text-neutral-600 dark:border-neutral-700 dark:text-neutral-400"
     >
       {analogy}
     </blockquote>
 
     {
       parallel && (
-        <p class="mt-5 text-sm text-neutral-500">
-          <span class="font-medium text-neutral-400">
+        <p class="mt-5 text-sm text-neutral-500 dark:text-neutral-500">
+          <span class="font-medium text-neutral-600 dark:text-neutral-400">
             Meta-framework parallel:
           </span>{' '}
           {parallel}
