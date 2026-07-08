@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import {
-  CLAUDE,
+  consoleTheme,
   CONSOLE_FONT,
   Cursor,
   easeOutCubic,
@@ -9,7 +10,6 @@ import {
   FrameProvider,
   interpolate,
   Mono,
-  POLY,
   useFrame,
   useTyped,
 } from '../provisioning-setup/terminal';
@@ -51,10 +51,10 @@ const STEP_H = 28;
 const NOTE_H = 21;
 const STEP_GAP = 9;
 
-// --- verdict palette ---
-const ALLOW = '#6cc295';
-const DENY = '#e5675b';
-const XFORM = POLY.amber;
+// --- verdict palette (semantic tokens, projected as CSS custom properties) ---
+const ALLOW = 'var(--pg-ok)';
+const DENY = 'var(--pg-error)';
+const XFORM = 'var(--pg-warn)';
 
 type Verdict = 'allow' | 'deny' | 'transform';
 
@@ -234,7 +234,10 @@ const Mascot: React.FC<{ accent: string; cell?: number }> = ({
               y={r * cell}
               width={cell}
               height={cell}
-              fill={c === 'O' ? '#171310' : accent}
+              // accent may be a var() string, so set fill via style (presentation
+              // attributes don't resolve custom properties). The eye stays a fixed
+              // dark cutout that reads on the accent mark in both themes.
+              style={{ fill: c === 'O' ? '#171310' : accent }}
             />
           ),
         ),
@@ -247,15 +250,15 @@ const Mascot: React.FC<{ accent: string; cell?: number }> = ({
 // ---------------------------------------------------------------------------
 const Header: React.FC = () => (
   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-    <Mascot accent={CLAUDE.accent} />
+    <Mascot accent="var(--pg-accent)" />
     <div style={{ lineHeight: 1.4, fontFamily: CONSOLE_FONT, fontSize: 14 }}>
-      <div style={{ color: CLAUDE.text }}>
+      <div style={{ color: 'var(--pg-text)' }}>
         <span style={{ fontWeight: 700 }}>Claude Code</span>{' '}
-        <span style={{ color: CLAUDE.muted }}>
+        <span style={{ color: 'var(--pg-muted)' }}>
           · wrapped by acme meta-harness
         </span>
       </div>
-      <div style={{ color: CLAUDE.muted }}>
+      <div style={{ color: 'var(--pg-muted)' }}>
         every action checked against org policy
       </div>
     </div>
@@ -279,16 +282,18 @@ const PromptRow: React.FC = () => {
         fontFamily: CONSOLE_FONT,
         fontSize: 14.5,
         whiteSpace: 'pre-wrap',
-        color: CLAUDE.text,
-        background: submitted ? CLAUDE.promptHighlight : 'transparent',
+        color: 'var(--pg-text)',
+        background: submitted
+          ? 'color-mix(in srgb, var(--pg-text) 6%, transparent)'
+          : 'transparent',
         borderRadius: 8,
         padding: '6px 9px',
         margin: '0 -9px',
       }}
     >
-      <span style={{ color: CLAUDE.muted, marginRight: 8 }}>›</span>
+      <span style={{ color: 'var(--pg-muted)', marginRight: 8 }}>›</span>
       {submitted ? PROMPT : tw.shown}
-      {submitted ? null : <Cursor color={CLAUDE.cursor} />}
+      {submitted ? null : <Cursor color="var(--pg-text)" />}
     </div>
   );
 };
@@ -312,7 +317,7 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
     transform: `translateY(${y}px)`,
     fontFamily: CONSOLE_FONT,
     fontSize: 14.5,
-    color: CLAUDE.text,
+    color: 'var(--pg-text)',
     whiteSpace: 'pre',
   };
 
@@ -321,12 +326,15 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
     return (
       <div style={wrap}>
         {done ? (
-          <span style={{ color: CLAUDE.success }}>✓</span>
+          <span style={{ color: 'var(--pg-ok)' }}>✓</span>
         ) : (
-          <Spinner color={CLAUDE.accent} />
+          <Spinner color="var(--pg-accent)" />
         )}
         <span
-          style={{ marginLeft: 8, color: done ? CLAUDE.muted : CLAUDE.text }}
+          style={{
+            marginLeft: 8,
+            color: done ? 'var(--pg-muted)' : 'var(--pg-text)',
+          }}
         >
           {done ? step.text : (step.runText ?? step.text)}
         </span>
@@ -347,12 +355,15 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
       >
         <span>
           <span
-            style={{ color: stamped ? color : CLAUDE.accent, marginRight: 9 }}
+            style={{
+              color: stamped ? color : 'var(--pg-accent)',
+              marginRight: 9,
+            }}
           >
             ●
           </span>
           <span style={{ fontWeight: 700 }}>{step.tool}</span>
-          <span style={{ color: CLAUDE.muted }}>({step.text})</span>
+          <span style={{ color: 'var(--pg-muted)' }}>({step.text})</span>
         </span>
         <span style={{ flex: 'none', fontWeight: 700 }}>
           {stamped ? (
@@ -360,8 +371,8 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
               {verdictGlyph(step.verdict!)} {verdictLabel(step.verdict!)}
             </span>
           ) : (
-            <span style={{ color: POLY.amber }}>
-              <Spinner color={POLY.amber} /> checking
+            <span style={{ color: 'var(--pg-warn)' }}>
+              <Spinner color="var(--pg-warn)" /> checking
             </span>
           )}
         </span>
@@ -370,7 +381,7 @@ const Line: React.FC<{ step: Step; index: number }> = ({ step, index }) => {
         <div
           style={{
             fontSize: 13,
-            color: CLAUDE.dim,
+            color: 'var(--pg-dim)',
             marginTop: 3,
             opacity: interpolate(local, [G_NOTE, G_NOTE + 8], [0, 1]),
           }}
@@ -392,7 +403,7 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
   const local = hookStep >= 0 ? frame - START[hookStep] : -1;
   const matching = step && local >= G_HOOK && local < G_VERDICT;
   const resolved = step && local >= G_VERDICT;
-  const color = step ? verdictColor(step.verdict!) : POLY.muted;
+  const color = step ? verdictColor(step.verdict!) : 'var(--pg-muted)';
   const rot = (frame * 4) % 360; // registry sync indicator, always turning
 
   return (
@@ -404,15 +415,19 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
         width: HOOK_W,
         height: HOOK_H,
         boxSizing: 'border-box',
-        background: POLY.cardBg,
-        border: `1px solid ${resolved ? color : POLY.border}`,
+        background: 'var(--pg-card)',
+        border: `1px solid ${
+          resolved
+            ? color
+            : 'color-mix(in srgb, var(--pg-warn) 16%, transparent)'
+        }`,
         borderRadius: 14,
         padding: '16px 18px',
         display: 'flex',
         flexDirection: 'column',
         fontFamily: CONSOLE_FONT,
         boxShadow: resolved
-          ? `0 0 0 1px ${color}22, 0 0 24px -8px ${color}`
+          ? `0 0 0 1px color-mix(in srgb, ${color} 13%, transparent), 0 0 24px -8px ${color}`
           : 'none',
       }}
     >
@@ -423,20 +438,20 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingBottom: 10,
-          borderBottom: `1px solid ${POLY.rule}`,
+          borderBottom: `1px solid var(--pg-line)`,
         }}
       >
-        <Mono size={14} color={POLY.text} bold>
-          <span style={{ color: POLY.amber, marginRight: 7 }}>⬡</span>
+        <Mono size={14} color="var(--pg-text)" bold>
+          <span style={{ color: 'var(--pg-warn)', marginRight: 7 }}>⬡</span>
           policy hook
         </Mono>
-        <Mono size={11.5} color={POLY.faint}>
+        <Mono size={11.5} color="var(--pg-dim)">
           acme-org
           <span
             style={{
               display: 'inline-block',
               marginLeft: 6,
-              color: POLY.amber,
+              color: 'var(--pg-warn)',
               transform: `rotate(${rot}deg)`,
             }}
           >
@@ -448,26 +463,26 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
       {/* evaluation body */}
       <div style={{ marginTop: 14, flex: 1, minHeight: 0 }}>
         {!step || local < G_HOOK ? (
-          <Mono size={12.5} color={POLY.faint}>
+          <Mono size={12.5} color="var(--pg-dim)">
             awaiting action…
           </Mono>
         ) : (
           <>
-            <Mono size={11.5} color={POLY.muted} style={{ marginBottom: 10 }}>
+            <Mono size={11.5} color="var(--pg-muted)" style={{ marginBottom: 10 }}>
               eval&nbsp;
-              <span style={{ color: POLY.text }}>
+              <span style={{ color: 'var(--pg-text)' }}>
                 {step.text.length > 24
                   ? step.text.slice(0, 23) + '…'
                   : step.text}
               </span>
             </Mono>
-            <Mono size={13} color={POLY.text} style={{ marginBottom: 8 }}>
-              <span style={{ color: POLY.faint }}>rule&nbsp;</span>
+            <Mono size={13} color="var(--pg-text)" style={{ marginBottom: 8 }}>
+              <span style={{ color: 'var(--pg-dim)' }}>rule&nbsp;</span>
               {step.rule}
             </Mono>
             {matching ? (
-              <Mono size={13} color={POLY.amber}>
-                <Spinner color={POLY.amber} /> matching…
+              <Mono size={13} color="var(--pg-warn)">
+                <Spinner color="var(--pg-warn)" /> matching…
               </Mono>
             ) : resolved ? (
               <Mono size={13.5} color={color} bold>
@@ -478,7 +493,7 @@ const HookBox: React.FC<{ hookStep: number }> = ({ hookStep }) => {
         )}
       </div>
 
-      <Mono size={10.5} color={POLY.faint}>
+      <Mono size={10.5} color="var(--pg-dim)">
         enforced in code · not prompts
       </Mono>
     </div>
@@ -504,15 +519,15 @@ const Connector: React.FC<{ activeGated: number }> = ({ activeGated }) => {
 
   const color = verdictColor(step.verdict!);
   const resolved = local >= G_VERDICT;
-  const wireColor = resolved ? color : POLY.rule;
+  const wireColor = resolved ? color : 'var(--pg-line)';
 
   // pulse: out (row→hook), dwell at hook, return (hook→row, verdict-colored)
   let pulse: { x: number; y: number; c: string } | null = null;
   if (local >= G_OUT && local < G_HOOK) {
     const t = (local - G_OUT) / (G_HOOK - G_OUT);
-    pulse = { x: lerp(ax, bx, t), y: lerp(ay, by, t), c: POLY.amber };
+    pulse = { x: lerp(ax, bx, t), y: lerp(ay, by, t), c: 'var(--pg-warn)' };
   } else if (local >= G_HOOK && local < G_VERDICT) {
-    pulse = { x: bx, y: by, c: POLY.amber };
+    pulse = { x: bx, y: by, c: 'var(--pg-warn)' };
   } else if (local >= G_VERDICT && local < G_STAMP) {
     const t = (local - G_VERDICT) / (G_STAMP - G_VERDICT);
     pulse = { x: lerp(bx, ax, t), y: lerp(by, ay, t), c: color };
@@ -530,20 +545,30 @@ const Connector: React.FC<{ activeGated: number }> = ({ activeGated }) => {
       <path
         d={path}
         fill="none"
-        stroke={wireColor}
         strokeWidth={1.5}
         strokeOpacity={wireOpacity * (resolved ? 0.9 : 0.5)}
+        // stroke/fill via style so var() custom properties resolve (they are
+        // ignored in SVG presentation attributes).
+        style={{ stroke: wireColor }}
       />
-      <circle cx={ax} cy={ay} r={2.5} fill={wireColor} opacity={wireOpacity} />
+      <circle
+        cx={ax}
+        cy={ay}
+        r={2.5}
+        opacity={wireOpacity}
+        style={{ fill: wireColor }}
+      />
       <rect
         x={bx - 3}
         y={by - 3}
         width={6}
         height={6}
-        fill={resolved ? color : POLY.amber}
         opacity={wireOpacity}
+        style={{ fill: resolved ? color : 'var(--pg-warn)' }}
       />
-      {pulse ? <circle cx={pulse.x} cy={pulse.y} r={4} fill={pulse.c} /> : null}
+      {pulse ? (
+        <circle cx={pulse.x} cy={pulse.y} r={4} style={{ fill: pulse.c }} />
+      ) : null}
     </svg>
   );
 };
@@ -593,8 +618,9 @@ const Scene: React.FC = () => {
           width: TERM_W,
           height: STAGE_H,
           boxSizing: 'border-box',
-          background: CLAUDE.bg,
-          border: `1px solid ${CLAUDE.border}`,
+          background: 'var(--pg-surface)',
+          border: `1px solid var(--pg-outline)`,
+          boxShadow: 'var(--pg-shadow)',
           borderRadius: 16,
           padding: 22,
           overflow: 'hidden',
@@ -605,7 +631,7 @@ const Scene: React.FC = () => {
           style={{
             marginTop: 14,
             height: 1,
-            background: CLAUDE.rule,
+            background: 'var(--pg-divider)',
           }}
         />
         <PromptRow />
@@ -620,11 +646,11 @@ const Scene: React.FC = () => {
             bottom: 22,
             fontFamily: CONSOLE_FONT,
             fontSize: 14.5,
-            color: CLAUDE.text,
+            color: 'var(--pg-text)',
           }}
         >
-          <span style={{ color: CLAUDE.muted, marginRight: 8 }}>❯</span>
-          <Cursor color={CLAUDE.cursor} blink />
+          <span style={{ color: 'var(--pg-muted)', marginRight: 8 }}>❯</span>
+          <Cursor color="var(--pg-text)" blink />
         </div>
       </div>
 
@@ -668,6 +694,29 @@ export function PolicyGate({ className, style, seek }: PolicyGateProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
+  const palette = usePalette();
+  const mode = useThemeMode();
+  // Project CSS custom properties; every inline style / SVG fill below reads them
+  // via var(), so the scene re-themes reactively with the site toggle. The
+  // terminal chrome (body, border, text, terracotta accent, shadow) pulls from the
+  // shared console theme so it matches every other terminal; the policy diagram
+  // (hook card, wire, verdict colors) stays on the semantic palette.
+  const c = consoleTheme(mode);
+  const vars = {
+    '--pg-surface': c.bg, // terminal body
+    '--pg-outline': c.border, // terminal border
+    '--pg-shadow': c.shadow, // terminal drop shadow
+    '--pg-divider': c.rule, // header hairline
+    '--pg-text': c.text, // primary text/cursor
+    '--pg-muted': c.muted, // muted labels
+    '--pg-dim': c.dim, // faint/meta text
+    '--pg-accent': c.accent, // Claude mark + spinner (terracotta)
+    '--pg-card': palette.cardFill, // policy-hook card
+    '--pg-line': palette.line, // hook rule + wire
+    '--pg-ok': palette.statusOk, // allow verdict / success check
+    '--pg-warn': palette.statusWarn, // checking/transform
+    '--pg-error': palette.statusError, // deny verdict
+  } as CSSProperties;
 
   useEffect(() => {
     const el = ref.current;
@@ -687,6 +736,7 @@ export function PolicyGate({ className, style, seek }: PolicyGateProps) {
         minWidth: 0,
         overflow: 'hidden',
         aspectRatio: `${STAGE_W} / ${STAGE_H}`,
+        ...vars,
         ...style,
       }}
       aria-label="A Claude Code session working on a task while a meta-harness policy hook checks each action against org rules: allowing, denying, and transforming them"

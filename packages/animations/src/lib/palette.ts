@@ -54,6 +54,14 @@ export interface VizPalette {
   statusDone: string;
   /** Status: stale (gray). */
   statusStale: string;
+  /** Status: ok / success / verify (green). */
+  statusOk: string;
+  /** Status: ok as an "r, g, b" triplet for `rgba(${statusOkRgb}, a)` fills. */
+  statusOkRgb: string;
+  /** Status: warning / pending (amber). */
+  statusWarn: string;
+  /** Status: error / blocked (red). */
+  statusError: string;
 
   /** Author/avatar tint fills (earthy 8-way set; nodeText reads on them). */
   tints: readonly string[];
@@ -82,6 +90,10 @@ export const DARK_PALETTE: VizPalette = {
   star: '#ffffff',
   statusDone: '#3b82f6',
   statusStale: '#9ca3af',
+  statusOk: '#6cc295',
+  statusOkRgb: '108, 194, 149',
+  statusWarn: '#fbbf24',
+  statusError: '#cf6b6b',
 
   tints: [
     '#92400e',
@@ -119,6 +131,11 @@ export const LIGHT_PALETTE: VizPalette = {
   star: '#a1a1aa',
   statusDone: '#2563eb',
   statusStale: '#9ca3af',
+  // Status hues deepened one step so they read on white.
+  statusOk: '#16a34a',
+  statusOkRgb: '22, 163, 74',
+  statusWarn: '#d97706',
+  statusError: '#dc2626',
 
   // Pastel earthy tints so dark nodeText reads on the avatar fills.
   tints: [

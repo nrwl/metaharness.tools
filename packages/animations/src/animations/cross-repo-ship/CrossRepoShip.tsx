@@ -6,9 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import {
   CLAUDE,
   CONSOLE_FONT,
+  consoleVars,
   Cursor,
   easeInOutCubic,
   easeOutCubic,
@@ -206,8 +208,8 @@ const DiffBlock: React.FC = () => {
       {text}
     </div>
   );
-  const add = 'rgba(108, 194, 149, 0.10)';
-  const del = 'rgba(207, 111, 111, 0.10)';
+  const add = 'var(--crs-add-bg)';
+  const del = 'var(--crs-del-bg)';
   return (
     <div style={reveal(frame, AT.diff)}>
       <div
@@ -228,18 +230,22 @@ const DiffBlock: React.FC = () => {
           border: `1px solid ${CLAUDE.rule}`,
         }}
       >
-        {line(del, '#cf6b6b', '- // TODO: cancellation not implemented')}
+        {line(del, 'var(--crs-err)', '- // TODO: cancellation not implemented')}
         {line(
           add,
-          '#6cc295',
+          'var(--crs-ok)',
           '+ export async function cancelOrder(id: string) {',
         )}
-        {line(add, '#6cc295', '+   return api.post(`/orders/${id}/cancel`);')}
-        {line(add, '#6cc295', '+ }')}
+        {line(
+          add,
+          'var(--crs-ok)',
+          '+   return api.post(`/orders/${id}/cancel`);',
+        )}
+        {line(add, 'var(--crs-ok)', '+ }')}
       </div>
       <div
         style={{
-          color: CLAUDE.dim,
+          color: 'var(--crs-dim)',
           fontFamily: CONSOLE_FONT,
           fontSize: 12,
           marginTop: 5,
@@ -281,7 +287,7 @@ const DoneSummary: React.FC = () => {
               ),
             }}
           >
-            <span style={{ color: CLAUDE.dim }}>· </span>
+            <span style={{ color: 'var(--crs-dim)' }}>· </span>
             {t}
           </div>
         ))}
@@ -304,7 +310,7 @@ const PushLine: React.FC<{ at: number; repo: string }> = ({ at, repo }) => {
         {done ? (
           <>
             Pushed <span style={{ color: CLAUDE.text }}>{repo}</span>{' '}
-            <span style={{ color: CLAUDE.dim }}>· {BRANCH}</span>
+            <span style={{ color: 'var(--crs-dim)' }}>· {BRANCH}</span>
           </>
         ) : (
           <>Pushing to {repo}…</>
@@ -361,7 +367,7 @@ const TerminalLog: React.FC = () => {
             style={{
               fontFamily: CONSOLE_FONT,
               fontSize: 13,
-              color: CLAUDE.dim,
+              color: 'var(--crs-dim)',
               paddingLeft: 24,
               marginTop: 2,
               whiteSpace: 'pre',
@@ -407,11 +413,14 @@ const TerminalLog: React.FC = () => {
 // ---------------------------------------------------------------------------
 // Pull requests panel (Polygraph SessionDetail look)
 // ---------------------------------------------------------------------------
-const PR_TEXT = '#e9e6e1';
-const PR_MUTED = '#8b877f';
-const PR_DIM = '#6a6760';
-const PR_GREEN = '#57ab5a';
-const PR_AMBER = '#d4b483';
+// Projected from the shared palette as CSS custom properties on the root (see
+// the `vars` object in CrossRepoShip); referenced here so the PR panel re-themes
+// with the site toggle.
+const PR_TEXT = 'var(--crs-pr-text)';
+const PR_MUTED = 'var(--crs-pr-muted)';
+const PR_DIM = 'var(--crs-pr-dim)';
+const PR_GREEN = 'var(--crs-ok)';
+const PR_AMBER = 'var(--crs-accent)';
 
 const PrIcon: React.FC = () => (
   <svg
@@ -452,7 +461,7 @@ const PrRow: React.FC<{ def: RepoDef; at: number; last: boolean }> = ({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '10px 20px',
-        borderBottom: last ? 'none' : `1px solid ${'rgba(255,255,255,0.06)'}`,
+        borderBottom: last ? 'none' : `1px solid var(--crs-pr-divider)`,
         opacity: o,
         transform: `translateY(${interpolate(frame, [at, at + 12], [8, 0])}px)`,
       }}
@@ -534,8 +543,9 @@ const PullRequests: React.FC = () => {
       style={{
         height: '100%',
         boxSizing: 'border-box',
-        background: '#0c0b0a',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--crs-pr-bg)',
+        border: '1px solid var(--crs-pr-border)',
+        boxShadow: CLAUDE.shadow,
         borderRadius: 14,
         overflow: 'hidden',
         display: 'flex',
@@ -548,7 +558,7 @@ const PullRequests: React.FC = () => {
           alignItems: 'baseline',
           justifyContent: 'space-between',
           padding: '12px 20px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--crs-pr-divider)',
           flex: 'none',
         }}
       >
@@ -650,7 +660,7 @@ const Scene: React.FC = () => {
           top: connectTop,
           width: 1,
           height: connectH,
-          background: 'rgba(212, 180, 131, 0.4)',
+          background: 'var(--crs-connect)',
           opacity: connectOpacity,
         }}
       />
@@ -661,8 +671,8 @@ const Scene: React.FC = () => {
           top: PR_BOX.top - 4,
           width: 6,
           height: 6,
-          borderRight: '1px solid rgba(212, 180, 131, 0.6)',
-          borderBottom: '1px solid rgba(212, 180, 131, 0.6)',
+          borderRight: '1px solid var(--crs-connect-strong)',
+          borderBottom: '1px solid var(--crs-connect-strong)',
           transform: 'rotate(45deg)',
           opacity: connectOpacity,
         }}
@@ -682,6 +692,7 @@ const Scene: React.FC = () => {
           padding: g(24, 15),
           background: CLAUDE.bg,
           border: `1px solid ${CLAUDE.border}`,
+          boxShadow: CLAUDE.shadow,
           borderRadius: 14,
           overflow: 'hidden',
           fontFamily: CONSOLE_FONT,
@@ -799,6 +810,36 @@ export function CrossRepoShip({ className, style, seek }: CrossRepoShipProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
+  const palette = usePalette();
+  const mode = useThemeMode();
+
+  // Project the shared palette as CSS custom properties on the root. The reused
+  // CLAUDE console tokens reference `--pv-cc-*` (mirrored from ProvisioningSetup
+  // so the terminal chrome themes identically); the PR panel, diff films and
+  // connector reference `--crs-*`. Translucent films use color-mix so they keep
+  // their original softness; the warm near-black cards have no exact semantic
+  // token, so they stay pinned in dark and get a light-tuned surface counterpart.
+  const vars = {
+    // Claude console chrome + card (shared warm-neutral console theme).
+    ...consoleVars(mode),
+    '--crs-dim': palette.textDim,
+    // Diff films.
+    '--crs-add-bg': `color-mix(in srgb, ${palette.statusOk} 10%, transparent)`,
+    '--crs-del-bg': `color-mix(in srgb, ${palette.statusError} 10%, transparent)`,
+    '--crs-ok': palette.statusOk,
+    '--crs-err': palette.statusError,
+    // PR panel (warm near-black -> light surface).
+    '--crs-pr-bg': mode === 'dark' ? '#0c0b0a' : palette.surface,
+    '--crs-pr-text': palette.textHeader,
+    '--crs-pr-muted': palette.textLabel,
+    '--crs-pr-dim': palette.textDim,
+    '--crs-pr-border': `color-mix(in srgb, ${palette.textHeader} 8%, transparent)`,
+    '--crs-pr-divider': `color-mix(in srgb, ${palette.textHeader} 6%, transparent)`,
+    '--crs-accent': palette.accent,
+    // Connector: small terminal -> PR panel.
+    '--crs-connect': `color-mix(in srgb, ${palette.accent} 40%, transparent)`,
+    '--crs-connect-strong': `color-mix(in srgb, ${palette.accent} 60%, transparent)`,
+  } as CSSProperties;
 
   useEffect(() => {
     const el = ref.current;
@@ -813,6 +854,7 @@ export function CrossRepoShip({ className, style, seek }: CrossRepoShipProps) {
       ref={ref}
       className={className}
       style={{
+        ...vars,
         width: '100%',
         maxWidth: '100%',
         minWidth: 0,

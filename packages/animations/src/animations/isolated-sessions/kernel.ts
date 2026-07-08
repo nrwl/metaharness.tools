@@ -27,21 +27,41 @@ import {
   type KernelFrame,
   type Pt,
 } from '../../lib/anim';
+import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 
 /** Seconds per loop. */
 export const ISOLATED_SESSIONS_CYCLE = 14;
 
 // ---------------------------------------------------------------------------
-// Palette (site dark theme)
+// Palette. Resolved per-frame from the theme palette on the frame, so the
+// scene re-themes when the site toggle flips. See ../../lib/palette.
 // ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const NODE_TINT = '#e1cba8';
-const NODE_TINT_RGB = '225, 203, 168';
-const FILL = '#171717';
-const LINE = '#404040';
-const TEXT_LABEL = '#a3a3a3';
-const TEXT_HEADER = '#e5e5e5';
+interface Colors {
+  accent: string;
+  accentRgb: string;
+  nodeTint: string;
+  nodeTintRgb: string;
+  fill: string;
+  line: string;
+  textLabel: string;
+  textHeader: string;
+  /** Quiet fill for the inert parked dot. */
+  dotFill: string;
+}
+
+function resolveColors(palette: VizPalette): Colors {
+  return {
+    accent: palette.accent,
+    accentRgb: palette.accentRgb,
+    nodeTint: palette.accentSoft,
+    nodeTintRgb: palette.nodeTintRgb,
+    fill: palette.surface,
+    line: palette.line,
+    textLabel: palette.textLabel,
+    textHeader: palette.textHeader,
+    dotFill: `rgba(${palette.accentRgb}, 0.35)`,
+  };
+}
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
@@ -97,8 +117,6 @@ const DOT_R = 4;
 const DOCK_DX = 30;
 /** Each later run of the same person parks one step further right. */
 const DOCK_STEP = 12;
-/** Quiet fill for the inert parked dot. */
-const DOT_FILL = `rgba(${ACCENT_RGB}, 0.35)`;
 
 /**
  * Session runs. Staggered active windows keep 2-3 bubbles visible at once;
@@ -203,8 +221,9 @@ function runState(i: number, t: number, elapsed: number): RunState {
 // ---------------------------------------------------------------------------
 export function drawIsolatedSessions(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
+  const c = resolveColors(palette);
   const t = elapsed % ISOLATED_SESSIONS_CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
   const A = appear * cycleFade;
@@ -219,12 +238,12 @@ export function drawIsolatedSessions(
 
   const states = RUNS.map((_, i) => runState(i, t, elapsed));
 
-  drawRepoLayer(ctx, t, A);
-  drawLaptops(ctx, t, A);
-  drawTethers(ctx, states, A);
-  drawRepoConnectors(ctx, states, A);
+  drawRepoLayer(ctx, t, A, c);
+  drawLaptops(ctx, t, A, c);
+  drawTethers(ctx, states, A, c);
+  drawRepoConnectors(ctx, states, A, c);
   for (let i = 0; i < RUNS.length; i++) {
-    drawSession(ctx, i, states[i], A);
+    drawSession(ctx, i, states[i], A, c);
   }
 
   ctx.restore();
@@ -232,7 +251,12 @@ export function drawIsolatedSessions(
 }
 
 // ---- Shared repo row --------------------------------------------------------
-function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
+function drawRepoLayer(
+  ctx: CanvasRenderingContext2D,
+  t: number,
+  A: number,
+  c: Colors,
+) {
   REPO_EDGES.forEach((edge, e) => {
     const reveal = smoothstep(0.7 + e * 0.3, 1.4 + e * 0.3, t);
     if (reveal <= 0.001) return;
@@ -246,7 +270,7 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     const by = b.y - Math.sin(ang) * pad;
     ctx.save();
     ctx.globalAlpha = 0.9 * reveal * A;
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
@@ -265,29 +289,34 @@ function drawRepoLayer(ctx: CanvasRenderingContext2D, t: number, A: number) {
     const s = lerp(0.6, 1, easeInOut(pop));
     ctx.save();
     ctx.globalAlpha = pop * A;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.12)`;
+    ctx.fillStyle = `rgba(${c.accentRgb}, 0.12)`;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 20 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = c.fill;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 14 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = ACCENT;
+    ctx.fillStyle = c.accent;
     ctx.beginPath();
     ctx.arc(repo.x, repo.y, 10 * s, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = c.textLabel;
     ctx.fillText(repo.id, repo.x, repo.y + 34);
     ctx.restore();
   });
 }
 
 // ---- Laptops (each person's local machine, persistent) ----------------------
-function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
+function drawLaptops(
+  ctx: CanvasRenderingContext2D,
+  t: number,
+  A: number,
+  c: Colors,
+) {
   PEOPLE.forEach((person, i) => {
     const pop = smoothstep(
       LAPTOP_START + i * LAPTOP_STAGGER,
@@ -307,9 +336,9 @@ function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
     const sw = 46 * s;
     const sh = 30 * s;
     roundRectPath(ctx, x - sw / 2, by - sh, sw, sh, 3 * s);
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = c.fill;
     ctx.fill();
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = c.line;
     ctx.stroke();
 
     // Base: slightly wider flat trapezoid under the screen.
@@ -319,9 +348,9 @@ function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.lineTo(x + sw / 2 + 6 * s, by + 4 * s);
     ctx.lineTo(x - sw / 2 - 6 * s, by + 4 * s);
     ctx.closePath();
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = c.fill;
     ctx.fill();
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = c.line;
     ctx.stroke();
 
     // Name under the machine.
@@ -329,7 +358,7 @@ function drawLaptops(ctx: CanvasRenderingContext2D, t: number, A: number) {
     ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = c.textLabel;
     ctx.fillText(person.name, x, by + 20);
     ctx.restore();
   });
@@ -340,6 +369,7 @@ function drawTethers(
   ctx: CanvasRenderingContext2D,
   states: RunState[],
   A: number,
+  c: Colors,
 ) {
   RUNS.forEach((run, i) => {
     const st = states[i];
@@ -349,7 +379,7 @@ function drawTethers(
     const topY = person.y + LAPTOP_DY - 26; // just above the laptop screen
     ctx.save();
     ctx.globalAlpha = 0.5 * vis * A;
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
@@ -365,6 +395,7 @@ function drawRepoConnectors(
   ctx: CanvasRenderingContext2D,
   states: RunState[],
   A: number,
+  c: Colors,
 ) {
   RUNS.forEach((run, i) => {
     const st = states[i];
@@ -375,7 +406,7 @@ function drawRepoConnectors(
     const ang = Math.atan2(repo.y - st.y, repo.x - st.x);
     ctx.save();
     ctx.globalAlpha = vis * 0.45 * A;
-    ctx.strokeStyle = ACCENT;
+    ctx.strokeStyle = c.accent;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(
@@ -394,6 +425,7 @@ function drawSession(
   i: number,
   st: RunState,
   A: number,
+  c: Colors,
 ) {
   if (st.pop <= 0.001) return;
   const person = PEOPLE[RUNS[i].person];
@@ -407,15 +439,15 @@ function drawSession(
   const husk = 1 - st.dock;
   if (husk > 0.001) {
     ctx.globalAlpha = alpha * husk;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.07)`;
+    ctx.fillStyle = `rgba(${c.accentRgb}, 0.07)`;
     ctx.beginPath();
     ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.05)`;
+    ctx.fillStyle = `rgba(${c.accentRgb}, 0.05)`;
     ctx.beginPath();
     ctx.arc(st.x, st.y, st.r * 0.62, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.16)`;
+    ctx.strokeStyle = `rgba(${c.accentRgb}, 0.16)`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
@@ -426,7 +458,7 @@ function drawSession(
   // of the cycle. Quiet and inert: no glow, no label, no links to anything.
   if (st.dock > 0.001) {
     ctx.globalAlpha = alpha * st.dock;
-    ctx.fillStyle = DOT_FILL;
+    ctx.fillStyle = c.dotFill;
     ctx.beginPath();
     ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
     ctx.fill();
@@ -450,7 +482,7 @@ function drawSession(
     const er = smoothstep(k / E, k / E + 0.25, st.build);
     if (er <= 0.001) return;
     ctx.globalAlpha = alpha * er * ctxVis;
-    ctx.strokeStyle = `rgba(${NODE_TINT_RGB}, 0.35)`;
+    ctx.strokeStyle = `rgba(${c.nodeTintRgb}, 0.35)`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pts[a].x, pts[a].y);
@@ -461,7 +493,7 @@ function drawSession(
     const nr = smoothstep((j / 7) * 0.8, (j / 7) * 0.8 + 0.2, st.build);
     if (nr <= 0.001) return;
     ctx.globalAlpha = alpha * nr * ctxVis;
-    ctx.fillStyle = NODE_TINT;
+    ctx.fillStyle = c.nodeTint;
     ctx.beginPath();
     ctx.arc(
       pt.x,
@@ -479,17 +511,17 @@ function drawSession(
     const by = st.y - st.r * 0.78;
     const br = Math.max(6, 8 * st.scale);
     ctx.globalAlpha = alpha * st.fade;
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = c.fill;
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.55)`;
+    ctx.strokeStyle = `rgba(${c.accentRgb}, 0.55)`;
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.font = `9px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_HEADER;
+    ctx.fillStyle = c.textHeader;
     ctx.fillText(person.letter, bx, by + 0.5);
   }
 

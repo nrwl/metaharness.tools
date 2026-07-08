@@ -6,9 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import {
   CLAUDE,
   CONSOLE_FONT,
+  consoleVars,
   Cursor,
   FPS,
   FrameProvider,
@@ -79,7 +81,10 @@ const Mascot: React.FC<{ accent: string; cell?: number }> = ({
               y={r * cell}
               width={cell}
               height={cell}
-              fill={c === 'O' ? '#171310' : accent}
+              // `fill` presentation attribute can't resolve var(); use style.
+              // The eye stays a fixed near-black — reads on the accent mascot in
+              // both themes.
+              style={{ fill: c === 'O' ? '#171310' : accent }}
             />
           ),
         ),
@@ -239,6 +244,7 @@ const Terminal: React.FC = () => {
         padding: 24,
         background: CLAUDE.bg,
         border: `1px solid ${CLAUDE.border}`,
+        boxShadow: CLAUDE.shadow,
         borderRadius: 14,
         overflow: 'hidden',
         fontFamily: CONSOLE_FONT,
@@ -300,6 +306,12 @@ export function SessionDurability({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
+  const palette = usePalette();
+  const mode = useThemeMode();
+
+  // The terminal card + chrome read the shared console theme (consoleVars), so
+  // every terminal across the site flips identically with the site toggle.
+  const vars = consoleVars(mode);
 
   useEffect(() => {
     const el = ref.current;
@@ -324,14 +336,16 @@ export function SessionDurability({
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-    drawSessionDurability(ctx, frame);
-  }, [frame]);
+    drawSessionDurability(ctx, frame, palette);
+    // `palette` in deps so a theme toggle repaints even a frozen (seek) frame.
+  }, [frame, palette]);
 
   return (
     <div
       ref={ref}
       className={className}
       style={{
+        ...vars,
         width: '100%',
         maxWidth: '100%',
         minWidth: 0,

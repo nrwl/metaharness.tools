@@ -6,9 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useInView } from '../../lib/canvas';
+import { usePalette, useThemeMode } from '../../lib/theme';
 import {
   CLAUDE,
   CONSOLE_FONT,
+  consoleVars,
   Cursor,
   easeInOutCubic,
   easeOutCubic,
@@ -119,7 +121,10 @@ const Mascot: React.FC<{ accent: string; cell?: number }> = ({
               y={r * cell}
               width={cell}
               height={cell}
-              fill={c === 'O' ? '#171310' : accent}
+              // `fill` presentation attribute can't resolve var(); use style.
+              // The eye stays a fixed near-black — reads on the coral mascot in
+              // both themes.
+              style={{ fill: c === 'O' ? '#171310' : accent }}
             />
           ),
         ),
@@ -450,8 +455,9 @@ const Scene: React.FC = () => {
           height: STAGE_H,
           boxSizing: 'border-box',
           display: 'flex',
-          background: POLY.cardBg,
-          border: `1px solid ${POLY.border}`,
+          background: CLAUDE.bg,
+          border: `1px solid ${CLAUDE.border}`,
+          boxShadow: CLAUDE.shadow,
           borderRadius: 16,
           overflow: 'hidden',
           fontFamily: CONSOLE_FONT,
@@ -560,6 +566,24 @@ export function ProvisioningSetup({
   const { ref, inView } = useInView<HTMLDivElement>();
   const [scale, setScale] = useState(1);
   const frame = useLoopFrame(inView, seek);
+  const palette = usePalette();
+  const mode = useThemeMode();
+
+  // Project the shared console theme (consoleVars) plus the Polygraph provisioning
+  // palette into the terminal's `--pv-*` custom properties; the CLAUDE/POLY token
+  // objects reference these, so both terminal themes flip with the site toggle.
+  // The single card is styled from CLAUDE.bg/.border/.shadow (below), so the
+  // provisioning content shares the console's warm-neutral surface.
+  const vars = {
+    ...consoleVars(mode),
+    '--pv-pg-amber': palette.statusWarn,
+    '--pv-pg-text': palette.textHeader,
+    '--pv-pg-muted': palette.textLabel,
+    '--pv-pg-faint': palette.textDim,
+    '--pv-pg-green': palette.statusOk,
+    '--pv-pg-border': `color-mix(in srgb, ${palette.statusWarn} 16%, transparent)`,
+    '--pv-pg-rule': palette.line,
+  } as CSSProperties;
 
   useEffect(() => {
     const el = ref.current;
@@ -574,10 +598,12 @@ export function ProvisioningSetup({
       ref={ref}
       className={className}
       style={{
+        ...vars,
         width: '100%',
         maxWidth: '100%',
         minWidth: 0,
-        overflow: 'hidden',
+        // no overflow clip — the card fills the stage, so its drop shadow must
+        // fall outside the root onto the page (the card clips its own children).
         aspectRatio: `${STAGE_W} / ${STAGE_H}`,
         ...style,
       }}

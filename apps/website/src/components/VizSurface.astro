@@ -3,36 +3,31 @@ interface Props {
   aspect?: string;
   class?: string;
   minHeight?: string;
-  themed?: boolean;
 }
 
 const {
   aspect = 'aspect-[16/10]',
   class: className = '',
   minHeight = '',
-  themed = false,
 } = Astro.props;
 
+// Layout-only wrapper — transparent, no panel/border/background. Each animation
+// is now theme-aware and paints its own surfaces (terminal cards, nodes) with the
+// shared palette, so it sits directly on the page background in both themes,
+// matching the original (pre-theme) transparent treatment.
+//
 // Canvas islands SSR as a zero-height <canvas> and collapse before hydration, so
 // they get a reserved aspect box that flex-centers the canvas inside it. Fluid DOM
 // diagrams already SSR at full height and self-center; for them (aspect="none") we
 // drop the aspect box AND the flex-centering — a plain block lets the diagram fill
-// the panel width instead of shrink-wrapping to its min-content width.
+// the width instead of shrink-wrapping to its min-content width. No overflow clip,
+// so terminal card drop-shadows aren't cut off.
 const fluid = aspect === 'none';
 const layout = fluid
-  ? 'min-w-0 overflow-hidden'
-  : `flex min-w-0 items-center justify-center overflow-hidden ${aspect}`;
-
-// `themed`: the animation reads the shared palette and draws light-on-white too,
-// so the panel flips with the theme. Un-migrated animations stay dark-only
-// (interim) so their hardcoded dark palette never lands on a white panel.
-const surface = themed
-  ? 'bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-800'
-  : 'bg-neutral-950 ring-neutral-800';
+  ? 'min-w-0'
+  : `flex min-w-0 items-center justify-center ${aspect}`;
 ---
 
-<div
-  class={`${layout} rounded-xl p-4 ring-1 ${surface} ${minHeight} ${className}`}
->
+<div class={`${layout} ${minHeight} ${className}`}>
   <slot />
 </div>

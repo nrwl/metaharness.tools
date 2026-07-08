@@ -26,6 +26,7 @@ import {
   smoothstep,
   type Pt,
 } from '../../lib/anim';
+import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 
 // ---------------------------------------------------------------------------
 // Stage — fixed logical canvas; the component scales it responsively.
@@ -37,19 +38,40 @@ export const STAGE_H = 560;
 export const CYCLE = 548;
 
 // ---------------------------------------------------------------------------
-// Palette (site dark theme + a green resolve accent).
+// Palette — resolved from the shared semantic VizPalette so the scene re-themes
+// with the site toggle. Dark values equal the animation's original hand-tuned
+// colors, keeping dark mode pixel-identical.
 // ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const NODE_TINT = '#e1cba8';
-const NODE_TINT_RGB = '225, 203, 168';
-const FILL = '#171717';
-const LINE = '#404040';
-const CARD_BG = '#141210';
-const CARD_BORDER = '#2b2620';
-const TEXT_LABEL = '#a3a3a3';
-const TEXT_HEADER = '#e5e5e5';
-const TEXT_MUTED = '#6f6a62';
+interface Colors {
+  accent: string;
+  accentRgb: string;
+  nodeTint: string;
+  nodeTintRgb: string;
+  fill: string;
+  line: string;
+  cardBg: string;
+  cardBorder: string;
+  textLabel: string;
+  textHeader: string;
+  textMuted: string;
+}
+function resolveColors(p: VizPalette): Colors {
+  return {
+    accent: p.accent, // #d4b483
+    accentRgb: p.accentRgb, // 212, 180, 131
+    nodeTint: p.accentSoft, // #e1cba8
+    nodeTintRgb: p.nodeTintRgb, // 225, 203, 168
+    fill: p.surface, // #171717
+    line: p.line, // #404040
+    // Warm near-black store card / border have no exact token; the raised
+    // cardFill + outline keep them a distinct panel in both themes.
+    cardBg: p.cardFill, // ~#141210 -> cardFill
+    cardBorder: p.outline, // ~#2b2620 -> outline
+    textLabel: p.textLabel, // #a3a3a3
+    textHeader: p.textHeader, // #e5e5e5
+    textMuted: p.textDim, // ~#6f6a62 -> textDim
+  };
+}
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
@@ -151,10 +173,13 @@ const FADE = [520, 548] as const;
 export function drawSessionDurability(
   ctx: CanvasRenderingContext2D,
   frame: number,
+  palette: VizPalette = DARK_PALETTE,
 ) {
   const A =
     smoothstep(0, INTRO_END, frame) * (1 - smoothstep(FADE[0], FADE[1], frame));
   if (A <= 0.001) return;
+
+  const col = resolveColors(palette);
 
   const slide = easeInOut(smoothstep(SLIDE[0], SLIDE[1], frame));
   const storePos: Pt = {
@@ -163,17 +188,17 @@ export function drawSessionDurability(
   };
   const laptopA = 1 - smoothstep(SLIDE[0], SLIDE[1], frame);
 
-  drawLaptops(ctx, frame, A * laptopA);
-  drawTethers(ctx, frame, A * laptopA);
-  drawStore(ctx, frame, storePos, A);
-  for (let i = 0; i < SESSIONS.length; i++) drawSession(ctx, i, frame, A * laptopA);
-  drawResumeStreak(ctx, frame, storePos, A);
+  drawLaptops(ctx, frame, A * laptopA, col);
+  drawTethers(ctx, frame, A * laptopA, col);
+  drawStore(ctx, frame, storePos, A, col);
+  for (let i = 0; i < SESSIONS.length; i++) drawSession(ctx, i, frame, A * laptopA, col);
+  drawResumeStreak(ctx, frame, storePos, A, col);
 
   ctx.globalAlpha = 1;
 }
 
 // ---- Laptops ---------------------------------------------------------------
-function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number) {
+function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
   if (A <= 0.001) return;
   SESSIONS.forEach((s, i) => {
     const pop = smoothstep(0.4 + i * 3, 0.4 + i * 3 + 10, frame);
@@ -188,9 +213,9 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number) {
     const sw = 46 * sc;
     const sh = 30 * sc;
     roundRectPath(ctx, x - sw / 2, by - sh, sw, sh, 3 * sc);
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = col.fill;
     ctx.fill();
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = col.line;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x - sw / 2 - 2 * sc, by);
@@ -198,23 +223,23 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number) {
     ctx.lineTo(x + sw / 2 + 6 * sc, by + 4 * sc);
     ctx.lineTo(x - sw / 2 - 6 * sc, by + 4 * sc);
     ctx.closePath();
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = col.fill;
     ctx.fill();
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = col.line;
     ctx.stroke();
 
     ctx.globalAlpha = pop * A;
     ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_LABEL;
+    ctx.fillStyle = col.textLabel;
     ctx.fillText(s.name, x, by + 20);
 
     // Parked dot, before this session expands.
     if (frame < EXP_START[i]) {
       const dotFade = smoothstep(0.4 + i * 3 + 6, 0.4 + i * 3 + 16, frame);
       ctx.globalAlpha = dotFade * A;
-      ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.5)`;
+      ctx.fillStyle = `rgba(${col.accentRgb}, 0.5)`;
       ctx.beginPath();
       ctx.arc(x + DOCK_DX, by - 4, DOT_R, 0, Math.PI * 2);
       ctx.fill();
@@ -224,7 +249,7 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number) {
 }
 
 // ---- Session -> laptop tethers (only while the bubble is expanded/home) -----
-function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number) {
+function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
   if (A <= 0.001) return;
   SESSIONS.forEach((_, i) => {
     const st = sessionState(i, frame);
@@ -232,7 +257,7 @@ function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number) {
     if (vis <= 0.001) return;
     ctx.save();
     ctx.globalAlpha = 0.5 * vis * A;
-    ctx.strokeStyle = LINE;
+    ctx.strokeStyle = col.line;
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
@@ -272,7 +297,7 @@ function sessionState(i: number, frame: number): SessionState {
   return { active, expand, fly, pos, r };
 }
 
-function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A: number) {
+function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A: number, col: Colors) {
   const st = sessionState(i, frame);
   if (!st.active || A <= 0.001) return;
   const s = SESSIONS[i];
@@ -285,15 +310,15 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
   // Halo
   if (bubble > 0.01) {
     ctx.globalAlpha = A * bubble;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.07)`;
+    ctx.fillStyle = `rgba(${col.accentRgb}, 0.07)`;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.05)`;
+    ctx.fillStyle = `rgba(${col.accentRgb}, 0.05)`;
     ctx.beginPath();
     ctx.arc(x, y, r * 0.62, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.18)`;
+    ctx.strokeStyle = `rgba(${col.accentRgb}, 0.18)`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -304,7 +329,7 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
   const solid = st.fly;
   if (solid > 0.01) {
     ctx.globalAlpha = A * solid;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.85)`;
+    ctx.fillStyle = `rgba(${col.accentRgb}, 0.85)`;
     ctx.beginPath();
     ctx.arc(x, y, Math.max(DOT_R, r), 0, Math.PI * 2);
     ctx.fill();
@@ -319,7 +344,7 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
       const er = smoothstep(k / E, k / E + 0.3, st.expand);
       if (er <= 0.01) return;
       ctx.globalAlpha = A * bubble * er;
-      ctx.strokeStyle = `rgba(${NODE_TINT_RGB}, 0.35)`;
+      ctx.strokeStyle = `rgba(${col.nodeTintRgb}, 0.35)`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(pts[a].x, pts[a].y);
@@ -330,7 +355,7 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
       const nr = smoothstep((j / 7) * 0.8, (j / 7) * 0.8 + 0.2, st.expand);
       if (nr <= 0.01) return;
       ctx.globalAlpha = A * bubble * nr;
-      ctx.fillStyle = NODE_TINT;
+      ctx.fillStyle = col.nodeTint;
       ctx.beginPath();
       ctx.arc(p.x, p.y, 3.4, 0, Math.PI * 2);
       ctx.fill();
@@ -341,17 +366,17 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
     const byy = y - r * 0.78;
     const br = 8.5;
     ctx.globalAlpha = A * bubble;
-    ctx.fillStyle = FILL;
+    ctx.fillStyle = col.fill;
     ctx.beginPath();
     ctx.arc(bx, byy, br, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.6)`;
+    ctx.strokeStyle = `rgba(${col.accentRgb}, 0.6)`;
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.font = `9px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = TEXT_HEADER;
+    ctx.fillStyle = col.textHeader;
     ctx.fillText(s.letter, bx, byy + 0.5);
   }
 
@@ -359,7 +384,7 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
 }
 
 // ---- Session store card ----------------------------------------------------
-function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: number) {
+function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: number, col: Colors) {
   const appear = smoothstep(2, 16, frame);
   if (appear <= 0.001) return;
   const g = storeGeom(c);
@@ -369,9 +394,9 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
 
   // Card
   roundRectPath(ctx, g.left, g.top, CARD_W, CARD_H, 12);
-  ctx.fillStyle = CARD_BG;
+  ctx.fillStyle = col.cardBg;
   ctx.fill();
-  ctx.strokeStyle = CARD_BORDER;
+  ctx.strokeStyle = col.cardBorder;
   ctx.lineWidth = 1;
   ctx.stroke();
 
@@ -379,14 +404,14 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
   ctx.font = `600 13px ${MONO}`;
-  ctx.fillStyle = TEXT_HEADER;
+  ctx.fillStyle = col.textHeader;
   ctx.fillText('Session store', g.left + 20, g.top + HEADER_H / 2);
   ctx.textAlign = 'right';
   ctx.font = `12px ${MONO}`;
-  ctx.fillStyle = TEXT_MUTED;
+  ctx.fillStyle = col.textMuted;
   const filled = SESSIONS.filter((_, i) => frame >= landFrame(i)).length;
   ctx.fillText(`${filled} indexed`, g.left + CARD_W - 20, g.top + HEADER_H / 2);
-  ctx.strokeStyle = CARD_BORDER;
+  ctx.strokeStyle = col.cardBorder;
   ctx.beginPath();
   ctx.moveTo(g.left, g.top + HEADER_H);
   ctx.lineTo(g.left + CARD_W, g.top + HEADER_H);
@@ -404,9 +429,9 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
       if (lit > 0.01) {
         ctx.globalAlpha = appear * A * lit;
         roundRectPath(ctx, g.left + 8, y - ROW_H / 2 + 3, CARD_W - 16, ROW_H - 6, 6);
-        ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.1)`;
+        ctx.fillStyle = `rgba(${col.accentRgb}, 0.1)`;
         ctx.fill();
-        ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.4)`;
+        ctx.strokeStyle = `rgba(${col.accentRgb}, 0.4)`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -415,7 +440,7 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
     if (fill <= 0.01) {
       // Empty placeholder slot.
       ctx.globalAlpha = appear * A * 0.5;
-      ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.2)`;
+      ctx.strokeStyle = `rgba(${col.accentRgb}, 0.2)`;
       ctx.setLineDash([2, 3]);
       ctx.beginPath();
       ctx.arc(g.dotX, y, DOT_R, 0, Math.PI * 2);
@@ -425,7 +450,7 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
     }
 
     ctx.globalAlpha = appear * A * fill;
-    ctx.fillStyle = ACCENT;
+    ctx.fillStyle = col.accent;
     ctx.beginPath();
     ctx.arc(g.dotX, y, DOT_R, 0, Math.PI * 2);
     ctx.fill();
@@ -433,10 +458,10 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.font = `13px ${MONO}`;
-    ctx.fillStyle = TEXT_HEADER;
+    ctx.fillStyle = col.textHeader;
     ctx.fillText(s.title, g.textX, y - 6);
     ctx.font = `10px ${MONO}`;
-    ctx.fillStyle = TEXT_MUTED;
+    ctx.fillStyle = col.textMuted;
     ctx.fillText(`${s.name.toLowerCase()} · ${s.id}`, g.textX, y + 8);
   });
 
@@ -444,7 +469,7 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
 }
 
 // ---- Resume streak: stored session -> terminal center ----------------------
-function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos: Pt, A: number) {
+function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos: Pt, A: number, col: Colors) {
   if (frame < FLY2[0]) return;
   const idx = SESSIONS.findIndex((s) => s.resume);
   const g = storeGeom(storePos);
@@ -461,7 +486,7 @@ function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos
   // Faint trail behind the travelling dot.
   if (f > 0.02 && f < 0.99) {
     ctx.globalAlpha = A * 0.25 * (1 - f);
-    ctx.strokeStyle = ACCENT;
+    ctx.strokeStyle = col.accent;
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 5]);
     ctx.beginPath();
@@ -479,14 +504,14 @@ function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos
   if (arrive > 0.01 && landFade > 0.01) {
     const pulse = 1 + 0.5 * Math.sin(frame * 0.5);
     ctx.globalAlpha = A * landFade * 0.5 * arrive;
-    ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.18)`;
+    ctx.fillStyle = `rgba(${col.accentRgb}, 0.18)`;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, r * 2.4 * pulse, 0, Math.PI * 2);
     ctx.fill();
   }
 
   ctx.globalAlpha = A * Math.max(landFade, 1 - arrive);
-  ctx.fillStyle = ACCENT;
+  ctx.fillStyle = col.accent;
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
   ctx.fill();
