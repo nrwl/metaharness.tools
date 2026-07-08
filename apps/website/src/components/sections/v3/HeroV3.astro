@@ -1,10 +1,15 @@
 ---
 import { MetaHarnessLayers } from '@metaharness/animations';
 import VizSurface from '../../VizSurface.astro';
+import HeroBackground from './HeroBackground.astro';
 ---
 
-<section id="top" class="relative flex min-h-[calc(100svh-61px)] flex-col px-6">
-  <div class="flex flex-1 flex-col justify-center">
+<section
+  id="top"
+  class="relative flex min-h-[calc(100svh-61px)] flex-col overflow-hidden px-6"
+>
+  <HeroBackground />
+  <div class="relative z-10 flex flex-1 flex-col justify-center">
     <div data-hero-fade class="mx-auto w-full max-w-5xl">
       <h1
         class="text-6xl font-semibold tracking-tight text-neutral-900 sm:text-8xl dark:text-neutral-50"
@@ -12,7 +17,7 @@ import VizSurface from '../../VizSurface.astro';
         The Connected Agent
       </h1>
       <p
-        class="mt-6 max-w-2xl text-xl text-neutral-600 sm:text-2xl dark:text-neutral-400"
+        class="mt-6 max-w-2xl text-2xl text-neutral-600 sm:text-3xl dark:text-neutral-400"
       >
         Meta-harnesses fill the gaps your harness leaves.
       </p>
@@ -21,7 +26,7 @@ import VizSurface from '../../VizSurface.astro';
 
   <div
     data-hero-fade
-    class="flex flex-col items-center gap-1 pb-6 font-mono text-xs uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-600"
+    class="relative z-10 flex flex-col items-center gap-1 pb-6 font-mono text-xs uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-600"
   >
     <span>Scroll down</span>
     <span aria-hidden="true">&darr;</span>
