@@ -4,6 +4,8 @@ node_modules
 # build output
 dist
 storybook-static
+# generated at build time by the `og` Nx target
+apps/website/public/og.png
 /tmp
 /out-tsc
 *.tsbuildinfo
