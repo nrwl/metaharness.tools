@@ -12,6 +12,13 @@ const REPO = path.resolve(__dirname, '../../../..');
 const OUT_FILE = path.join(REPO, 'apps/website/public/og.png');
 const require = createRequire(import.meta.url);
 
+// Polygraph brand lockup (amber mark + white wordmark) for the dark card.
+const POLYGRAPH_LOCKUP = `data:image/svg+xml;base64,${Buffer.from(
+  readFileSync(
+    path.join(REPO, 'apps/website/public/images/polygraph-lockup-dark-bg.svg'),
+  ),
+).toString('base64')}`;
+
 const W = 1200;
 const H = 630;
 const C = {
@@ -176,7 +183,7 @@ function diagram() {
     {
       position: 'absolute',
       right: 66,
-      top: (H - META.h) / 2,
+      top: 286,
       width: META.w,
       height: META.h,
       border: `1px solid ${C.metaBorder}`,
@@ -242,7 +249,7 @@ function tree() {
       height: H,
       position: 'relative',
       flexDirection: 'column',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       padding: '74px 78px 66px',
       background: C.bg,
       color: C.text,
@@ -250,7 +257,7 @@ function tree() {
     },
     [
       diagram(),
-      box({ flexDirection: 'column', gap: 30, maxWidth: 560 }, [
+      box({ flexDirection: 'column', gap: 30, maxWidth: 720, marginTop: 30 }, [
         txt(
           {
             fontFamily: 'JetBrains Mono',
@@ -269,7 +276,7 @@ function tree() {
             fontSize: 66,
             lineHeight: 1.03,
             color: C.text,
-            maxWidth: 540,
+            maxWidth: 720,
           },
           'The Connected Agent',
         ),
@@ -280,7 +287,7 @@ function tree() {
             fontSize: 29,
             lineHeight: 1.35,
             color: C.muted,
-            maxWidth: 520,
+            maxWidth: 500,
           },
           'Meta-harnesses fill the gaps your harness leaves.',
         ),
@@ -291,17 +298,24 @@ function tree() {
           left: 78,
           bottom: 48,
           alignItems: 'center',
+          gap: 12,
         },
         [
           txt(
             {
-              fontFamily: 'JetBrains Mono',
-              fontWeight: 700,
+              fontFamily: 'Inter',
+              fontWeight: 400,
               fontSize: 22,
-              color: C.text,
+              color: C.muted,
             },
-            'metaharness.tools',
+            'Made with love by',
           ),
+          el('img', {
+            src: POLYGRAPH_LOCKUP,
+            width: 139,
+            height: 28,
+            style: { width: 139, height: 28 },
+          }),
         ],
       ),
     ],
