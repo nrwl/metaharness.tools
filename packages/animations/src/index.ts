@@ -57,6 +57,13 @@ export {
 export type { SessionMemoryProps } from './animations/session-memory';
 
 export {
+  MemoryDistill,
+  drawMemoryDistill,
+  MEMORY_DISTILL_CYCLE,
+} from './animations/memory-distill';
+export type { MemoryDistillProps } from './animations/memory-distill';
+
+export {
   SingleRepoCube,
   drawSingleRepoCube,
   SINGLE_REPO_CUBE_CYCLE,

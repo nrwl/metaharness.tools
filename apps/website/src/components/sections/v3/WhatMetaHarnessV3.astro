@@ -3,6 +3,7 @@ import {
   CrossRepoShip,
   FeedbackLoop,
   HarnessSwapDiagram,
+  MemoryDistill,
   PolicyGate,
   ProvisioningSetup,
   RepositoryGraph,
@@ -32,6 +33,11 @@ const capabilities: {
     title: 'Multiplayer and collaboration',
     body: "Shared, resumable sessions let you build on a coworker's, turning individual runs into org-wide memory.",
     island: 'session-timeline',
+  },
+  {
+    title: 'Distilled memory',
+    body: 'Finished sessions are distilled into a shared pool of memory that swells with every run, so past work becomes context the next agent draws on instead of being lost.',
+    island: 'memory-distill',
   },
   {
     title: 'Organizational rules and policies',
@@ -198,6 +204,10 @@ const capabilities: {
             ) : item.island === 'feedback-loop' ? (
               <VizSurface aspect="none">
                 <FeedbackLoop client:visible className="mx-auto" />
+              </VizSurface>
+            ) : item.island === 'memory-distill' ? (
+              <VizSurface>
+                <MemoryDistill client:visible className="mx-auto" />
               </VizSurface>
             ) : item.island === 'policy-gate' ? (
               <VizSurface aspect="none">
