@@ -3,12 +3,14 @@ interface Props {
   aspect?: string;
   class?: string;
   minHeight?: string;
+  themed?: boolean;
 }
 
 const {
   aspect = 'aspect-[16/10]',
   class: className = '',
   minHeight = '',
+  themed = false,
 } = Astro.props;
 
 // Canvas islands SSR as a zero-height <canvas> and collapse before hydration, so
@@ -20,10 +22,17 @@ const fluid = aspect === 'none';
 const layout = fluid
   ? 'min-w-0 overflow-hidden'
   : `flex min-w-0 items-center justify-center overflow-hidden ${aspect}`;
+
+// `themed`: the animation reads the shared palette and draws light-on-white too,
+// so the panel flips with the theme. Un-migrated animations stay dark-only
+// (interim) so their hardcoded dark palette never lands on a white panel.
+const surface = themed
+  ? 'bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-800'
+  : 'bg-neutral-950 ring-neutral-800';
 ---
 
 <div
-  class={`${layout} rounded-xl bg-neutral-950 p-4 ring-1 ring-neutral-800 ${minHeight} ${className}`}
+  class={`${layout} rounded-xl p-4 ring-1 ${surface} ${minHeight} ${className}`}
 >
   <slot />
 </div>

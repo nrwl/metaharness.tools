@@ -30,20 +30,12 @@ import {
   smoothstep,
   type KernelFrame,
 } from '../../lib/anim';
+import { DARK_PALETTE } from '../../lib/palette';
 
 /** Seconds per loop. */
 export const CYCLE = 13;
 
 const fract = (x: number) => x - Math.floor(x);
-
-// ---------------------------------------------------------------------------
-// Palette (site dark theme)
-// ---------------------------------------------------------------------------
-const ACCENT = '#d4b483';
-const ACCENT_RGB = '212, 180, 131';
-const OSS_COLOR = '#6b7280';
-const EDGE_GRAY = '#52525b';
-const LABEL_COLOR = '#e5e5e5';
 
 // ---------------------------------------------------------------------------
 // Graph construction (deterministic)
@@ -249,7 +241,6 @@ function buildLayout() {
 // ---------------------------------------------------------------------------
 const GROW_START = 1.3; // three big labelled hubs sit alone until here
 const GROW_DUR = 7.6; // the rest of the cloud streams in over this window
-const GROW_END = GROW_START + GROW_DUR;
 const PRIM_SHRINK_DUR = 3.5; // primaries reach their natural size early on
 const FADE = [11.5, 12.7] as const; // hold, then fade + loop
 const FIT_START = 150; // camera fit at intro (three big hubs + labels)
@@ -267,9 +258,17 @@ export interface DrawRepositoryGraphOptions {
 // ---------------------------------------------------------------------------
 export function drawRepositoryGraph(
   ctx: CanvasRenderingContext2D,
-  { width, height, elapsed, appear }: KernelFrame,
+  { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
   opts?: DrawRepositoryGraphOptions,
 ) {
+  // Resolve the theme palette to the kernel's local color names; the rest of the
+  // draw reads these so the graph re-themes when the site toggle flips.
+  const ACCENT = palette.accent;
+  const ACCENT_RGB = palette.accentRgb;
+  const OSS_COLOR = palette.textDim; // neutral dependency dots
+  const EDGE_GRAY = palette.textFaint; // faint gray edges
+  const LABEL_COLOR = palette.textHeader;
+
   const showLabels = opts?.labels !== false;
   const t = elapsed % CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);

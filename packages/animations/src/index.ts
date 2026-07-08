@@ -2,6 +2,17 @@
 //   import { Template } from '@metaharness/animations';
 //
 // Add a re-export line per animation as they are built.
+
+// Shared theme palette (light/dark) consumed by every animation.
+export {
+  DARK_PALETTE,
+  LIGHT_PALETTE,
+  getPalette,
+  type VizPalette,
+  type ThemeMode,
+} from './lib/palette';
+export { usePalette, useThemeMode } from './lib/theme';
+
 export { Template } from './animations/_template';
 export type { TemplateProps } from './animations/_template';
 
