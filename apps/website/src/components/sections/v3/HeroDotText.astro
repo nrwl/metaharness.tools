@@ -62,6 +62,10 @@
     const REPEL_FORCE = 3.2; // push acceleration at the cursor
     const SPRING = 0.075; // pull back toward home
     const FRICTION = 0.82; // velocity damping
+    // Cap how far a dot may stray from home: enough to pull the dots into a
+    // connected web (the intended look), while keeping every dot on-canvas so
+    // nothing clips and the spray never runs away.
+    const MAX_DISP = 46;
     let mx = 0;
     let my = 0;
     let mouseActive = false; // cursor is near the headline
@@ -91,14 +95,16 @@
       const fontSize = parseFloat(cs.fontSize);
       const lineHeight = parseFloat(cs.lineHeight) || fontSize * 1.1;
 
-      // The canvas bleeds past the <h1> box for two reasons: with line-height:1
+      // The canvas bleeds past the <h1> box so nothing clips: with line-height:1
       // the tall/round glyph tops (e.g. the "C") already overflow it, and the
-      // cursor shoves dots well beyond their home while dragging. Size the bleed
-      // to contain both (the drag reach is ~the repel radius), and shift the
-      // canvas up/left to compensate so the dots still overlay the headline.
-      const dragPad = Math.round(REPEL_RADIUS * 1.25);
-      padX = Math.round(fontSize * 0.08) + dragPad;
-      padY = Math.round(fontSize * 0.28) + dragPad;
+      // cursor nudges dots a little past their home while dragging (capped at
+      // MAX_DISP). Size the bleed to contain both. The text is then drawn INTO
+      // that padded origin (see fillText below) so the dots overlay the headline
+      // exactly regardless of how large the bleed is.
+      const bleedX = Math.round(fontSize * 0.08);
+      const bleedY = Math.round(fontSize * 0.28);
+      padX = Math.max(bleedX, MAX_DISP) + 4;
+      padY = Math.max(bleedY, MAX_DISP) + 4;
       w = boxW + padX * 2;
       h = boxH + padY * 2;
 
@@ -131,7 +137,7 @@
       let cur = '';
       for (const word of words) {
         const test = cur ? `${cur} ${word}` : word;
-        if (octx.measureText(test).width > w && cur) {
+        if (octx.measureText(test).width > boxW && cur) {
           lines.push(cur);
           cur = word;
         } else {
@@ -139,7 +145,9 @@
         }
       }
       if (cur) lines.push(cur);
-      lines.forEach((line, i) => octx.fillText(line, 0, i * lineHeight));
+      // Draw at the padded origin so sampled dot homes line up with the headline
+      // once the canvas is shifted back by (-padX, -padY).
+      lines.forEach((line, i) => octx.fillText(line, padX, padY + i * lineHeight));
 
       // Grid-sample opaque pixels into dots; spacing scales with font size.
       // Tight enough that letterforms stay legible.
@@ -269,20 +277,18 @@
         d.vy = (d.vy + ay) * FRICTION;
         d.x += d.vx;
         d.y += d.vy;
-        // Hard backstop: never let a shoved dot leave the canvas (it would clip).
-        if (d.x < 2) {
-          d.x = 2;
-          if (d.vx < 0) d.vx = 0;
-        } else if (d.x > w - 2) {
-          d.x = w - 2;
-          if (d.vx > 0) d.vx = 0;
-        }
-        if (d.y < 2) {
-          d.y = 2;
-          if (d.vy < 0) d.vy = 0;
-        } else if (d.y > h - 2) {
-          d.y = h - 2;
-          if (d.vy > 0) d.vy = 0;
+        // Cap how far a dot may stray from home: keeps the drag tidy (no dot
+        // flung across the word) and, since MAX_DISP ≤ the bleed, keeps every
+        // dot on-canvas so nothing clips — no hard edge backstop needed.
+        const ox = d.x - d.hx;
+        const oy = d.y - d.hy;
+        const o2 = ox * ox + oy * oy;
+        if (o2 > MAX_DISP * MAX_DISP) {
+          const s = MAX_DISP / Math.sqrt(o2);
+          d.x = d.hx + ox * s;
+          d.y = d.hy + oy * s;
+          d.vx *= 0.5;
+          d.vy *= 0.5;
         }
         if (
           !moving &&
@@ -352,12 +358,13 @@
     };
 
     // Pointer tracking. The canvas stays pointer-events-none (never blocks
-    // clicks); we listen on window and only repel when the cursor is near.
-    const onPointerMove = (e: PointerEvent) => {
+    // clicks / scroll); we listen on window and only repel when the cursor or
+    // finger is near the headline.
+    const engageAt = (clientX: number, clientY: number) => {
       if (reduce.matches) return;
       const rect = canvas.getBoundingClientRect();
-      mx = e.clientX - rect.left;
-      my = e.clientY - rect.top;
+      mx = clientX - rect.left;
+      my = clientY - rect.top;
       // Only engage near the actual headline, not the wide (mostly empty) bleed.
       mouseActive =
         mx > padX - REPEL_RADIUS &&
@@ -366,20 +373,55 @@
         my < padY + boxH + REPEL_RADIUS;
       if (mouseActive) ensureRunning();
     };
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
+
+    // Mouse / pen via pointer events. Touch is handled separately below: the
+    // browser cancels pointer events the instant a touch-drag turns into a
+    // scroll, whereas raw touch events keep firing, so the dots stay responsive.
     window.addEventListener(
-      'pointerdown',
+      'pointermove',
       (e) => {
-        pressing = true;
-        onPointerMove(e);
+        if (e.pointerType === 'touch') return;
+        engageAt(e.clientX, e.clientY);
       },
       { passive: true },
     );
-    const release = () => {
+    window.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (e.pointerType === 'touch') return;
+        pressing = true;
+        engageAt(e.clientX, e.clientY);
+      },
+      { passive: true },
+    );
+    const releaseMouse = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
       pressing = false;
     };
-    window.addEventListener('pointerup', release, { passive: true });
-    window.addEventListener('pointercancel', release, { passive: true });
+    window.addEventListener('pointerup', releaseMouse, { passive: true });
+    window.addEventListener('pointercancel', releaseMouse, { passive: true });
+
+    // Touch: passive listeners (never block scrolling) that ripple the dots as
+    // the finger passes over the headline.
+    const onTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) engageAt(t.clientX, t.clientY);
+    };
+    window.addEventListener(
+      'touchstart',
+      (e) => {
+        pressing = true;
+        onTouch(e);
+      },
+      { passive: true },
+    );
+    window.addEventListener('touchmove', onTouch, { passive: true });
+    const endTouch = () => {
+      pressing = false;
+      mouseActive = false; // let the loop settle once the finger lifts
+    };
+    window.addEventListener('touchend', endTouch, { passive: true });
+    window.addEventListener('touchcancel', endTouch, { passive: true });
 
     // Fonts must be ready or wrapping/metrics are wrong.
     if (document.fonts && document.fonts.ready) {
