@@ -39,9 +39,14 @@ import VizSurface from '../../VizSurface.astro';
         </p>
       </div>
 
-      <div class="min-w-0">
-        <VizSurface>
-          <SessionDissolve client:visible className="mx-auto" />
+      <div class="-mx-6 min-w-0 md:mx-0">
+        <VizSurface aspect="aspect-[6/5]">
+          <SessionDissolve
+            client:visible
+            width={600}
+            height={500}
+            className="mx-auto"
+          />
         </VizSurface>
       </div>
     </div>
@@ -89,9 +94,14 @@ import VizSurface from '../../VizSurface.astro';
           </div>
         </div>
 
-        <div class="min-w-0">
-          <VizSurface>
-            <IsolatedSessions client:visible className="mx-auto" />
+        <div class="-mx-6 min-w-0 md:mx-0">
+          <VizSurface aspect="aspect-[16/9]">
+            <IsolatedSessions
+              client:visible
+              width={800}
+              height={450}
+              className="mx-auto"
+            />
           </VizSurface>
         </div>
       </div>

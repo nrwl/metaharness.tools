@@ -71,6 +71,13 @@ const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 // ---------------------------------------------------------------------------
 const BASE_W = 960;
 const BASE_H = 600;
+// Content bounding box within BASE (the four people + laptops across the top and
+// the shared repo row along the bottom), used to fit-and-centre the drawing to
+// the canvas so it fills the frame rather than floating small on narrow widths.
+const FIT_CX = 482;
+const FIT_CY = 357;
+const FIT_W = 790;
+const FIT_H = 470;
 
 const SESSION_R = 62;
 
@@ -229,12 +236,13 @@ export function drawIsolatedSessions(
   const A = appear * cycleFade;
   if (A <= 0.001) return;
 
-  const fit = Math.min(width / BASE_W, height / BASE_H);
+  // Fit the actual content box (not the loose BASE canvas), centred on content.
+  const fit = Math.min(width / FIT_W, height / FIT_H);
   const sc = fit * lerp(0.92, 1, appear);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);
-  ctx.translate(-BASE_W / 2, -BASE_H / 2);
+  ctx.translate(-FIT_CX, -FIT_CY);
 
   const states = RUNS.map((_, i) => runState(i, t, elapsed));
 
