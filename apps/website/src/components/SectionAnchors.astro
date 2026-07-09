@@ -1,0 +1,152 @@
+---
+// Progressive enhancement: makes every section heading a copyable deep link.
+// Clicking a title (or its hover-revealed # affordance) updates the URL to the
+// section's anchor and copies the full link to the clipboard. Headings that are
+// the first heading of an element with an id reuse that id (so it matches the
+// nav anchors, e.g. #memory, #capabilities); all others get a slug id derived
+// from their text (#resources, #omnigent, ...). Runs once, no dependencies.
+---
+
+<style is:global>
+  .mh-h {
+    position: relative;
+    cursor: pointer;
+  }
+  .mh-hash {
+    /* Trails the heading text and sizes in em, so it scales with the heading
+       instead of looking like a stray glyph. Trailing (not left-gutter)
+       placement keeps it clear of the mobile page padding. */
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-left: 0.32em;
+    width: 0.6em;
+    height: 0.6em;
+    color: var(--color-accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .mh-hash svg {
+    width: 100%;
+    height: 100%;
+  }
+  .mh-h:hover > .mh-hash,
+  .mh-hash:focus-visible {
+    opacity: 1;
+  }
+  .mh-toast {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    transform: translate(-50%, -125%);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    background: var(--color-neutral-900);
+    color: white;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  :global(.dark) .mh-toast {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-950);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mh-hash,
+    .mh-toast {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const slugify = (t: string) =>
+    t
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
+  // Only main section taglines are deep-linkable: top-level section headings,
+  // not sub-item titles (h3) or promo-card headings (opted out with
+  // data-no-anchor).
+  const headings = [
+    ...document.querySelectorAll<HTMLElement>(
+      'section h2:not([data-no-anchor])',
+    ),
+  ];
+  if (headings.length) {
+    const used = new Set<string>();
+
+    const toast = document.createElement('div');
+    toast.className = 'mh-toast';
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+    let toastTimer = 0;
+    const showToast = (x: number, y: number, msg: string) => {
+      toast.textContent = msg;
+      toast.style.left = `${x}px`;
+      toast.style.top = `${y}px`;
+      toast.style.opacity = '1';
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => (toast.style.opacity = '0'), 1200);
+    };
+
+    const anchorId = (h: HTMLElement) => {
+      const owner = h.closest<HTMLElement>('[id]');
+      const firstHeading = owner?.querySelector('h1, h2, h3, h4, h5, h6');
+      if (owner?.id && firstHeading === h) return owner.id;
+      const base = slugify(h.textContent ?? '') || 'section';
+      let id = base;
+      let n = 2;
+      while (
+        used.has(id) ||
+        (document.getElementById(id) && document.getElementById(id) !== h)
+      ) {
+        id = `${base}-${n++}`;
+      }
+      h.id = id;
+      return id;
+    };
+
+    for (const h of headings) {
+      if (!(h.textContent ?? '').trim()) continue; // skip image-only headings
+      const id = anchorId(h);
+      used.add(id);
+      h.classList.add('mh-h');
+
+      const marker = document.createElement('a');
+      marker.className = 'mh-hash';
+      marker.href = `#${id}`;
+      marker.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+      marker.setAttribute('aria-label', 'Copy link to this section');
+      h.appendChild(marker);
+
+      h.addEventListener('click', (e) => {
+        // Let the user select heading text without triggering a copy.
+        const sel = window.getSelection();
+        if (sel && sel.type === 'Range' && sel.toString().length) return;
+
+        e.preventDefault();
+        const url = `${location.origin}${location.pathname}#${id}`;
+        history.replaceState(null, '', `#${id}`);
+        const rect = h.getBoundingClientRect();
+        const x = e.clientX || rect.left + 16;
+        const y = e.clientY || rect.top;
+        const done = () => showToast(x, y, 'Link copied');
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(url).then(done, done);
+        } else {
+          done();
+        }
+      });
+    }
+  }
+</script>

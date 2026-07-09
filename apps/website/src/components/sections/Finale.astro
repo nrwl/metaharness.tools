@@ -21,14 +21,9 @@ const resources = [
     body: 'An accessible introduction to the harness concept.',
   },
   {
-    label: 'Databricks, Omnigent (repository)',
-    href: 'https://github.com/omnigent-ai/omnigent',
-    body: 'The open-source implementation of the Databricks Omnigent meta-harness.',
-  },
-  {
-    label: 'SuperagenticAI, metaharness',
-    href: 'https://github.com/SuperagenticAI/metaharness',
-    body: 'An unofficial harness optimizer for coding agents, inspired by the Stanford paper.',
+    label: 'Databricks, Introducing Omnigent',
+    href: 'https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents',
+    body: 'The announcement of Omnigent: a runner-plus-server meta-harness for composing, governing, and sharing agents.',
   },
   {
     label: 'Agent Client Protocol',
@@ -43,70 +38,23 @@ const resources = [
 ];
 ---
 
-<section id="polygraph" class="px-6 py-20 md:py-28">
-  <div class="mx-auto max-w-3xl">
-    <div
-      class="rounded-xl border border-neutral-300 bg-neutral-100/60 p-8 sm:p-10 dark:border-neutral-800 dark:bg-neutral-900/40"
-    >
-      <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-        A meta-harness by Nx
-      </p>
-      <h2 class="mt-4">
-        <img
-          src="/images/polygraph-lockup-light-bg.svg"
-          alt="Polygraph"
-          width="678"
-          height="137"
-          class="block h-8 w-auto sm:h-9 dark:hidden"
-        />
-        <img
-          src="/images/polygraph-lockup-dark-bg.svg"
-          alt="Polygraph"
-          width="678"
-          height="137"
-          class="hidden h-8 w-auto sm:h-9 dark:block"
-        />
-      </h2>
-      <p
-        class="mt-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-      >
-        Polygraph is a meta-harness. It dissolves repo and session boundaries,
-        giving your agents a unified dependency graph across your organization
-        without moving any code, durable sessions anyone can resume, and
-        institutional memory that carries from one session to the next.
-        Polygraph isn't an agent. It's infrastructure that makes your agents
-        more powerful.
-      </p>
-      <a
-        href="https://trypolygraph.com"
-        target="_blank"
-        rel="noopener"
-        class="mt-8 inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700 dark:border-neutral-700 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-white"
-      >
-        Explore Polygraph
-        <span aria-hidden="true">&rarr;</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="mx-auto mt-20 max-w-3xl">
+<section id="resources" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-5xl">
     <h2
-      class="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-50"
+      class="text-center text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-50"
     >
       Resources
     </h2>
 
-    <ul
-      class="mt-8 divide-y divide-neutral-200 border-t border-neutral-200 dark:divide-neutral-900 dark:border-neutral-900"
-    >
+    <ul class="mt-10 grid gap-x-12 sm:grid-cols-2">
       {
         resources.map((r) => (
-          <li class="py-5">
+          <li>
             <a
               href={r.href}
               target="_blank"
               rel="noopener"
-              class="group flex flex-col gap-1"
+              class="group flex flex-col gap-1 border-t border-neutral-200 py-5 dark:border-neutral-900"
             >
               <span class="text-base font-medium text-neutral-900 transition-colors group-hover:text-accent dark:text-neutral-100">
                 {r.label}

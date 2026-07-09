@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import ComingSoon from '../components/ComingSoon.astro';
+import SectionAnchors from '../components/SectionAnchors.astro';
 
 interface Props {
   title?: string;
@@ -153,5 +154,6 @@ const structuredData = {
   </head>
   <body>
     {comingSoon ? <ComingSoon /> : <slot />}
+    {!comingSoon && <SectionAnchors />}
   </body>
 </html>
