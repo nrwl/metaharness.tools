@@ -767,7 +767,7 @@ export function MetaHarnessLayers({
           ctx.textBaseline = 'middle';
           ctx.fillStyle = TH.textLabel;
           ctx.fillText(
-            'Claude Code / Codex',
+            'Claude Code / Codex / OpenCode / Pi',
             harnessCenter.x - harnessRect.w / 2 + 16,
             harnessCenter.y - harnessRect.h / 2 + 36,
           );

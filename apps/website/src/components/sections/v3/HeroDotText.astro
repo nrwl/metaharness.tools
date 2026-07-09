@@ -79,18 +79,34 @@
 
     const build = () => {
       const rect = src.getBoundingClientRect();
-      w = rect.width;
-      h = rect.height;
-      if (w < 2 || h < 2) return;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const boxW = rect.width;
+      const boxH = rect.height;
+      if (boxW < 2 || boxH < 2) return;
 
-      // Sample the text at CSS resolution on an offscreen canvas.
       const cs = getComputedStyle(src);
       const fontSize = parseFloat(cs.fontSize);
       const lineHeight = parseFloat(cs.lineHeight) || fontSize * 1.1;
+
+      // With line-height:1 the tall/round glyph tops (e.g. the "C") overflow the
+      // <h1> box. The canvas matches that box exactly, so it would clip them —
+      // bleed it a little beyond the box and shift it up/left to compensate.
+      const padX = Math.round(fontSize * 0.08);
+      const padY = Math.round(fontSize * 0.28);
+      w = boxW + padX * 2;
+      h = boxH + padY * 2;
+
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.left = `${-padX}px`;
+      canvas.style.top = `${-padY}px`;
+      canvas.style.right = 'auto';
+      canvas.style.bottom = 'auto';
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Sample the text at CSS resolution on an offscreen canvas.
       const off = document.createElement('canvas');
       off.width = Math.ceil(w);
       off.height = Math.ceil(h);
