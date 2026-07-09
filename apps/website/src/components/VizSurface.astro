@@ -20,12 +20,18 @@ const {
 // they get a reserved aspect box that flex-centers the canvas inside it. Fluid DOM
 // diagrams already SSR at full height and self-center; for them (aspect="none") we
 // drop the aspect box AND the flex-centering — a plain block lets the diagram fill
-// the width instead of shrink-wrapping to its min-content width. No overflow clip,
-// so terminal card drop-shadows aren't cut off.
+// the width instead of shrink-wrapping to its min-content width.
+//
+// `overflow-x-clip` caps horizontal overflow to the surface: `client:visible`
+// islands SSR at their natural fixed logical width (e.g. 960px) and only scale to
+// fit once hydrated, which for below-the-fold sections happens after the initial
+// paint — until then a wide island would inflate the document width and cause
+// page-level horizontal scroll on narrow viewports. Clipping only the x-axis
+// leaves vertical drop-shadows (terminal cards) untouched.
 const fluid = aspect === 'none';
 const layout = fluid
-  ? 'min-w-0'
-  : `flex min-w-0 items-center justify-center ${aspect}`;
+  ? 'min-w-0 overflow-x-clip'
+  : `flex min-w-0 items-center justify-center overflow-x-clip ${aspect}`;
 ---
 
 <div class={`${layout} ${minHeight} ${className}`}>
