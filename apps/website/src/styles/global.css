@@ -23,10 +23,10 @@ body {
   color: var(--color-neutral-100);
 }
 
-/* Subtle inline highlight. Not the default yellow-on-dark. */
+/* Inline emphasis: plain bold, no highlight. */
 mark {
-  background-color: color-mix(in oklch, var(--color-accent) 16%, transparent);
+  background-color: transparent;
   color: inherit;
-  padding: 0 0.18em;
-  border-radius: 3px;
+  font-weight: 600;
+  padding: 0;
 }
