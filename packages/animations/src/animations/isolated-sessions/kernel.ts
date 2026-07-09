@@ -74,10 +74,13 @@ const BASE_H = 600;
 // Content bounding box within BASE (the four people + laptops across the top and
 // the shared repo row along the bottom), used to fit-and-centre the drawing to
 // the canvas so it fills the frame rather than floating small on narrow widths.
-const FIT_CX = 482;
-const FIT_CY = 357;
-const FIT_W = 790;
-const FIT_H = 470;
+const FIT_CX = 483;
+const FIT_CY = 340;
+// Wide enough to include the session circles, which bulge past the outer
+// laptops (Juri's reaches ~x=68, Nadia's ~x=897), and tall enough to clear the
+// circles above the people (~y=100) and the repo labels below (~y=580).
+const FIT_W = 880;
+const FIT_H = 500;
 
 const SESSION_R = 62;
 
@@ -165,13 +168,9 @@ const CTX_GRAPHS: Pt[][] = RUNS.map((_, i) => {
 });
 
 // ---------------------------------------------------------------------------
-// Timeline. Repos draw first, laptops pop in early and stay, session runs
-// come and go, then the whole scene fades and loops.
+// Timeline. Repos and laptops are always shown (pinned to scroll reveal); the
+// session runs come and go, then the whole scene fades and loops.
 // ---------------------------------------------------------------------------
-const REPO_START = 0.15;
-const REPO_STAGGER = 0.22;
-const LAPTOP_START = 0.4;
-const LAPTOP_STAGGER = 0.16;
 const FADE = [12.4, 13.8] as const;
 
 interface RunState {
@@ -233,8 +232,11 @@ export function drawIsolatedSessions(
   const c = resolveColors(palette);
   const t = elapsed % ISOLATED_SESSIONS_CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
+  // Repos and laptops are pinned to `appear` (scroll reveal) so they stay put;
+  // only the sessions (circles, tethers, repo connectors) ride `A`'s per-cycle
+  // build/fade.
   const A = appear * cycleFade;
-  if (A <= 0.001) return;
+  if (appear <= 0.001) return;
 
   // Fit the actual content box (not the loose BASE canvas), centred on content.
   const fit = Math.min(width / FIT_W, height / FIT_H);
@@ -246,8 +248,8 @@ export function drawIsolatedSessions(
 
   const states = RUNS.map((_, i) => runState(i, t, elapsed));
 
-  drawRepoLayer(ctx, t, A, c);
-  drawLaptops(ctx, t, A, c);
+  drawRepoLayer(ctx, appear, c);
+  drawLaptops(ctx, appear, c);
   drawTethers(ctx, states, A, c);
   drawRepoConnectors(ctx, states, A, c);
   for (let i = 0; i < RUNS.length; i++) {
@@ -261,13 +263,10 @@ export function drawIsolatedSessions(
 // ---- Shared repo row --------------------------------------------------------
 function drawRepoLayer(
   ctx: CanvasRenderingContext2D,
-  t: number,
-  A: number,
+  A: number, // persistent scroll-reveal (not the per-cycle fade): repos stay put
   c: Colors,
 ) {
-  REPO_EDGES.forEach((edge, e) => {
-    const reveal = smoothstep(0.7 + e * 0.3, 1.4 + e * 0.3, t);
-    if (reveal <= 0.001) return;
+  REPO_EDGES.forEach((edge) => {
     const a = REPOS[edge.a];
     const b = REPOS[edge.b];
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
@@ -277,37 +276,30 @@ function drawRepoLayer(
     const bx = b.x - Math.cos(ang) * pad;
     const by = b.y - Math.sin(ang) * pad;
     ctx.save();
-    ctx.globalAlpha = 0.9 * reveal * A;
+    ctx.globalAlpha = 0.9 * A;
     ctx.strokeStyle = c.line;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
-    ctx.lineTo(lerp(ax, bx, reveal), lerp(ay, by, reveal));
+    ctx.lineTo(bx, by);
     ctx.stroke();
     ctx.restore();
   });
 
-  REPOS.forEach((repo, i) => {
-    const pop = smoothstep(
-      REPO_START + i * REPO_STAGGER,
-      REPO_START + i * REPO_STAGGER + 0.4,
-      t,
-    );
-    if (pop <= 0.001) return;
-    const s = lerp(0.6, 1, easeInOut(pop));
+  REPOS.forEach((repo) => {
     ctx.save();
-    ctx.globalAlpha = pop * A;
+    ctx.globalAlpha = A;
     ctx.fillStyle = `rgba(${c.accentRgb}, 0.12)`;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 20 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 20, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = c.fill;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 14 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 14, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = c.accent;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 10 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 10, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
@@ -321,23 +313,16 @@ function drawRepoLayer(
 // ---- Laptops (each person's local machine, persistent) ----------------------
 function drawLaptops(
   ctx: CanvasRenderingContext2D,
-  t: number,
-  A: number,
+  A: number, // persistent scroll-reveal: laptops stay put across cycles
   c: Colors,
 ) {
-  PEOPLE.forEach((person, i) => {
-    const pop = smoothstep(
-      LAPTOP_START + i * LAPTOP_STAGGER,
-      LAPTOP_START + i * LAPTOP_STAGGER + 0.35,
-      t,
-    );
-    if (pop <= 0.001) return;
-    const s = lerp(0.7, 1, easeInOut(pop));
+  PEOPLE.forEach((person) => {
+    const s = 1;
     const x = person.x;
     const by = person.y + LAPTOP_DY; // screen baseline (hinge)
 
     ctx.save();
-    ctx.globalAlpha = 0.9 * pop * A;
+    ctx.globalAlpha = 0.9 * A;
     ctx.lineWidth = 1;
 
     // Screen: rounded rect above the hinge.
@@ -362,7 +347,7 @@ function drawLaptops(
     ctx.stroke();
 
     // Name under the machine.
-    ctx.globalAlpha = pop * A;
+    ctx.globalAlpha = A;
     ctx.font = `13px ${MONO}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

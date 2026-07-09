@@ -99,8 +99,6 @@ const CTX_GRAPHS: Pt[][] = RUNS.map((_, i) => {
 // Timeline. Repos draw first; each run pops, builds, connects, dissolves; the
 // whole scene fades and loops.
 // ---------------------------------------------------------------------------
-const REPO_START = 0.15;
-const REPO_STAGGER = 0.22;
 const FADE = [9.8, 11] as const;
 
 interface RunState {
@@ -138,8 +136,10 @@ export function drawSessionDissolve(
 ) {
   const t = elapsed % SESSION_DISSOLVE_CYCLE;
   const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
+  // Repo row is pinned to `appear` (scroll reveal) so it stays put; only the
+  // session/focal cluster rides the per-cycle fade `A`.
   const A = appear * cycleFade;
-  if (A <= 0.001) return;
+  if (appear <= 0.001) return;
 
   // Fit the actual content bounding box (not the loose BASE canvas) so the
   // drawing fills the frame — critical on narrow/mobile widths where any empty
@@ -151,7 +151,7 @@ export function drawSessionDissolve(
   ctx.scale(sc, sc);
   ctx.translate(-FIT_CX, -FIT_CY);
 
-  drawRepoLayer(ctx, t, A, palette);
+  drawRepoLayer(ctx, appear, palette);
   for (let i = 0; i < RUNS.length; i++) {
     const st = runState(i, t);
     drawConnector(ctx, i, st, A, palette);
@@ -165,8 +165,7 @@ export function drawSessionDissolve(
 // ---- Repo row --------------------------------------------------------------
 function drawRepoLayer(
   ctx: CanvasRenderingContext2D,
-  t: number,
-  A: number,
+  A: number, // persistent scroll-reveal (not the per-cycle fade): repos stay put
   palette: VizPalette,
 ) {
   const ACCENT = palette.accent;
@@ -174,9 +173,7 @@ function drawRepoLayer(
   const FILL = palette.surface;
   const LINE = palette.line;
   const TEXT_LABEL = palette.textLabel;
-  REPO_EDGES.forEach((edge, e) => {
-    const reveal = smoothstep(0.7 + e * 0.3, 1.4 + e * 0.3, t);
-    if (reveal <= 0.001) return;
+  REPO_EDGES.forEach((edge) => {
     const a = REPOS[edge.a];
     const b = REPOS[edge.b];
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
@@ -186,37 +183,30 @@ function drawRepoLayer(
     const bx = b.x - Math.cos(ang) * pad;
     const by = b.y - Math.sin(ang) * pad;
     ctx.save();
-    ctx.globalAlpha = 0.9 * reveal * A;
+    ctx.globalAlpha = 0.9 * A;
     ctx.strokeStyle = LINE;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
-    ctx.lineTo(lerp(ax, bx, reveal), lerp(ay, by, reveal));
+    ctx.lineTo(bx, by);
     ctx.stroke();
     ctx.restore();
   });
 
-  REPOS.forEach((repo, i) => {
-    const pop = smoothstep(
-      REPO_START + i * REPO_STAGGER,
-      REPO_START + i * REPO_STAGGER + 0.4,
-      t,
-    );
-    if (pop <= 0.001) return;
-    const s = lerp(0.6, 1, easeInOut(pop));
+  REPOS.forEach((repo) => {
     ctx.save();
-    ctx.globalAlpha = pop * A;
+    ctx.globalAlpha = A;
     ctx.fillStyle = `rgba(${ACCENT_RGB}, 0.12)`;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 17 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 17, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = FILL;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 12 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 12, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = ACCENT;
     ctx.beginPath();
-    ctx.arc(repo.x, repo.y, 8 * s, 0, Math.PI * 2);
+    ctx.arc(repo.x, repo.y, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = `11px ${MONO}`;
     ctx.textAlign = 'center';
@@ -273,6 +263,7 @@ function drawSession(
   const OUTLINE = palette.outline;
   const LINE = palette.line;
   const TEXT_HEADER = palette.textHeader;
+  const TEXT_LABEL = palette.textLabel;
 
   ctx.save();
 
@@ -344,6 +335,16 @@ function drawSession(
   ctx.textBaseline = 'middle';
   ctx.fillStyle = TEXT_HEADER;
   ctx.fillText(LETTER, bx, by + 0.5);
+
+  // Caption identifying the circle as a session (first place we show this
+  // element). Anchored above the full-size circle so it doesn't jump as the
+  // halo grows.
+  ctx.globalAlpha = alpha;
+  ctx.font = `11px ${MONO}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = TEXT_LABEL;
+  ctx.fillText('Session', FOCAL.x, FOCAL.y - BASE_R - 14);
 
   // Session card next to the circle: fades out as the session dissolves.
   if (st.card > 0.001) {
