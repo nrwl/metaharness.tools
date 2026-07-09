@@ -9,28 +9,34 @@
 
 <style is:global>
   .mh-h {
-    position: relative;
     cursor: pointer;
   }
+  /* The heading text is wrapped in this inline-block so the icon can anchor to
+     the text box itself (via right: 100%), which keeps it in the left gutter of
+     the first line for both left-aligned and centered headings, and never lets
+     it wrap onto its own line the way a trailing inline icon does. */
+  .mh-label {
+    position: relative;
+    display: inline-block;
+  }
   .mh-hash {
-    /* Trails the heading text and sizes in em, so it scales with the heading
-       instead of looking like a stray glyph. Trailing (not left-gutter)
-       placement keeps it clear of the mobile page padding. */
-    display: inline-flex;
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 1em; /* == heading font-size, so the icon centers on the first line */
+    margin-right: 0.35rem;
+    display: flex;
     align-items: center;
-    vertical-align: middle;
-    margin-left: 0.32em;
-    width: 0.6em;
-    height: 0.6em;
     color: var(--color-accent);
     opacity: 0;
     transition: opacity 0.15s ease;
   }
   .mh-hash svg {
-    width: 100%;
-    height: 100%;
+    /* Scales with the heading but clamped so it fits the 24px mobile gutter. */
+    width: clamp(0.95rem, 0.5em, 1.35rem);
+    height: clamp(0.95rem, 0.5em, 1.35rem);
   }
-  .mh-h:hover > .mh-hash,
+  .mh-h:hover .mh-hash,
   .mh-hash:focus-visible {
     opacity: 1;
   }
@@ -121,13 +127,19 @@
       used.add(id);
       h.classList.add('mh-h');
 
+      // Wrap the heading's content so the icon can anchor to the text box.
+      const label = document.createElement('span');
+      label.className = 'mh-label';
+      while (h.firstChild) label.appendChild(h.firstChild);
+      h.appendChild(label);
+
       const marker = document.createElement('a');
       marker.className = 'mh-hash';
       marker.href = `#${id}`;
       marker.innerHTML =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
       marker.setAttribute('aria-label', 'Copy link to this section');
-      h.appendChild(marker);
+      label.appendChild(marker);
 
       h.addEventListener('click', (e) => {
         // Let the user select heading text without triggering a copy.
