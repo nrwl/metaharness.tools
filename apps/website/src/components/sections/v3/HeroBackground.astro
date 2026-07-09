@@ -1,10 +1,11 @@
 ---
 // Ambient starfield backdrop for the hero. Framework-free (a plain canvas +
 // inline script, matching HeroV3's own scroll script) since it's purely
-// decorative. Faint twinkling stars drift slowly; every so often two nearby
-// stars link with a line that eases in, lingers, and fades out — "here and
-// there", never a constant mesh. Theme-aware, DPR-crisp, static under
-// prefers-reduced-motion. Masked to fade at the edges, and tagged
+// decorative. Faint twinkling stars drift slowly; every so often a small
+// constellation forms — a seed star grows faint lines to several nearby
+// neighbours into a branching pattern that eases in, lingers, and fades out
+// together — "here and there", never a constant mesh. Theme-aware, DPR-crisp,
+// static under prefers-reduced-motion. Masked to fade at the edges, and tagged
 // data-hero-fade so it fades on scroll with the headline.
 ---
 
@@ -32,7 +33,7 @@
       const dark = document.documentElement.classList.contains('dark');
       baseRGB = dark ? '190, 190, 190' : '120, 120, 120';
       starAlpha = dark ? 0.4 : 0.42;
-      linkAlpha = dark ? 0.3 : 0.32;
+      linkAlpha = dark ? 0.16 : 0.18;
     };
     readTheme();
 
@@ -46,9 +47,9 @@
       tw: number; // twinkle phase
       twSpeed: number; // twinkle speed
     }
-    interface Link {
-      a: number;
-      b: number;
+    interface Constellation {
+      edges: Array<[number, number]>; // star index pairs
+      nodes: number[]; // participating star indices
       age: number; // seconds
       dur: number; // total lifetime, seconds
     }
@@ -57,9 +58,9 @@
     let h = 0;
     let dpr = 1;
     let stars: Star[] = [];
-    let links: Link[] = [];
+    let constellations: Constellation[] = [];
     const CONNECT_DIST = 210; // px; only stars this close can link
-    const MAX_LINKS = 5;
+    const MAX_CONSTELLATIONS = 2;
 
     const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
@@ -84,28 +85,53 @@
         tw: rand(0, Math.PI * 2),
         twSpeed: rand(0.5, 1.6),
       }));
-      links = [];
+      constellations = [];
     };
 
-    const alreadyLinked = (i: number, j: number) =>
-      links.some(
-        (l) => (l.a === i && l.b === j) || (l.a === j && l.b === i),
-      );
-
-    // Occasionally connect one star to a nearby neighbour.
-    const spawnLink = () => {
-      if (links.length >= MAX_LINKS) return;
-      const i = Math.floor(Math.random() * stars.length);
-      const candidates: number[] = [];
+    // Nearby stars (within CONNECT_DIST) not already in `used`, nearest first.
+    const nearbyOf = (i: number, used: Set<number>) => {
+      const out: Array<{ j: number; d2: number }> = [];
       for (let j = 0; j < stars.length; j++) {
-        if (j === i || alreadyLinked(i, j)) continue;
+        if (j === i || used.has(j)) continue;
         const dx = stars[i].x - stars[j].x;
         const dy = stars[i].y - stars[j].y;
-        if (dx * dx + dy * dy < CONNECT_DIST * CONNECT_DIST) candidates.push(j);
+        const d2 = dx * dx + dy * dy;
+        if (d2 < CONNECT_DIST * CONNECT_DIST) out.push({ j, d2 });
       }
-      if (!candidates.length) return;
-      const b = candidates[Math.floor(Math.random() * candidates.length)];
-      links.push({ a: i, b, age: 0, dur: rand(4, 7) }); // slow: 4–7s each
+      out.sort((p, q) => p.d2 - q.d2);
+      return out;
+    };
+
+    // Occasionally grow a small constellation: seed a star, then branch out to
+    // several nearby neighbours so a little pattern forms before it fades.
+    const spawnConstellation = () => {
+      if (constellations.length >= MAX_CONSTELLATIONS) return;
+      const seed = Math.floor(Math.random() * stars.length);
+      const nodes = new Set<number>([seed]);
+      const edges: Array<[number, number]> = [];
+      const targetEdges = Math.round(rand(3, 6));
+
+      while (edges.length < targetEdges) {
+        // Pick an existing node with room to branch, prefer recent growth.
+        const from = [...nodes][Math.floor(Math.random() * nodes.size)];
+        const near = nearbyOf(from, nodes);
+        if (!near.length) {
+          // Seed had no reachable free neighbour: bail if we can't start.
+          if (!edges.length) return;
+          break;
+        }
+        // Bias toward the closer neighbours for tidier shapes.
+        const pick = near[Math.floor(Math.random() * Math.min(3, near.length))];
+        nodes.add(pick.j);
+        edges.push([from, pick.j]);
+      }
+
+      constellations.push({
+        edges,
+        nodes: [...nodes],
+        age: 0,
+        dur: rand(4.5, 7.5), // slow shared fade in/linger/out
+      });
     };
 
     let last = 0;
@@ -121,23 +147,23 @@
       // Per-star boost while it's an endpoint of an active link.
       const boost = new Float32Array(stars.length);
 
-      // Links behind the stars; sine envelope eases in then out.
-      ctx.lineWidth = 1;
-      for (let k = links.length - 1; k >= 0; k--) {
-        const l = links[k];
-        const env = Math.sin((l.age / l.dur) * Math.PI); // 0 → 1 → 0
-        const a = stars[l.a];
-        const b = stars[l.b];
+      // Constellations behind the stars; one sine envelope per pattern eases
+      // its whole set of lines in then out together.
+      ctx.lineWidth = 0.8;
+      for (let k = constellations.length - 1; k >= 0; k--) {
+        const c = constellations[k];
+        const env = Math.sin((c.age / c.dur) * Math.PI); // 0 → 1 → 0
         ctx.strokeStyle = `rgba(${baseRGB}, ${env * linkAlpha})`;
         ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
+        for (const [ai, bi] of c.edges) {
+          ctx.moveTo(stars[ai].x, stars[ai].y);
+          ctx.lineTo(stars[bi].x, stars[bi].y);
+        }
         ctx.stroke();
-        if (env > boost[l.a]) boost[l.a] = env;
-        if (env > boost[l.b]) boost[l.b] = env;
+        for (const n of c.nodes) if (env > boost[n]) boost[n] = env;
 
-        l.age += dt;
-        if (l.age >= l.dur) links.splice(k, 1);
+        c.age += dt;
+        if (c.age >= c.dur) constellations.splice(k, 1);
       }
 
       // Stars: twinkle, plus a gentle glow when connected.
@@ -168,8 +194,8 @@
       }
 
       if (now >= nextSpawnAt) {
-        spawnLink();
-        nextSpawnAt = now + rand(700, 1800);
+        spawnConstellation();
+        nextSpawnAt = now + rand(1600, 3200);
       }
     };
 
