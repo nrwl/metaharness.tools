@@ -62,7 +62,7 @@ const FADE = [HOLD_END, HOLD_END + 26] as const;
 export const CYCLE = 408; // ~13.6s loop
 
 const SESSION_ID = 'impl-cancel-order-568d33ca';
-const REPO_ROOT = `~/.polygraph/sessions/${SESSION_ID}`;
+const REPO_ROOT = `~/sessions/${SESSION_ID}`;
 
 // git-clone ramp (frames)
 const CLONE_HEAD = 10;
@@ -255,14 +255,6 @@ const SessionStarted: React.FC = () => {
         </>
       ),
       at: 46,
-    },
-    {
-      t: (
-        <span style={{ color: POLY.muted }}>
-          Verifying Polygraph plugin installation…
-        </span>
-      ),
-      at: 58,
     },
   ];
   return (
