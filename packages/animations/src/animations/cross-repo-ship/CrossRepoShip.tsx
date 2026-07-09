@@ -96,39 +96,25 @@ const REPOS: RepoDef[] = [
 // ---------------------------------------------------------------------------
 // Header (Claude Code) — pixel mascot + meta lines
 // ---------------------------------------------------------------------------
-const MASCOT = [
-  '..X..X..',
-  'XXXXXXXX',
-  'XXOXXOXX',
-  'XXXXXXXX',
-  '.XXXXXX.',
-  '.X.XX.X.',
-];
 const Mascot: React.FC<{ accent: string; cell?: number }> = ({
   accent,
   cell = 6,
 }) => (
   <svg
-    width={MASCOT[0].length * cell}
-    height={MASCOT.length * cell}
-    style={{ display: 'block', shapeRendering: 'crispEdges', flex: 'none' }}
+    width={cell * 6}
+    height={cell * 6}
+    viewBox="0 0 24 24"
+    style={{ display: 'block', flex: 'none' }}
   >
-    {MASCOT.flatMap((row, r) =>
-      row
-        .split('')
-        .map((c, x) =>
-          c === '.' ? null : (
-            <rect
-              key={`${r}-${x}`}
-              x={x * cell}
-              y={r * cell}
-              width={cell}
-              height={cell}
-              fill={c === 'O' ? '#171310' : accent}
-            />
-          ),
-        ),
-    )}
+    {/* Official Claude Code mark; body fill via style so an accent var() resolves. */}
+    <path
+      d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949z"
+      style={{ fill: accent }}
+    />
+    {/* Solid near-black eyes: the official mark cuts these out, but a light
+        console bg would swallow the cut-outs, so draw them explicitly. */}
+    <rect x="6" y="8.102" width="1.488" height="2.847" fill="#171310" />
+    <rect x="16.51" y="8.102" width="1.49" height="2.847" fill="#171310" />
   </svg>
 );
 
