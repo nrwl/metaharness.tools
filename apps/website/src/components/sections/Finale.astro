@@ -1,129 +1,44 @@
 ---
-const resourceGroups = [
+const resources = [
   {
-    title: 'Primary',
-    items: [
-      {
-        label: 'Stanford, Meta-Harness',
-        href: 'https://arxiv.org/abs/2603.28052',
-        body: 'The harness-optimization paper: an outer loop that searches over the harness around an LLM.',
-      },
-      {
-        label: 'Stanford, Meta-Harness (project page)',
-        href: 'https://yoonholee.com/meta-harness/',
-        body: 'Project page and results for the Stanford Meta-Harness.',
-      },
-      {
-        label: 'Anthropic, Managed Agents',
-        href: 'https://www.anthropic.com/engineering/managed-agents',
-        body: 'A meta-harness that decouples brain, hands, and session so harnesses stay swappable.',
-      },
-      {
-        label: 'Databricks, Introducing Omnigent',
-        href: 'https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents',
-        body: 'A runner plus server design that composes, governs, and shares agents across Claude Code, Codex, and Pi.',
-      },
-      {
-        label: 'Omnigent (repository)',
-        href: 'https://github.com/omnigent-ai/omnigent',
-        body: 'The open-source implementation of the Omnigent meta-harness.',
-      },
-      {
-        label: 'SuperagenticAI, metaharness',
-        href: 'https://github.com/SuperagenticAI/metaharness',
-        body: 'An unofficial harness optimizer for coding agents, inspired by the Stanford paper.',
-      },
-      {
-        label: 'Vercel, Program agent harnesses with AI SDK',
-        href: 'https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk',
-        body: 'Treats agent harnesses as swappable runtimes behind one SDK surface.',
-      },
-      {
-        label: 'Zed, External agents',
-        href: 'https://zed.dev/docs/ai/external-agents',
-        body: 'Editors host external agents that keep their own runtime, auth, and tools.',
-      },
-      {
-        label: 'Agent Client Protocol',
-        href: 'https://agentclientprotocol.com/get-started/agents',
-        body: 'A protocol that standardizes the editor-to-agent boundary.',
-      },
-      {
-        label: 'Cloudflare, Flue SDK',
-        href: 'https://blog.cloudflare.com/agents-platform-flue-sdk/',
-        body: 'Durable execution and isolated runtime primitives a meta-harness can build on.',
-      },
-    ],
+    label: 'Stanford, Meta-Harness',
+    href: 'https://arxiv.org/abs/2603.28052',
+    body: 'The harness-optimization paper: an outer loop that searches over the harness around an LLM.',
   },
   {
-    title: 'Foundational',
-    items: [
-      {
-        label: 'MongoDB, Agent harness',
-        href: 'https://www.mongodb.com/company/blog/technical/agent-harness-why-llm-is-smallest-part-of-your-agent-system',
-        body: 'Why the LLM is the smallest part of a production agent system.',
-      },
-      {
-        label: 'Martin Fowler, Harness Engineering',
-        href: 'https://martinfowler.com/articles/harness-engineering.html',
-        body: 'A foundational treatment of the harness as an engineering discipline.',
-      },
-      {
-        label: 'Daily Dose of DS, The Anatomy of an Agent Harness',
-        href: 'https://blog.dailydoseofds.com/p/the-anatomy-of-an-agent-harness',
-        body: 'A component-by-component breakdown of what a harness is made of.',
-      },
-      {
-        label: 'Firecrawl, What is an Agent Harness',
-        href: 'https://www.firecrawl.dev/blog/what-is-an-agent-harness',
-        body: 'An accessible introduction to the harness concept.',
-      },
-      {
-        label: 'Hugging Face, Agent Glossary',
-        href: 'https://huggingface.co/blog/agent-glossary',
-        body: 'Shared vocabulary for agents, harnesses, and the layers around them.',
-      },
-    ],
+    label: 'Martin Fowler, Harness Engineering',
+    href: 'https://martinfowler.com/articles/harness-engineering.html',
+    body: 'A foundational treatment of the harness as an engineering discipline.',
   },
   {
-    title: 'Commentary',
-    items: [
-      {
-        label: 'MarkTechPost, Databricks open-sources Omnigent',
-        href: 'https://www.marktechpost.com/2026/06/13/databricks-open-sources-omnigent-a-meta-harness-that-composes-governs-and-shares-ai-agents-across-claude-code-codex-and-pi/',
-        body: 'A meta-harness that composes, governs, and shares agents across harnesses.',
-      },
-      {
-        label: 'rotifer.dev, The Meta-Harness Convergence',
-        href: 'https://rotifer.dev/blog/the-meta-harness-convergence/',
-        body: 'How the separate efforts are converging on the same layer.',
-      },
-      {
-        label: 'MindStudio, What is a meta-harness',
-        href: 'https://www.mindstudio.ai/blog/what-is-meta-harness-ai-agents-omniagent',
-        body: 'An overview of the meta-harness idea and Omnigent.',
-      },
-      {
-        label: 'Adnan Masood, Agent Harness Engineering',
-        href: 'https://medium.com/@adnanmasood/agent-harness-engineering-the-rise-of-the-ai-control-plane-938ead884b1d',
-        body: 'The rise of the AI control plane above individual harnesses.',
-      },
-      {
-        label: 'Epsilla, Anthropic Managed Agents',
-        href: 'https://www.epsilla.com/blogs/anthropic-managed-agents-decoupling-brain-hands-enterprise-orchestration',
-        body: 'Decoupling brain and hands for enterprise orchestration.',
-      },
-    ],
+    label: 'Anthropic, Managed Agents',
+    href: 'https://www.anthropic.com/engineering/managed-agents',
+    body: 'A meta-harness that decouples brain, hands, and session so harnesses stay swappable.',
   },
   {
-    title: 'Skeptical',
-    items: [
-      {
-        label: 'Why I disagree with Agent = LLM + harness',
-        href: 'https://medium.com/@windead/why-i-disagree-with-agent-llm-harness-103a4ccdcf8c',
-        body: 'A counterpoint: capability may live in the model, not just the scaffolding.',
-      },
-    ],
+    label: 'Firecrawl, What is an Agent Harness',
+    href: 'https://www.firecrawl.dev/blog/what-is-an-agent-harness',
+    body: 'An accessible introduction to the harness concept.',
+  },
+  {
+    label: 'Databricks, Omnigent (repository)',
+    href: 'https://github.com/omnigent-ai/omnigent',
+    body: 'The open-source implementation of the Databricks Omnigent meta-harness.',
+  },
+  {
+    label: 'SuperagenticAI, metaharness',
+    href: 'https://github.com/SuperagenticAI/metaharness',
+    body: 'An unofficial harness optimizer for coding agents, inspired by the Stanford paper.',
+  },
+  {
+    label: 'Agent Client Protocol',
+    href: 'https://agentclientprotocol.com/get-started/agents',
+    body: 'A protocol that standardizes the editor-to-agent boundary.',
+  },
+  {
+    label: 'Flue Framework',
+    href: 'https://flueframework.com/',
+    body: 'A framework for durable, resumable agent execution a meta-harness can build on.',
   },
 ];
 ---
@@ -175,44 +90,34 @@ const resourceGroups = [
   </div>
 
   <div class="mx-auto mt-20 max-w-3xl">
-    <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-      Resources
-    </p>
     <h2
-      class="mt-4 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-50"
+      class="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-50"
     >
-      Where the ideas come from
+      Resources
     </h2>
 
-    <div class="mt-8 space-y-10">
+    <ul
+      class="mt-8 divide-y divide-neutral-200 border-t border-neutral-200 dark:divide-neutral-900 dark:border-neutral-900"
+    >
       {
-        resourceGroups.map((group) => (
-          <div>
-            <p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-500">
-              {group.title}
-            </p>
-            <ul class="mt-3 divide-y divide-neutral-200 border-t border-neutral-200 dark:divide-neutral-900 dark:border-neutral-900">
-              {group.items.map((r) => (
-                <li class="py-5">
-                  <a
-                    href={r.href}
-                    target="_blank"
-                    rel="noopener"
-                    class="group flex flex-col gap-1"
-                  >
-                    <span class="text-base font-medium text-neutral-900 transition-colors group-hover:text-accent dark:text-neutral-100">
-                      {r.label}
-                    </span>
-                    <span class="text-sm leading-relaxed text-neutral-500 dark:text-neutral-500">
-                      {r.body}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+        resources.map((r) => (
+          <li class="py-5">
+            <a
+              href={r.href}
+              target="_blank"
+              rel="noopener"
+              class="group flex flex-col gap-1"
+            >
+              <span class="text-base font-medium text-neutral-900 transition-colors group-hover:text-accent dark:text-neutral-100">
+                {r.label}
+              </span>
+              <span class="text-sm leading-relaxed text-neutral-500 dark:text-neutral-500">
+                {r.body}
+              </span>
+            </a>
+          </li>
         ))
       }
-    </div>
+    </ul>
   </div>
 </section>
