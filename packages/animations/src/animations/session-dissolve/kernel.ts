@@ -35,6 +35,13 @@ const SANS = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
 // ---------------------------------------------------------------------------
 const BASE_W = 960;
 const BASE_H = 600;
+// Content bounding box within BASE (focal cluster + "You" card + repo row and
+// their labels), used to fit-and-centre the drawing to the canvas so it fills
+// the frame instead of floating tiny in the middle on narrow widths.
+const FIT_CX = 488;
+const FIT_CY = 360;
+const FIT_W = 580;
+const FIT_H = 490;
 
 const FOCAL: Pt = { x: 480, y: 235 };
 const BASE_R = 88;
@@ -134,12 +141,15 @@ export function drawSessionDissolve(
   const A = appear * cycleFade;
   if (A <= 0.001) return;
 
-  const fit = Math.min(width / BASE_W, height / BASE_H);
+  // Fit the actual content bounding box (not the loose BASE canvas) so the
+  // drawing fills the frame — critical on narrow/mobile widths where any empty
+  // margin shrinks the legible content. Centre on the content, not BASE centre.
+  const fit = Math.min(width / FIT_W, height / FIT_H);
   const sc = fit * lerp(0.92, 1, appear);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);
-  ctx.translate(-BASE_W / 2, -BASE_H / 2);
+  ctx.translate(-FIT_CX, -FIT_CY);
 
   drawRepoLayer(ctx, t, A, palette);
   for (let i = 0; i < RUNS.length; i++) {
