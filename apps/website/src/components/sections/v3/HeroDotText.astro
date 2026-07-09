@@ -70,6 +70,10 @@
     let w = 0;
     let h = 0;
     let dpr = 1;
+    let padX = 0;
+    let padY = 0;
+    let boxW = 0;
+    let boxH = 0;
     let dots: Dot[] = [];
     let edges: Array<[number, number]> = [];
     let maxDelay = 0;
@@ -79,19 +83,22 @@
 
     const build = () => {
       const rect = src.getBoundingClientRect();
-      const boxW = rect.width;
-      const boxH = rect.height;
+      boxW = rect.width;
+      boxH = rect.height;
       if (boxW < 2 || boxH < 2) return;
 
       const cs = getComputedStyle(src);
       const fontSize = parseFloat(cs.fontSize);
       const lineHeight = parseFloat(cs.lineHeight) || fontSize * 1.1;
 
-      // With line-height:1 the tall/round glyph tops (e.g. the "C") overflow the
-      // <h1> box. The canvas matches that box exactly, so it would clip them —
-      // bleed it a little beyond the box and shift it up/left to compensate.
-      const padX = Math.round(fontSize * 0.08);
-      const padY = Math.round(fontSize * 0.28);
+      // The canvas bleeds past the <h1> box for two reasons: with line-height:1
+      // the tall/round glyph tops (e.g. the "C") already overflow it, and the
+      // cursor shoves dots well beyond their home while dragging. Size the bleed
+      // to contain both (the drag reach is ~the repel radius), and shift the
+      // canvas up/left to compensate so the dots still overlay the headline.
+      const dragPad = Math.round(REPEL_RADIUS * 1.25);
+      padX = Math.round(fontSize * 0.08) + dragPad;
+      padY = Math.round(fontSize * 0.28) + dragPad;
       w = boxW + padX * 2;
       h = boxH + padY * 2;
 
@@ -262,6 +269,21 @@
         d.vy = (d.vy + ay) * FRICTION;
         d.x += d.vx;
         d.y += d.vy;
+        // Hard backstop: never let a shoved dot leave the canvas (it would clip).
+        if (d.x < 2) {
+          d.x = 2;
+          if (d.vx < 0) d.vx = 0;
+        } else if (d.x > w - 2) {
+          d.x = w - 2;
+          if (d.vx > 0) d.vx = 0;
+        }
+        if (d.y < 2) {
+          d.y = 2;
+          if (d.vy < 0) d.vy = 0;
+        } else if (d.y > h - 2) {
+          d.y = h - 2;
+          if (d.vy > 0) d.vy = 0;
+        }
         if (
           !moving &&
           (Math.abs(d.x - d.hx) > 0.3 ||
@@ -336,11 +358,12 @@
       const rect = canvas.getBoundingClientRect();
       mx = e.clientX - rect.left;
       my = e.clientY - rect.top;
+      // Only engage near the actual headline, not the wide (mostly empty) bleed.
       mouseActive =
-        mx > -REPEL_RADIUS &&
-        mx < w + REPEL_RADIUS &&
-        my > -REPEL_RADIUS &&
-        my < h + REPEL_RADIUS;
+        mx > padX - REPEL_RADIUS &&
+        mx < padX + boxW + REPEL_RADIUS &&
+        my > padY - REPEL_RADIUS &&
+        my < padY + boxH + REPEL_RADIUS;
       if (mouseActive) ensureRunning();
     };
     window.addEventListener('pointermove', onPointerMove, { passive: true });
