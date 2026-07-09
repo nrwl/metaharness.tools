@@ -2,6 +2,7 @@
 import { MetaHarnessLayers } from '@metaharness/animations';
 import VizSurface from '../../VizSurface.astro';
 import HeroBackground from './HeroBackground.astro';
+import HeroDotText from './HeroDotText.astro';
 ---
 
 <section
@@ -11,12 +12,9 @@ import HeroBackground from './HeroBackground.astro';
   <HeroBackground />
   <div class="relative z-10 flex flex-1 flex-col justify-center">
     <div data-hero-fade class="mx-auto w-full max-w-5xl">
-      <h1
-        class="text-6xl font-semibold tracking-tight text-neutral-900 sm:text-8xl dark:text-neutral-50"
-      >
-        The Connected Agent
-      </h1>
+      <HeroDotText />
       <p
+        data-hero-subtitle
         class="mt-6 max-w-2xl text-2xl text-neutral-600 sm:text-3xl dark:text-neutral-400"
       >
         Meta-harnesses fill the gaps your harness leaves.
@@ -66,7 +64,36 @@ import HeroBackground from './HeroBackground.astro';
     window.addEventListener('resize', update, { passive: true });
     update();
   }
+
+  // Subtitle eases in once the headline dots finish forming.
+  const subtitle = document.querySelector<HTMLElement>('[data-hero-subtitle]');
+  if (subtitle) {
+    const reveal = () => subtitle.classList.add('is-in');
+    document.addEventListener('dottext:done', reveal, { once: true });
+    // Safety net in case the signal never arrives (e.g. no canvas support).
+    window.setTimeout(reveal, 3000);
+  }
 </script>
+
+<style>
+  [data-hero-subtitle] {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
+  }
+  [data-hero-subtitle].is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-hero-subtitle] {
+      transition: opacity 0.2s ease;
+      transform: none;
+    }
+  }
+</style>
 
 <section id="what-is" class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
   <div class="mx-auto max-w-6xl">

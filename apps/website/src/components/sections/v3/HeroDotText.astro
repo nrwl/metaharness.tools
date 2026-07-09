@@ -1,0 +1,378 @@
+---
+// Headline rendered as a self-assembling constellation of dots. An invisible
+// (opacity-0) but layout-occupying <h1> reserves space, supplies the exact font
+// metrics/wrapping, and stays the accessible + SEO source of truth. An overlaid
+// canvas samples that text into a grid of dots that fade in left-to-right and
+// link to their neighbours, then holds as the formed word. Theme-aware,
+// DPR-crisp, and drawn once (static) under prefers-reduced-motion. The canvas is
+// purely decorative, so aria-hidden.
+---
+
+<div data-dottext class="relative">
+  <h1
+    data-dottext-src
+    class="text-6xl font-semibold tracking-tight text-neutral-900 opacity-0 sm:text-8xl dark:text-neutral-50"
+  >
+    The Connected Agent
+  </h1>
+  <canvas
+    data-dottext-canvas
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 h-full w-full"
+  ></canvas>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-dottext]');
+  const src = root?.querySelector<HTMLElement>('[data-dottext-src]');
+  const canvas = root?.querySelector<HTMLCanvasElement>('[data-dottext-canvas]');
+  const ctx = canvas?.getContext('2d');
+
+  if (root && src && canvas && ctx) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Dots echo the headline colour; links stay faint. Resolved per theme.
+    let baseRGB = '38, 38, 38';
+    let dotAlpha = 0.9;
+    let linkAlpha = 0.22;
+    const readTheme = () => {
+      const dark = document.documentElement.classList.contains('dark');
+      baseRGB = dark ? '235, 235, 235' : '38, 38, 38';
+    };
+    readTheme();
+
+    interface Dot {
+      x: number; // current position
+      y: number;
+      hx: number; // home (rest) position it springs back to
+      hy: number;
+      vx: number; // velocity
+      vy: number;
+      delay: number; // seconds until this dot begins to appear
+    }
+
+    // Build timing — kept short so the word snaps into being quickly.
+    const BUILD_SPAN = 0.8; // left→right stagger window (s)
+    const JITTER = 0.25; // per-dot random delay (s)
+    const FADE = 0.4; // per-dot fade-in (s)
+
+    // Pointer interaction: the cursor shoves nearby dots off their home, and a
+    // spring pulls them back. Holding the button ("dragging") pushes harder.
+    const REPEL_RADIUS = 95; // px influence around the cursor
+    const REPEL_FORCE = 3.2; // push acceleration at the cursor
+    const SPRING = 0.075; // pull back toward home
+    const FRICTION = 0.82; // velocity damping
+    let mx = 0;
+    let my = 0;
+    let mouseActive = false; // cursor is near the headline
+    let pressing = false; // button held → stronger shove
+
+    let w = 0;
+    let h = 0;
+    let dpr = 1;
+    let dots: Dot[] = [];
+    let edges: Array<[number, number]> = [];
+    let maxDelay = 0;
+    let built = false;
+
+    const smooth = (p: number) => p * p * (3 - 2 * p);
+
+    const build = () => {
+      const rect = src.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      if (w < 2 || h < 2) return;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Sample the text at CSS resolution on an offscreen canvas.
+      const cs = getComputedStyle(src);
+      const fontSize = parseFloat(cs.fontSize);
+      const lineHeight = parseFloat(cs.lineHeight) || fontSize * 1.1;
+      const off = document.createElement('canvas');
+      off.width = Math.ceil(w);
+      off.height = Math.ceil(h);
+      const octx = off.getContext('2d');
+      if (!octx) return;
+      octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      octx.textBaseline = 'top';
+      octx.fillStyle = '#fff';
+      (octx as any).letterSpacing =
+        cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+
+      // Word-wrap to the headline's own width so lines match the real <h1>.
+      const words = (src.textContent || '').trim().split(/\s+/);
+      const lines: string[] = [];
+      let cur = '';
+      for (const word of words) {
+        const test = cur ? `${cur} ${word}` : word;
+        if (octx.measureText(test).width > w && cur) {
+          lines.push(cur);
+          cur = word;
+        } else {
+          cur = test;
+        }
+      }
+      if (cur) lines.push(cur);
+      lines.forEach((line, i) => octx.fillText(line, 0, i * lineHeight));
+
+      // Grid-sample opaque pixels into dots; spacing scales with font size.
+      // Tight enough that letterforms stay legible.
+      const step = Math.max(3, Math.min(6, Math.round(fontSize / 18)));
+      const data = octx.getImageData(0, 0, off.width, off.height).data;
+      dots = [];
+      // Deterministic-enough jitter without Math.random dependence per pixel.
+      let seed = 1;
+      const nextJit = () => {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return (seed / 0x7fffffff) * JITTER;
+      };
+      for (let y = 0; y < off.height; y += step) {
+        for (let x = 0; x < off.width; x += step) {
+          if (data[(y * off.width + x) * 4 + 3] > 128) {
+            dots.push({
+              x,
+              y,
+              hx: x,
+              hy: y,
+              vx: 0,
+              vy: 0,
+              delay: (x / w) * BUILD_SPAN + nextJit(),
+            });
+          }
+        }
+      }
+      maxDelay = dots.reduce((m, d) => Math.max(m, d.delay), 0);
+
+      // Link each dot to near neighbours via a spatial hash (cheap, static).
+      const R = step * 1.7;
+      const cell = R;
+      const grid = new Map<string, number[]>();
+      const key = (cx: number, cy: number) => `${cx}|${cy}`;
+      dots.forEach((d, i) => {
+        const k = key(Math.floor(d.x / cell), Math.floor(d.y / cell));
+        const bucket = grid.get(k);
+        if (bucket) bucket.push(i);
+        else grid.set(k, [i]);
+      });
+      edges = [];
+      dots.forEach((d, i) => {
+        const cx = Math.floor(d.x / cell);
+        const cy = Math.floor(d.y / cell);
+        for (let gx = -1; gx <= 1; gx++) {
+          for (let gy = -1; gy <= 1; gy++) {
+            const bucket = grid.get(key(cx + gx, cy + gy));
+            if (!bucket) continue;
+            for (const j of bucket) {
+              if (j <= i) continue;
+              const dx = d.x - dots[j].x;
+              const dy = d.y - dots[j].y;
+              if (dx * dx + dy * dy <= R * R) edges.push([i, j]);
+            }
+          }
+        }
+      });
+    };
+
+    // Draw one frame at elapsed time `el` (seconds since the build started).
+    const QN = 6; // link alpha quantisation buckets (for batched strokes)
+    const drawAt = (el: number) => {
+      ctx.clearRect(0, 0, w, h);
+      if (!dots.length) return;
+
+      // Links, batched by quantised min-endpoint progress.
+      ctx.lineWidth = 0.8;
+      const buckets: Array<Array<[number, number]>> = Array.from(
+        { length: QN + 1 },
+        () => [],
+      );
+      for (const e of edges) {
+        const pa = Math.min(1, Math.max(0, (el - dots[e[0]].delay) / FADE));
+        const pb = Math.min(1, Math.max(0, (el - dots[e[1]].delay) / FADE));
+        const m = Math.min(pa, pb);
+        if (m <= 0) continue;
+        buckets[Math.max(1, Math.round(m * QN))].push(e);
+      }
+      for (let lvl = 1; lvl <= QN; lvl++) {
+        const bucket = buckets[lvl];
+        if (!bucket.length) continue;
+        ctx.strokeStyle = `rgba(${baseRGB}, ${(lvl / QN) * linkAlpha})`;
+        ctx.beginPath();
+        for (const [i, j] of bucket) {
+          ctx.moveTo(dots[i].x, dots[i].y);
+          ctx.lineTo(dots[j].x, dots[j].y);
+        }
+        ctx.stroke();
+      }
+
+      // Dots on top; radius and alpha ease in with progress.
+      for (const d of dots) {
+        const p = Math.min(1, Math.max(0, (el - d.delay) / FADE));
+        if (p <= 0) continue;
+        const e = smooth(p);
+        ctx.fillStyle = `rgba(${baseRGB}, ${e * dotAlpha})`;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 0.8 + 1.0 * e, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const drawStatic = () => drawAt(maxDelay + FADE + 1);
+
+    // Advance the spring + repel physics one frame. Returns true while any dot
+    // is still meaningfully off its home (so the loop knows when to settle).
+    const physicsStep = () => {
+      const radius = pressing ? REPEL_RADIUS * 1.25 : REPEL_RADIUS;
+      const force = pressing ? REPEL_FORCE * 1.7 : REPEL_FORCE;
+      const r2 = radius * radius;
+      let moving = false;
+      for (const d of dots) {
+        let ax = (d.hx - d.x) * SPRING;
+        let ay = (d.hy - d.y) * SPRING;
+        if (mouseActive) {
+          const dx = d.x - mx;
+          const dy = d.y - my;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 < r2 && dist2 > 0.01) {
+            const dist = Math.sqrt(dist2);
+            const f = (1 - dist / radius) * force;
+            ax += (dx / dist) * f;
+            ay += (dy / dist) * f;
+          }
+        }
+        d.vx = (d.vx + ax) * FRICTION;
+        d.vy = (d.vy + ay) * FRICTION;
+        d.x += d.vx;
+        d.y += d.vy;
+        if (
+          !moving &&
+          (Math.abs(d.x - d.hx) > 0.3 ||
+            Math.abs(d.y - d.hy) > 0.3 ||
+            Math.abs(d.vx) > 0.3 ||
+            Math.abs(d.vy) > 0.3)
+        ) {
+          moving = true;
+        }
+      }
+      return moving;
+    };
+
+    // Fire once when the word has finished forming, so the subtitle can follow.
+    let signalled = false;
+    const signalDone = () => {
+      if (signalled) return;
+      signalled = true;
+      document.dispatchEvent(new CustomEvent('dottext:done'));
+    };
+
+    let raf = 0;
+    let startT = 0;
+    let running = false;
+    const loop = (now: number) => {
+      if (!startT) startT = now;
+      const el = (now - startT) / 1000;
+      const introDone = el >= maxDelay + FADE;
+      if (introDone && !built) {
+        built = true;
+        signalDone();
+      }
+      const moving = physicsStep();
+      drawAt(el);
+      // Keep going while forming, still in motion, or the cursor is engaged.
+      if (!introDone || moving || mouseActive) {
+        raf = requestAnimationFrame(loop);
+      } else {
+        running = false;
+        drawStatic();
+      }
+    };
+
+    // Restart the loop after it has settled (e.g. on the next pointer move).
+    const ensureRunning = () => {
+      if (running || reduce.matches || !dots.length) return;
+      running = true;
+      raf = requestAnimationFrame(loop);
+    };
+
+    const render = () => {
+      cancelAnimationFrame(raf);
+      running = false;
+      build();
+      if (!dots.length) return;
+      if (reduce.matches) {
+        built = true;
+        drawStatic();
+        signalDone();
+      } else {
+        startT = 0;
+        built = false;
+        running = true;
+        raf = requestAnimationFrame(loop);
+      }
+    };
+
+    // Pointer tracking. The canvas stays pointer-events-none (never blocks
+    // clicks); we listen on window and only repel when the cursor is near.
+    const onPointerMove = (e: PointerEvent) => {
+      if (reduce.matches) return;
+      const rect = canvas.getBoundingClientRect();
+      mx = e.clientX - rect.left;
+      my = e.clientY - rect.top;
+      mouseActive =
+        mx > -REPEL_RADIUS &&
+        mx < w + REPEL_RADIUS &&
+        my > -REPEL_RADIUS &&
+        my < h + REPEL_RADIUS;
+      if (mouseActive) ensureRunning();
+    };
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener(
+      'pointerdown',
+      (e) => {
+        pressing = true;
+        onPointerMove(e);
+      },
+      { passive: true },
+    );
+    const release = () => {
+      pressing = false;
+    };
+    window.addEventListener('pointerup', release, { passive: true });
+    window.addEventListener('pointercancel', release, { passive: true });
+
+    // Fonts must be ready or wrapping/metrics are wrong.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(render);
+    } else {
+      render();
+    }
+
+    // Resize: recompute geometry, snap straight to the built state (no replay).
+    let resizeT = 0;
+    window.addEventListener(
+      'resize',
+      () => {
+        window.clearTimeout(resizeT);
+        resizeT = window.setTimeout(() => {
+          cancelAnimationFrame(raf);
+          running = false;
+          build();
+          if (dots.length) drawStatic();
+          built = true;
+        }, 150);
+      },
+      { passive: true },
+    );
+
+    // Theme toggle: recolour the (already built) frame.
+    new MutationObserver(() => {
+      readTheme();
+      if (built) drawStatic();
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
+</script>
