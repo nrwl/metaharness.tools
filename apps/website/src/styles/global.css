@@ -23,23 +23,32 @@ body {
   color: var(--color-neutral-100);
 }
 
-/* Inline highlight: a translucent amber marker stroke — denser, softly rounded
-   ends and a slight tilt so it reads as a highlighter pass rather than a flat
-   box. box-decoration-break clones the stroke onto each wrapped line. */
+/* Inline highlight: a hand-drawn amber marker stroke. Two layered gradients — a
+   tilted horizontal pass with denser, ink-heavy ends, plus a heavier top edge
+   where a marker first bites the paper — over organic, asymmetric corners and a
+   slight overshoot past the text. box-decoration-break clones it onto each
+   wrapped line. */
 mark {
   color: inherit;
   font-weight: 600;
-  padding: 0.04em 0.16em;
-  border-radius: 0.2em;
-  background: linear-gradient(
-    102deg,
-    transparent 0.4%,
-    color-mix(in srgb, var(--color-accent) 68%, transparent) 2.5%,
-    color-mix(in srgb, var(--color-accent) 46%, transparent) 6%,
-    color-mix(in srgb, var(--color-accent) 46%, transparent) 94%,
-    color-mix(in srgb, var(--color-accent) 68%, transparent) 97.5%,
-    transparent 99.6%
-  );
+  padding: 0.08em 0.22em;
+  margin: 0 -0.05em;
+  border-radius: 0.4em 0.7em 0.5em 0.85em / 1em 0.8em 1.1em 0.7em;
+  background:
+    linear-gradient(
+      101deg,
+      transparent 0.4%,
+      color-mix(in srgb, var(--color-accent) 92%, transparent) 2%,
+      color-mix(in srgb, var(--color-accent) 60%, transparent) 5.5%,
+      color-mix(in srgb, var(--color-accent) 60%, transparent) 90%,
+      color-mix(in srgb, var(--color-accent) 92%, transparent) 96%,
+      transparent 99.6%
+    ),
+    linear-gradient(
+      184deg,
+      color-mix(in srgb, var(--color-accent) 34%, transparent) 0%,
+      transparent 24%
+    );
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -47,13 +56,19 @@ mark {
 /* Dark mode: the amber accent is light, so lean on it a touch less and let the
    bold light text stay legible on top. */
 .dark mark {
-  background: linear-gradient(
-    102deg,
-    transparent 0.4%,
-    color-mix(in srgb, var(--color-accent) 54%, transparent) 2.5%,
-    color-mix(in srgb, var(--color-accent) 34%, transparent) 6%,
-    color-mix(in srgb, var(--color-accent) 34%, transparent) 94%,
-    color-mix(in srgb, var(--color-accent) 54%, transparent) 97.5%,
-    transparent 99.6%
-  );
+  background:
+    linear-gradient(
+      101deg,
+      transparent 0.4%,
+      color-mix(in srgb, var(--color-accent) 70%, transparent) 2%,
+      color-mix(in srgb, var(--color-accent) 46%, transparent) 5.5%,
+      color-mix(in srgb, var(--color-accent) 46%, transparent) 90%,
+      color-mix(in srgb, var(--color-accent) 70%, transparent) 96%,
+      transparent 99.6%
+    ),
+    linear-gradient(
+      184deg,
+      color-mix(in srgb, var(--color-accent) 24%, transparent) 0%,
+      transparent 24%
+    );
 }
