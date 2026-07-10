@@ -12,11 +12,8 @@ interface Props {
   canonical?: string;
 }
 
-// Dev server: real site unless explicitly gated with COMING_SOON=true.
-// Production builds: gated unless explicitly unlocked with COMING_SOON=false.
-const comingSoon = import.meta.env.DEV
-  ? process.env.COMING_SOON === 'true'
-  : process.env.COMING_SOON !== 'false';
+// Live: the real site ships everywhere. Set COMING_SOON=true to re-gate.
+const comingSoon = process.env.COMING_SOON === 'true';
 
 const {
   title = 'metaharness.tools',
