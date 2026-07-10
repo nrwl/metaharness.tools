@@ -60,10 +60,7 @@
         ],
         "inputs": [
           "production",
-          "^production",
-          {
-            "env": "COMING_SOON"
-          }
+          "^production"
         ]
       }
     }

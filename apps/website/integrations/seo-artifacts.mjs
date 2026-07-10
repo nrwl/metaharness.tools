@@ -51,10 +51,6 @@ const SKIP_SELECTORS = [
   '#section-rail',
 ];
 
-function isComingSoon() {
-  return process.env.COMING_SOON !== 'false';
-}
-
 function distPath(dir) {
   return dir instanceof URL ? fileURLToPath(dir) : dir;
 }
@@ -239,49 +235,37 @@ ${body}
 `);
 }
 
-async function writeRobots(outDir, comingSoon) {
-  const body = comingSoon
-    ? 'User-agent: *\nDisallow: /\n'
-    : [
-        'User-agent: *',
-        'Allow: /',
-        '',
-        'User-agent: GPTBot',
-        'Allow: /',
-        '',
-        'User-agent: ChatGPT-User',
-        'Allow: /',
-        '',
-        'User-agent: ClaudeBot',
-        'Allow: /',
-        '',
-        'User-agent: anthropic-ai',
-        'Allow: /',
-        '',
-        'User-agent: PerplexityBot',
-        'Allow: /',
-        '',
-        'User-agent: Google-Extended',
-        'Allow: /',
-        '',
-        'User-agent: CCBot',
-        'Allow: /',
-        '',
-        `Sitemap: ${SITE}/sitemap-index.xml`,
-        '',
-      ].join('\n');
+async function writeRobots(outDir) {
+  const body = [
+    'User-agent: *',
+    'Allow: /',
+    '',
+    'User-agent: GPTBot',
+    'Allow: /',
+    '',
+    'User-agent: ChatGPT-User',
+    'Allow: /',
+    '',
+    'User-agent: ClaudeBot',
+    'Allow: /',
+    '',
+    'User-agent: anthropic-ai',
+    'Allow: /',
+    '',
+    'User-agent: PerplexityBot',
+    'Allow: /',
+    '',
+    'User-agent: Google-Extended',
+    'Allow: /',
+    '',
+    'User-agent: CCBot',
+    'Allow: /',
+    '',
+    `Sitemap: ${SITE}/sitemap-index.xml`,
+    '',
+  ].join('\n');
 
   await fs.writeFile(path.join(outDir, 'robots.txt'), body);
-}
-
-async function removeGatedArtifacts(outDir) {
-  await Promise.all([
-    fs.rm(path.join(outDir, 'llms.txt'), { force: true }),
-    fs.rm(path.join(outDir, 'llms-full.txt'), { force: true }),
-    fs.rm(path.join(outDir, 'og.png'), { force: true }),
-    fs.rm(path.join(outDir, 'sitemap-index.xml'), { force: true }),
-    fs.rm(path.join(outDir, 'sitemap-0.xml'), { force: true }),
-  ]);
 }
 
 async function writeLlms(outDir) {
@@ -317,15 +301,8 @@ export default function seoArtifacts() {
     hooks: {
       'astro:build:done': async ({ dir }) => {
         const outDir = distPath(dir);
-        const comingSoon = isComingSoon();
 
-        await writeRobots(outDir, comingSoon);
-
-        if (comingSoon) {
-          await removeGatedArtifacts(outDir);
-          return;
-        }
-
+        await writeRobots(outDir);
         await writeLlms(outDir);
       },
     },

@@ -5,9 +5,3 @@
 [build.environment]
   NODE_VERSION = "22"
   NPM_FLAGS = "--version"
-
-[context.deploy-preview.environment]
-  COMING_SOON = "false"
-
-[context.branch-deploy.environment]
-  COMING_SOON = "false"
