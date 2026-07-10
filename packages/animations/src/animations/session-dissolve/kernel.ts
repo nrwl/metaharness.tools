@@ -152,10 +152,14 @@ export function drawSessionDissolve(
   ctx.translate(-FIT_CX, -FIT_CY);
 
   drawRepoLayer(ctx, appear, palette);
+  // Sessions are numbered continuously across cycles (Session 1, 2, 3, …) —
+  // each cycle's runs continue the count, reinforcing the endless churn.
+  const cyclesDone = Math.floor(elapsed / SESSION_DISSOLVE_CYCLE);
   for (let i = 0; i < RUNS.length; i++) {
     const st = runState(i, t);
+    const sessionNum = cyclesDone * RUNS.length + i + 1;
     drawConnector(ctx, i, st, A, palette);
-    drawSession(ctx, i, st, A, palette);
+    drawSession(ctx, i, sessionNum, st, A, palette);
   }
 
   ctx.restore();
@@ -248,6 +252,7 @@ function drawConnector(
 function drawSession(
   ctx: CanvasRenderingContext2D,
   i: number,
+  sessionNum: number,
   st: RunState,
   A: number,
   palette: VizPalette,
@@ -344,7 +349,7 @@ function drawSession(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = TEXT_LABEL;
-  ctx.fillText('Session', FOCAL.x, FOCAL.y - BASE_R - 14);
+  ctx.fillText(`Session ${sessionNum}`, FOCAL.x, FOCAL.y - BASE_R - 14);
 
   // Session card next to the circle: fades out as the session dissolves.
   if (st.card > 0.001) {
