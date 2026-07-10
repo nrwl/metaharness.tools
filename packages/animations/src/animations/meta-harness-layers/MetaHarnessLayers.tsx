@@ -245,15 +245,15 @@ const META_CHIPS: ChipDef[] = [
 // ---------------------------------------------------------------------------
 const CYCLE = 10;
 const T = {
-  llmFadeIn: [0, 0.6] as const, // driven by global elapsed, once
-  harnessRect: [0.9, 2.0] as const,
-  harnessChips: [1.5, 2.7] as const,
-  metaRect: [2.9, 4.0] as const,
-  metaChips: [3.6, 4.8] as const,
-  reifyStart: 5.0, // first chip solidifies here
-  reifyStagger: 0.28, // per-chip delay
-  reifyDur: 0.5, // dashed -> solid transition length
-  fadeOut: [8.2, 9.6] as const, // everything but the LLM fades away
+  llmFadeIn: [0, 0.4] as const, // driven by global elapsed, once
+  harnessRect: [0.4, 1.1] as const,
+  harnessChips: [0.8, 1.5] as const,
+  metaRect: [1.5, 2.2] as const,
+  metaChips: [1.9, 2.6] as const,
+  reifyStart: 2.7, // first chip solidifies here
+  reifyStagger: 0.14, // per-chip delay
+  reifyDur: 0.35, // dashed -> solid transition length
+  fadeOut: [5.0, 6.4] as const, // everything but the LLM fades away
 };
 
 // Compressed timeline for the 'simple' variant: a pure layering picture with
@@ -261,9 +261,9 @@ const T = {
 // The LLM fade-in reuses T.llmFadeIn (driven by global elapsed, once).
 const CYCLE_SIMPLE = 12;
 const T_SIMPLE = {
-  harnessRect: [1.2, 2.6] as const,
-  metaRect: [3.2, 4.6] as const,
-  fadeOut: [10.5, 12.0] as const, // everything but the LLM fades away
+  harnessRect: [0.4, 1.3] as const,
+  metaRect: [1.4, 2.4] as const,
+  fadeOut: [4.5, 6.0] as const, // everything but the LLM fades away
 };
 
 // ---------------------------------------------------------------------------

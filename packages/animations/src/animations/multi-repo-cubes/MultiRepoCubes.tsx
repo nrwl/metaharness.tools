@@ -28,7 +28,6 @@ export interface MultiRepoCubesProps {
 export function MultiRepoCubes({
   className,
   paused = false,
-  playOnce = false,
   width = 640,
   height = 420,
   style,
@@ -52,9 +51,10 @@ export function MultiRepoCubes({
         elapsed,
         appear: 1,
         palette,
-        timelineElapsed: playOnce
-          ? Math.min(elapsed, MULTI_REPO_CUBES_HOLD_AT)
-          : elapsed,
+        // Skip the reveal entirely: pin the layout timeline to its settled
+        // state so all three cubes are present from the first frame. Rotation
+        // and glow still animate (they run off `elapsed`).
+        timelineElapsed: MULTI_REPO_CUBES_HOLD_AT,
       });
     },
   });
