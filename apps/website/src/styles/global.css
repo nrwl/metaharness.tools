@@ -23,10 +23,37 @@ body {
   color: var(--color-neutral-100);
 }
 
-/* Inline emphasis: plain bold, no highlight. */
+/* Inline highlight: a translucent amber marker stroke — denser, softly rounded
+   ends and a slight tilt so it reads as a highlighter pass rather than a flat
+   box. box-decoration-break clones the stroke onto each wrapped line. */
 mark {
-  background-color: transparent;
   color: inherit;
   font-weight: 600;
-  padding: 0;
+  padding: 0.04em 0.16em;
+  border-radius: 0.2em;
+  background: linear-gradient(
+    102deg,
+    transparent 0.4%,
+    color-mix(in srgb, var(--color-accent) 68%, transparent) 2.5%,
+    color-mix(in srgb, var(--color-accent) 46%, transparent) 6%,
+    color-mix(in srgb, var(--color-accent) 46%, transparent) 94%,
+    color-mix(in srgb, var(--color-accent) 68%, transparent) 97.5%,
+    transparent 99.6%
+  );
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Dark mode: the amber accent is light, so lean on it a touch less and let the
+   bold light text stay legible on top. */
+.dark mark {
+  background: linear-gradient(
+    102deg,
+    transparent 0.4%,
+    color-mix(in srgb, var(--color-accent) 54%, transparent) 2.5%,
+    color-mix(in srgb, var(--color-accent) 34%, transparent) 6%,
+    color-mix(in srgb, var(--color-accent) 34%, transparent) 94%,
+    color-mix(in srgb, var(--color-accent) 54%, transparent) 97.5%,
+    transparent 99.6%
+  );
 }
