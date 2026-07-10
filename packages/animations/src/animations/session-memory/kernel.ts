@@ -91,19 +91,19 @@ interface SessionDef {
 
 // Array order = creation order (a session can only reference an earlier one).
 const SESSIONS: SessionDef[] = [
-  { name: 'Juri', letter: 'J', repos: [0, 1], rest: { x: 214, y: 128 } },
-  { name: 'Victor', letter: 'V', repos: [2], rest: { x: 366, y: 152 } },
-  { name: 'James', letter: 'J', repos: [1], rest: { x: 512, y: 108 } },
-  { name: 'Max', letter: 'M', repos: [0, 2], rest: { x: 660, y: 146 } },
-  { name: 'Nadia', letter: 'N', repos: [0], rest: { x: 806, y: 120 } },
+  { name: 'Maya', letter: 'M', repos: [0, 1], rest: { x: 214, y: 128 } },
+  { name: 'Leo', letter: 'L', repos: [2], rest: { x: 366, y: 152 } },
+  { name: 'Noah', letter: 'N', repos: [1], rest: { x: 512, y: 108 } },
+  { name: 'Priya', letter: 'P', repos: [0, 2], rest: { x: 660, y: 146 } },
+  { name: 'Elena', letter: 'E', repos: [0], rest: { x: 806, y: 120 } },
 ];
 
 /** Dashed later-session -> earlier-session reference links (from > to). */
 const REF_LINKS = [
-  { from: 2, to: 1 }, // James -> Victor
-  { from: 3, to: 2 }, // Max -> James
-  { from: 4, to: 3 }, // Nadia -> Max
-  { from: 3, to: 0 }, // Max -> Juri
+  { from: 2, to: 1 }, // Noah -> Leo
+  { from: 3, to: 2 }, // Priya -> Noah
+  { from: 4, to: 3 }, // Elena -> Priya
+  { from: 3, to: 0 }, // Priya -> Maya
 ];
 
 // Inner context graph: 7 nodes seeded-random in a unit disc, fixed edges.

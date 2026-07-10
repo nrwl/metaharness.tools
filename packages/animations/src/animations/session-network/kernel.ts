@@ -84,17 +84,17 @@ interface SessionDef {
 }
 
 const SESSIONS: SessionDef[] = [
-  { name: 'Juri', letter: 'J', repos: [0, 1], rest: { x: 290, y: 124 } },
-  { name: 'Victor', letter: 'V', repos: [2], rest: { x: 572, y: 150 } },
-  { name: 'James', letter: 'J', repos: [1], rest: { x: 750, y: 106 } },
-  { name: 'Max', letter: 'M', repos: [0, 2], rest: { x: 428, y: 98 } },
+  { name: 'Maya', letter: 'M', repos: [0, 1], rest: { x: 290, y: 124 } },
+  { name: 'Leo', letter: 'L', repos: [2], rest: { x: 572, y: 150 } },
+  { name: 'Noah', letter: 'N', repos: [1], rest: { x: 750, y: 106 } },
+  { name: 'Priya', letter: 'P', repos: [0, 2], rest: { x: 428, y: 98 } },
 ];
 
 /** Dashed session -> earlier-session reference links. */
 const REF_LINKS = [
-  { from: 3, to: 0 }, // Max -> Juri
-  { from: 3, to: 1 }, // Max -> Victor
-  { from: 2, to: 1 }, // James -> Victor
+  { from: 3, to: 0 }, // Priya -> Maya
+  { from: 3, to: 1 }, // Priya -> Leo
+  { from: 2, to: 1 }, // Noah -> Leo
 ];
 
 // Inner context graph: 7 nodes seeded-random in a unit disc, fixed edges.

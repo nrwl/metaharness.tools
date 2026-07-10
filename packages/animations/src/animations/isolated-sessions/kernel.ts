@@ -77,7 +77,7 @@ const BASE_H = 600;
 const FIT_CX = 483;
 const FIT_CY = 340;
 // Wide enough to include the session circles, which bulge past the outer
-// laptops (Juri's reaches ~x=68, Nadia's ~x=897), and tall enough to clear the
+// laptops (Maya's reaches ~x=68, Elena's ~x=897), and tall enough to clear the
 // circles above the people (~y=100) and the repo labels below (~y=580).
 const FIT_W = 880;
 const FIT_H = 500;
@@ -112,10 +112,10 @@ interface PersonDef {
 }
 
 const PEOPLE: PersonDef[] = [
-  { name: 'Juri', letter: 'J', x: 130, y: 176, repo: 0 },
-  { name: 'Victor', letter: 'V', x: 365, y: 162, repo: 2 },
-  { name: 'James', letter: 'J', x: 600, y: 186, repo: 1 },
-  { name: 'Nadia', letter: 'N', x: 835, y: 170, repo: 0 },
+  { name: 'Maya', letter: 'M', x: 130, y: 176, repo: 0 },
+  { name: 'Leo', letter: 'L', x: 365, y: 162, repo: 2 },
+  { name: 'Noah', letter: 'N', x: 600, y: 186, repo: 1 },
+  { name: 'Elena', letter: 'E', x: 835, y: 170, repo: 0 },
 ];
 
 /** Vertical offset from a person's home position to their laptop baseline. */

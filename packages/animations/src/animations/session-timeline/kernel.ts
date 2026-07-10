@@ -66,11 +66,11 @@ const REPO_EDGES: ReadonlyArray<readonly [number, number, string]> = [
 // Named hero sessions built in act 1 (ported from the original SessionNetwork),
 // each touching one or more of the repos above.
 const HERO_DEFS = [
-  { name: 'Juri', letter: 'J', repos: [0, 1] },
-  { name: 'Victor', letter: 'V', repos: [2] },
-  { name: 'James', letter: 'J', repos: [1] },
-  { name: 'Max', letter: 'M', repos: [0, 2] },
-  { name: 'Nicole', letter: 'N', repos: [0] },
+  { name: 'Maya', letter: 'M', repos: [0, 1] },
+  { name: 'Leo', letter: 'L', repos: [2] },
+  { name: 'Noah', letter: 'N', repos: [1] },
+  { name: 'Priya', letter: 'P', repos: [0, 2] },
+  { name: 'Elena', letter: 'E', repos: [0] },
 ];
 
 // Date columns, newest (index 0) on the right. `n` = drawn nodes, `count` =
@@ -97,8 +97,8 @@ const RESTS: Pt[] = [
 
 // Detail card content for the selected session.
 const CARD = {
-  name: 'MaxKless',
-  handle: '@MaxKless',
+  name: 'Priya Nair',
+  handle: '@priyanair',
   title: 'NXA-2017: Polygraph title selection in existing agent harness',
   meta: 'nrwl/polygraph-mcp · Jul 6',
 };
@@ -316,8 +316,8 @@ function build() {
     sessions[o.i].appearAt = 8.4 + rank * 0.07;
   });
 
-  // Selected: Max's session (matches the detail card author).
-  let sel = sessions.findIndex((s) => s.hero && s.name === 'Max');
+  // Selected: Priya's session (matches the detail card author).
+  let sel = sessions.findIndex((s) => s.hero && s.name === 'Priya');
   if (sel < 0) sel = sessions.findIndex((s) => s.hero);
   if (sel < 0) sel = 0;
 
@@ -475,7 +475,7 @@ export function drawSessionTimeline(
       if (e.a !== G.sel && e.b !== G.sel) continue;
       const other = e.a === G.sel ? e.b : e.a;
       const po = timelineOf(other, t, elapsed);
-      // Curve runs Max -> other (u=0 at Max); flow the dot inward toward Max.
+      // Curve runs Priya -> other (u=0 at Priya); flow the dot inward toward Priya.
       const pulseU = 1 - ((elapsed * 0.34 + e.delay) % 1);
       strokeCurve(
         ctx,

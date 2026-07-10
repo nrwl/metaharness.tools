@@ -96,28 +96,28 @@ interface SessionDef {
 // Five sessions evenly spaced around the orbit, one popping in at a time so the
 // blurb absorbs them in sequence. The top slot leads; the rest follow clockwise.
 const SESSIONS: SessionDef[] = [
-  { name: 'Juri', letter: 'J', start: 1.2, angle: -Math.PI / 2 },
+  { name: 'Maya', letter: 'M', start: 1.2, angle: -Math.PI / 2 },
   {
-    name: 'Victor',
-    letter: 'V',
+    name: 'Leo',
+    letter: 'L',
     start: 3.6,
     angle: -Math.PI / 2 + (2 * Math.PI) / 5,
   },
   {
-    name: 'James',
-    letter: 'J',
+    name: 'Noah',
+    letter: 'N',
     start: 6.0,
     angle: -Math.PI / 2 + (4 * Math.PI) / 5,
   },
   {
-    name: 'Max',
-    letter: 'M',
+    name: 'Priya',
+    letter: 'P',
     start: 8.4,
     angle: -Math.PI / 2 + (6 * Math.PI) / 5,
   },
   {
-    name: 'Nadia',
-    letter: 'N',
+    name: 'Elena',
+    letter: 'E',
     start: 10.8,
     angle: -Math.PI / 2 + (8 * Math.PI) / 5,
   },

@@ -128,10 +128,10 @@ interface SessionDef {
   resume?: boolean;
 }
 const SESSIONS: SessionDef[] = [
-  { person: 0, name: 'Juri', letter: 'J', title: 'impl-cancel-order', id: '568d33ca', resume: true },
-  { person: 1, name: 'Victor', letter: 'V', title: 'add-webhooks', id: '1f9a02b7' },
-  { person: 2, name: 'James', letter: 'J', title: 'migrate-auth', id: '77c3e410' },
-  { person: 3, name: 'Nadia', letter: 'N', title: 'fix-billing', id: '0b52d9af' },
+  { person: 0, name: 'Maya', letter: 'M', title: 'impl-cancel-order', id: '568d33ca', resume: true },
+  { person: 1, name: 'Leo', letter: 'L', title: 'add-webhooks', id: '1f9a02b7' },
+  { person: 2, name: 'Noah', letter: 'N', title: 'migrate-auth', id: '77c3e410' },
+  { person: 3, name: 'Elena', letter: 'E', title: 'fix-billing', id: '0b52d9af' },
 ];
 
 // Inner context graph (matches the isolated-sessions look): 7 nodes in a disc.
