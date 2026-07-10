@@ -1,40 +1,51 @@
+<p><a href="https://metaharness.tools" target="_blank" rel="noreferrer" title="metaharness.tools"><img src="https://metaharness.tools/og.png" width="100%" alt="metaharness.tools" /></a></p>
+
 # metaharness.tools
 
-Website explaining what meta harnesses are. Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com), managed as an [Nx](https://nx.dev) workspace.
+AI agents run inside a **harness** (Claude Code, Codex, and friends). A **meta-harness** is the layer above it: the capabilities that span repos, sessions, and time, filling the gaps a single harness leaves behind.
 
-## Prerequisites
+[metaharness.tools](https://metaharness.tools) is an educational reference explaining what meta-harnesses are, what they add, and why the layer is emerging. We try to keep it clear and objective, and we welcome pull requests if we got something wrong or left something out.
 
-- Node `22` (see `.nvmrc`)
-- pnpm `^11`
+Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com), managed as an [Nx](https://nx.dev) workspace.
 
-## Getting started
+## Development
+
+### Prerequisites
+
+- Node `22` (see [`.nvmrc`](./.nvmrc))
+- [pnpm](https://pnpm.io)
+
+### Running locally
 
 ```sh
 pnpm install
-pnpm dev        # start the dev server (nx dev website)
+pnpm dev        # nx dev website — http://localhost:4321
 ```
 
-## Common commands
+### Common commands
 
-| Command             | Description                              |
-| ------------------- | ---------------------------------------- |
-| `pnpm dev`          | Dev server with HMR                      |
-| `pnpm build`        | Production build → `apps/website/dist`   |
-| `pnpm preview`      | Preview the production build             |
-| `nx check website`  | Type-check the Astro project             |
+| Command          | Description                            |
+| ---------------- | -------------------------------------- |
+| `pnpm dev`       | Dev server with HMR                    |
+| `pnpm build`     | Production build → `apps/website/dist` |
+| `pnpm preview`   | Preview the production build           |
+| `pnpm storybook` | Storybook for the `animations` package |
 
-## Structure
+### Structure
 
 ```
-apps/website/        Astro site
-  src/pages/         routes
-  src/layouts/       shared layouts
-  src/styles/        global styles (Tailwind)
+apps/website/          Astro site
+  src/pages/           routes
+  src/layouts/         shared layouts
+  src/components/       sections & UI
+  integrations/        build-time SEO artifacts (llms.txt, robots, sitemap)
+  tools/og/            OG image generator (Satori → PNG)
+packages/animations/   shared animated diagrams
 ```
 
 ## Deployment
 
-Deployed to Netlify (see `netlify.toml`). Build command `pnpm exec nx build website`, publish dir `apps/website/dist`.
+Deployed to [Netlify](https://www.netlify.com) (see [`netlify.toml`](./netlify.toml)). Build command `pnpm exec nx build website`, publish dir `apps/website/dist`. The OG image is generated at build time by the `og` Nx target (a dependency of `build`).
 
 ## License
 
