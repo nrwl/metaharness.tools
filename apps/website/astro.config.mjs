@@ -17,7 +17,16 @@ const site =
 // https://astro.build/config
 export default defineConfig({
   site,
-  integrations: [react(), sitemap(), seoArtifacts()],
+  integrations: [
+    react(),
+    sitemap({
+      serialize: (item) => ({
+        ...item,
+        lastmod: new Date().toISOString(),
+      }),
+    }),
+    seoArtifacts(),
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

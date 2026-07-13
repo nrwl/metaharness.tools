@@ -35,6 +35,9 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${gaMeasurementId}');`;
 const robots = noindex ? 'noindex,nofollow' : undefined;
+// Site launch date; dateModified is stamped at build time.
+const datePublished = '2026-07-02';
+const dateModified = new Date().toISOString().split('T')[0];
 const organization = {
   '@type': 'Organization',
   '@id': 'https://metaharness.tools/#organization',
@@ -55,12 +58,22 @@ const structuredData = {
     },
     organization,
     {
+      '@type': 'DefinedTerm',
+      '@id': 'https://metaharness.tools/#meta-harness',
+      name: 'Meta-harness',
+      description:
+        'A layer above AI agent harnesses that spans repositories, sessions, and time: orchestrating and swapping harnesses, coordinating cross-repo work, persisting session memory, and enforcing organizational policy.',
+      url: 'https://metaharness.tools/',
+    },
+    {
       '@type': 'TechArticle',
       headline: pageTitle,
       description: pageDescription,
-      about: 'AI agent meta-harness',
+      about: { '@id': 'https://metaharness.tools/#meta-harness' },
       author: { '@id': organization['@id'] },
       publisher: { '@id': organization['@id'] },
+      datePublished,
+      dateModified,
       url: canonicalHref,
       mainEntityOfPage: canonicalHref,
     },
@@ -77,6 +90,7 @@ const structuredData = {
     {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonicalHref} />
     <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="metaharness.tools" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
@@ -110,6 +124,12 @@ const structuredData = {
       set:html={JSON.stringify(structuredData)}
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="/llms-full.txt"
+      title="LLM-friendly full page text"
+    />
     {
       isProd && (
         <>

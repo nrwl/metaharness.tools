@@ -98,10 +98,25 @@ function inlineText(node, { links = true } = {}) {
     return '';
   }
   if (tag === 'br') return '\n';
+  if (tag === 'img') {
+    return normalize(node.getAttribute('alt') ?? '');
+  }
 
-  const text = normalizeInline(
-    node.childNodes.map((child) => inlineText(child, { links })).join(' '),
-  );
+  // Light/dark image pairs repeat the same alt text; keep only the first.
+  const parts = [];
+  let lastImgAlt;
+  for (const child of node.childNodes) {
+    if (tagName(child) === 'img') {
+      const alt = normalize(child.getAttribute('alt') ?? '');
+      if (!alt || alt === lastImgAlt) continue;
+      lastImgAlt = alt;
+      parts.push(alt);
+      continue;
+    }
+    if (!isTextNode(child)) lastImgAlt = undefined;
+    parts.push(inlineText(child, { links }));
+  }
+  const text = normalizeInline(parts.join(' '));
   if (!text) return '';
 
   if (links && tag === 'a') {
@@ -110,6 +125,21 @@ function inlineText(node, { links = true } = {}) {
   }
 
   return text;
+}
+
+function elementSiblings(node) {
+  const siblings =
+    node.parentNode?.childNodes?.filter((child) => !isTextNode(child)) ?? [];
+  const index = siblings.indexOf(node);
+  return { prev: siblings[index - 1], next: siblings[index + 1] };
+}
+
+// Vendor eyebrows ("By Nx") render above product headings; fold them into the
+// heading itself so the extracted text keeps the attribution.
+function eyebrowFor(node) {
+  if (tagName(node) !== 'p') return undefined;
+  const text = inlineText(node, { links: false });
+  return /^By\s+\S/.test(text) ? text : undefined;
 }
 
 function blockMarkdown(node) {
@@ -121,13 +151,24 @@ function blockMarkdown(node) {
     return '';
   }
 
-  if (/^h[1-4]$/.test(tag)) {
-    const text = inlineText(node);
+  if (/^h[1-3]$/.test(tag)) {
+    let text = inlineText(node);
     if (!text) return '';
+    const eyebrow = eyebrowFor(elementSiblings(node).prev);
+    if (eyebrow) text += ` (${eyebrow.replace(/^By\b/, 'by')})`;
     return `${'#'.repeat(Number(tag.slice(1)))} ${text}`;
   }
 
+  if (tag === 'h4') {
+    const text = inlineText(node);
+    return text ? `**${text}**` : '';
+  }
+
   if (tag === 'p' || tag === 'figcaption') {
+    if (tag === 'p') {
+      const { next } = elementSiblings(node);
+      if (eyebrowFor(node) && /^h[1-4]$/.test(tagName(next))) return '';
+    }
     return inlineText(node);
   }
 
@@ -146,7 +187,8 @@ function blockMarkdown(node) {
         .map(inlineText)
         .join(' '),
     );
-    const firstLine = text || nested.shift() || '';
+    // Decorative step numbers ("01") duplicate the ordered-list position.
+    const firstLine = (/^\d{1,2}$/.test(text) ? '' : text) || nested.shift() || '';
     return [
       `- ${firstLine}`,
       ...nested.map((line) => line.replace(/^/gm, '  ')),
@@ -156,7 +198,13 @@ function blockMarkdown(node) {
   }
 
   if (tag === 'ul' || tag === 'ol') {
-    return node.childNodes.map(blockMarkdown).filter(Boolean).join('\n');
+    const items = node.childNodes.map(blockMarkdown).filter(Boolean);
+    if (tag === 'ol') {
+      return items
+        .map((item, index) => item.replace(/^- /, `${index + 1}. `))
+        .join('\n');
+    }
+    return items.join('\n');
   }
 
   return node.childNodes.map(blockMarkdown).filter(Boolean).join('\n\n');
@@ -238,27 +286,6 @@ ${body}
 async function writeRobots(outDir) {
   const body = [
     'User-agent: *',
-    'Allow: /',
-    '',
-    'User-agent: GPTBot',
-    'Allow: /',
-    '',
-    'User-agent: ChatGPT-User',
-    'Allow: /',
-    '',
-    'User-agent: ClaudeBot',
-    'Allow: /',
-    '',
-    'User-agent: anthropic-ai',
-    'Allow: /',
-    '',
-    'User-agent: PerplexityBot',
-    'Allow: /',
-    '',
-    'User-agent: Google-Extended',
-    'Allow: /',
-    '',
-    'User-agent: CCBot',
     'Allow: /',
     '',
     `Sitemap: ${SITE}/sitemap-index.xml`,
