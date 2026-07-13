@@ -119,9 +119,10 @@ import HeroDotText from './HeroDotText.astro';
   <div class="-mx-6 mt-1 max-w-2xl min-w-0 cursor-default md:mx-auto md:mt-2">
     <VizSurface aspect="aspect-[3/2]">
       <MetaHarnessLayers
-        client:visible
+        client:load
         variant="simple"
-        playOnce
+        stage={2}
+        paused
         width={630}
         height={420}
         className="mx-auto"

@@ -50,6 +50,12 @@ export interface MetaHarnessLayersProps {
    * running — intended for later scroll-driven use.
    */
   stage?: 'auto' | 0 | 1 | 2;
+  /**
+   * When true (full variant only), the LLM + harness layer (and its chips) are
+   * present from the first frame and only the outer meta-harness layer builds
+   * in around them. Ignored when `stage` is pinned or `variant` is 'simple'.
+   */
+  harnessPreBuilt?: boolean;
   /** Logical drawing width in CSS pixels. */
   width?: number;
   /** Logical drawing height in CSS pixels. */
@@ -254,6 +260,16 @@ const T = {
   reifyStagger: 0.14, // per-chip delay
   reifyDur: 0.35, // dashed -> solid transition length
   fadeOut: [5.0, 6.4] as const, // everything but the LLM fades away
+};
+
+// Timeline for the 'harness pre-built' opening: the LLM + harness (and its
+// chips) are held fully present from t=0 and only the meta layer builds in
+// around them. Beats are pulled early since there is no harness build-up to
+// wait on; fadeOut is reused so `playOnce` freezes on the fully-built diagram.
+const T_META = {
+  metaRect: [0.3, 1.2] as const,
+  metaChips: [0.9, 1.7] as const,
+  reifyStart: 1.9,
 };
 
 // Compressed timeline for the 'simple' variant: a pure layering picture with
@@ -482,6 +498,35 @@ function autoState(pt: number): StageState {
   return { harnessRect, harnessChips, metaRect, metaChips, reify, flash };
 }
 
+// Same shape as autoState but with the harness layer held fully present from
+// t=0 (harnessRect/harnessChips pinned on) so only the meta layer builds in.
+function autoStateMetaOnly(pt: number): StageState {
+  const fadeOut = smoothstep(T.fadeOut[0], T.fadeOut[1], pt);
+  const alive = 1 - fadeOut;
+
+  const metaRect = smoothstep(T_META.metaRect[0], T_META.metaRect[1], pt) * alive;
+  const metaChips =
+    smoothstep(T_META.metaChips[0], T_META.metaChips[1], pt) * alive;
+
+  const reify: number[] = [];
+  const flash: number[] = [];
+  for (let i = 0; i < META_CHIPS.length; i++) {
+    const s = T_META.reifyStart + i * T.reifyStagger;
+    reify.push(smoothstep(s, s + T.reifyDur, pt));
+    const u = pt - s;
+    const f = u >= 0 && u < 0.5 ? 1 - Math.abs(u - 0.15) / 0.35 : 0;
+    flash.push(Math.max(0, f) * alive);
+  }
+  return {
+    harnessRect: alive,
+    harnessChips: alive,
+    metaRect,
+    metaChips,
+    reify,
+    flash,
+  };
+}
+
 // Same shape as autoState but driven by the compressed T_SIMPLE beats. Both
 // chip channels are pinned to 0 ('simple' draws no chips at all) and reify is
 // held at 1 so the meta border's accent emphasis keys off the metaRect appear.
@@ -527,6 +572,7 @@ export function MetaHarnessLayers({
   playOnce = false,
   stage = 'auto',
   variant = 'full',
+  harnessPreBuilt = false,
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT,
   style,
@@ -607,7 +653,9 @@ export function MetaHarnessLayers({
         pinnedStage === null
           ? simple
             ? autoStateSimple(pt)
-            : autoState(pt)
+            : harnessPreBuilt
+              ? autoStateMetaOnly(pt)
+              : autoState(pt)
           : pinnedState(pinnedStage);
       // Simple never draws the harness or meta chips, whatever the stage pin
       // says: zeroed alphas let the existing early-outs skip them (and with
@@ -617,7 +665,7 @@ export function MetaHarnessLayers({
         st.metaChips = 0;
       }
       const llmAlpha =
-        pinnedStage === null
+        pinnedStage === null && !harnessPreBuilt
           ? smoothstep(T.llmFadeIn[0], T.llmFadeIn[1], elapsed)
           : 1;
 
