@@ -5,7 +5,6 @@ import SectionAnchors from '../components/SectionAnchors.astro';
 interface Props {
   title?: string;
   description?: string;
-  noindex?: boolean;
   image?: string;
   ogType?: string;
   canonical?: string;
@@ -14,7 +13,6 @@ interface Props {
 const {
   title = 'metaharness.tools',
   description = 'Understanding meta harnesses.',
-  noindex = false,
   image = '/og.png',
   ogType = 'website',
   canonical,
@@ -34,7 +32,6 @@ const gaInit = `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${gaMeasurementId}');`;
-const robots = noindex ? 'noindex,nofollow' : undefined;
 // Site launch date; dateModified is stamped at build time.
 const datePublished = '2026-07-02';
 const dateModified = new Date().toISOString().split('T')[0];
@@ -87,7 +84,6 @@ const structuredData = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={pageDescription} />
-    {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonicalHref} />
     <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="en_US" />
