@@ -17,17 +17,94 @@ import VizSurface from '../../VizSurface.astro';
       >
         The answer: meta-harnesses
       </h2>
-    </div>
 
-    <div class="mx-auto mt-14 max-w-3xl">
       <p
         class="mt-8 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
       >
         A meta-harness is the layer above AI agent harnesses like Claude Code
-        and Codex. It spans repositories, sessions, and time: coordinating
-        cross-repo work, persisting memory between sessions, and enforcing
-        policy, so agentic work connects and compounds instead of resetting
-        with every session.
+        and Codex: it wraps your harness and takes on what the harness alone
+        can't. The idea is young and fast-moving, and right now the term is
+        used in two ways.
+      </p>
+    </div>
+
+    <div class="mt-14 space-y-12">
+      <div
+        class="grid min-w-0 items-center gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+      >
+        <div>
+          <h3
+            class="flex flex-wrap items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+          >
+            <span
+              class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+              aria-hidden="true"></span>
+            Harness orchestration
+            <span
+              class="ml-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent"
+            >
+              this site's focus
+            </span>
+          </h3>
+          <p
+            class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+          >
+            The industry sense: a control layer above many agent harnesses that
+            handles cross-repo coordination, session memory, routing,
+            composition, sandboxing, and policy, so agentic work connects and
+            compounds across sessions.
+          </p>
+        </div>
+
+        <VizSurface aspect="aspect-[3/2]">
+          <MetaHarnessLayers
+            client:visible
+            harnessPreBuilt
+            playOnce
+            width={900}
+            height={600}
+            className="mx-auto"
+          />
+        </VizSurface>
+      </div>
+
+      <div
+        class="grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] dark:border-neutral-900"
+      >
+        <div>
+          <h3
+            class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+          >
+            <span
+              class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+              aria-hidden="true"></span>
+            Harness optimization
+          </h3>
+          <p
+            class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+          >
+            The Stanford Meta-Harness sense: an outer loop around a coding agent
+            that reads the code, scores, and execution traces of every prior
+            candidate, rewrites the harness around a frozen LLM, and keeps the
+            best variant. The harness runs the agent; the meta-harness runs the
+            harness search.
+          </p>
+        </div>
+
+        <VizSurface aspect="none">
+          <HarnessOptimizationLoop client:visible className="mx-auto" />
+        </VizSurface>
+      </div>
+    </div>
+
+    <div class="mx-auto mt-16 max-w-3xl">
+      <p
+        class="text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
+        This site focuses on the orchestration sense. That meta-harness spans
+        repositories, sessions, and time: coordinating cross-repo work,
+        persisting memory between sessions, and enforcing policy, so agentic
+        work connects and compounds instead of resetting with every session.
       </p>
       <p
         class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
@@ -47,72 +124,6 @@ import VizSurface from '../../VizSurface.astro';
         <mark>Your agent gets more capable, more autonomous and you get more
           productive.</mark>
       </p>
-      <p
-        class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-      >
-        The meta-harness is still a broad, fast-moving idea, and right now the
-        term is used in two ways. Both wrap the harness; they differ in what
-        the layer above it is for.
-      </p>
-    </div>
-
-    <div class="mx-auto mt-14 max-w-3xl">
-      <h3
-        class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
-      >
-        <span
-          class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
-          aria-hidden="true"></span>
-        Harness orchestration
-      </h3>
-      <p
-        class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-      >
-        The industry sense, and the one this site focuses on: a control layer
-        above many agent harnesses that handles cross-repo coordination,
-        session memory, routing, composition, sandboxing, and policy, so
-        agentic work connects and compounds across sessions.
-      </p>
-    </div>
-
-    <div class="-mx-6 mt-10 max-w-5xl min-w-0 md:mx-auto">
-      <VizSurface aspect="aspect-[3/2]">
-        <MetaHarnessLayers
-          client:visible
-          harnessPreBuilt
-          playOnce
-          width={900}
-          height={600}
-          className="mx-auto"
-        />
-      </VizSurface>
-    </div>
-
-    <div class="mx-auto mt-16 max-w-3xl">
-      <h3
-        class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
-      >
-        <span
-          class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
-          aria-hidden="true"></span>
-        Harness optimization
-      </h3>
-      <p
-        class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-      >
-        The Stanford Meta-Harness sense: the same abstraction applied one level
-        up. The harness runs the agent; the meta-harness runs the harness
-        search. An outer loop wraps a coding agent that reads the code, scores,
-        and execution traces of every prior candidate, writes a new harness
-        around a frozen LLM, and keeps the best variant. Related, but not the
-        focus of this site.
-      </p>
-    </div>
-
-    <div class="-mx-6 mt-10 max-w-4xl min-w-0 md:mx-auto">
-      <VizSurface aspect="none">
-        <HarnessOptimizationLoop client:visible className="mx-auto" />
-      </VizSurface>
     </div>
   </div>
 </section>

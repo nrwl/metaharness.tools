@@ -131,14 +131,32 @@ const mix = (h1: string, h2: string, t: number): string => {
   return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(', ')})`;
 };
 
-const boxStyle = (b: { cx: number; cy: number; w: number }): CSSProperties => ({
+// Boxes are pinned to their world rects (the arc endpoints are computed from
+// them), so arrows meet the rendered edges exactly; content flexes inside.
+const boxStyle = (b: {
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+}): CSSProperties => ({
   position: 'absolute',
   left: `${(b.cx / VW) * 100}%`,
   top: `${(b.cy / VH) * 100}%`,
   width: `${(b.w / VW) * 100}%`,
+  height: `${(b.h / VH) * 100}%`,
   transform: 'translate(-50%, -50%)',
   boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
 });
+
+/**
+ * World px -> container-relative units. The wrapper is an inline-size
+ * container, so 100cqw equals the rendered width and DOM typography scales
+ * with the diagram exactly like the SVG world does — the boxes keep their
+ * world proportions at any rendered size (e.g. a half-width column).
+ */
+const u = (worldPx: number) => `${((worldPx / VW) * 100).toFixed(3)}cqw`;
 
 // ---------------------------------------------------------------------------
 // clock
@@ -350,6 +368,7 @@ export function HarnessOptimizationLoop({
         minWidth: 0,
         overflow: 'hidden',
         aspectRatio: `${VW} / ${VH}`,
+        containerType: 'inline-size',
         fontFamily: 'ui-sans-serif, system-ui, sans-serif',
         ...style,
       }}
@@ -430,7 +449,7 @@ export function HarnessOptimizationLoop({
         {arc(LOG, logH)}
 
         {arcLabel(205, 338, 'reads code · scores · traces', readH, 'start')}
-        {arcLabel(447, 108, 'proposes new harness code', codeH)}
+        {arcLabel(425, 108, 'proposes new harness code', codeH)}
         {arcLabel(740, 372, 'evaluation logs', logH, 'start')}
 
         {/* travelling pulse (occluded by the opaque boxes at each station) */}
@@ -454,24 +473,24 @@ export function HarnessOptimizationLoop({
       <div
         style={{
           ...boxStyle(PROPOSER),
-          borderRadius: 14,
+          borderRadius: u(14),
           border: `1px solid ${mix(BOX_BORDER, ACCENT, proposerH)}`,
           background: BOX_BG,
           boxShadow: glow(proposerH, ACCENT_RGB),
-          padding: '14px 16px',
+          padding: `${u(14)} ${u(16)}`,
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>
+        <div style={{ fontSize: u(15), fontWeight: 600, color: TEXT }}>
           Proposer
         </div>
-        <div style={{ fontSize: 13, color: MUTED }}>coding agent</div>
+        <div style={{ fontSize: u(13), color: MUTED }}>coding agent</div>
         <div
           style={{
-            fontSize: 12,
+            fontSize: u(12),
             fontStyle: 'italic',
             color: ACCENT,
-            marginTop: 6,
-            minHeight: 16,
+            marginTop: 'auto',
+            minHeight: u(16),
             opacity: proposerStatus ? 1 : 0,
           }}
         >
@@ -483,7 +502,7 @@ export function HarnessOptimizationLoop({
       <div
         style={{
           ...boxStyle(HARNESS),
-          borderRadius: 14,
+          borderRadius: u(14),
           border: `1px solid ${mix(
             mix(BOX_BORDER, ACCENT, harnessH),
             GREEN,
@@ -491,7 +510,7 @@ export function HarnessOptimizationLoop({
           )}`,
           background: BOX_BG,
           boxShadow: glow(harnessH, ACCENT_RGB, 7),
-          padding: '14px 18px',
+          padding: `${u(14)} ${u(18)}`,
         }}
       >
         <div
@@ -503,7 +522,7 @@ export function HarnessOptimizationLoop({
         >
           <div
             style={{
-              fontSize: 12,
+              fontSize: u(12),
               fontWeight: 600,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -514,7 +533,7 @@ export function HarnessOptimizationLoop({
           </div>
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: u(12.5),
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
               color: ACCENT,
             }}
@@ -522,33 +541,42 @@ export function HarnessOptimizationLoop({
             v{version}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: FAINT, marginTop: 3 }}>
+        <div style={{ fontSize: u(12), color: FAINT, marginTop: u(3) }}>
           prompts &middot; retrieval &middot; memory &middot; loop logic
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexGrow: 1,
+          }}
+        >
           <div
             style={{
-              borderRadius: 10,
+              borderRadius: u(10),
               border: `1px solid ${mix(
                 BOX_BORDER,
                 ACCENT,
                 kind === 'evaluate' ? 0.5 + 0.5 * Math.sin(t * 18) * 0.5 : 0,
               )}`,
-              padding: '10px 26px',
+              padding: `${u(10)} ${u(26)}`,
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>LLM</div>
-            <div style={{ fontSize: 11, color: FAINT }}>frozen</div>
+            <div style={{ fontSize: u(14), fontWeight: 600, color: TEXT }}>
+              LLM
+            </div>
+            <div style={{ fontSize: u(11), color: FAINT }}>frozen</div>
           </div>
         </div>
 
         <div
           style={{
-            marginTop: 12,
-            fontSize: 12.5,
-            minHeight: 18,
+            marginTop: u(12),
+            fontSize: u(12.5),
+            minHeight: u(18),
             textAlign: 'center',
           }}
         >
@@ -580,20 +608,27 @@ export function HarnessOptimizationLoop({
       <div
         style={{
           ...boxStyle(FS),
-          borderRadius: 14,
+          borderRadius: u(14),
           border: `1px solid ${mix(BOX_BORDER, ACCENT, fsH)}`,
           background: BOX_BG,
           boxShadow: glow(fsH, ACCENT_RGB),
-          padding: '14px 18px',
+          padding: `${u(14)} ${u(18)}`,
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>
+        <div style={{ fontSize: u(15), fontWeight: 600, color: TEXT }}>
           Experience filesystem
         </div>
-        <div style={{ fontSize: 12, color: FAINT, marginTop: 2 }}>
+        <div style={{ fontSize: u(12), color: FAINT, marginTop: u(2) }}>
           code &middot; scores &middot; traces of every candidate
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: u(8),
+            marginTop: 'auto',
+            flexWrap: 'wrap',
+          }}
+        >
           {SCORES.map((s, i) => {
             const stored = i < storedCount;
             const isPopping = i === storedCount && popping > 0;
@@ -604,10 +639,10 @@ export function HarnessOptimizationLoop({
               <div
                 key={s}
                 style={{
-                  borderRadius: 8,
+                  borderRadius: u(8),
                   border: `1px solid ${mix(BOX_BORDER, color, isBest ? done * (1 - reset) : 0.55)}`,
-                  padding: '3px 9px',
-                  fontSize: 11.5,
+                  padding: `${u(3)} ${u(9)}`,
+                  fontSize: u(11.5),
                   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                   color: isBest ? mix(MUTED, GREEN, done * (1 - reset)) : MUTED,
                   opacity: isPopping ? popping : 1,
