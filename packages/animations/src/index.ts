@@ -90,6 +90,12 @@ export { FeedbackLoop, FEEDBACK_LOOP_CYCLE } from './animations/feedback-loop';
 export type { FeedbackLoopProps } from './animations/feedback-loop';
 
 export {
+  HarnessOptimizationLoop,
+  HARNESS_OPTIMIZATION_LOOP_CYCLE,
+} from './animations/harness-optimization-loop';
+export type { HarnessOptimizationLoopProps } from './animations/harness-optimization-loop';
+
+export {
   SessionDissolve,
   drawSessionDissolve,
   SESSION_DISSOLVE_CYCLE,

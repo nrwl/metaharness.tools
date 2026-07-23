@@ -1,5 +1,8 @@
 ---
-import { MetaHarnessLayers } from '@metaharness/animations';
+import {
+  HarnessOptimizationLoop,
+  MetaHarnessLayers,
+} from '@metaharness/animations';
 import VizSurface from '../../VizSurface.astro';
 ---
 
@@ -44,9 +47,35 @@ import VizSurface from '../../VizSurface.astro';
         <mark>Your agent gets more capable, more autonomous and you get more
           productive.</mark>
       </p>
+      <p
+        class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
+        The meta-harness is still a broad, fast-moving idea, and right now the
+        term is used in two ways. Both wrap the harness; they differ in what
+        the layer above it is for.
+      </p>
     </div>
 
-    <div class="-mx-6 mt-14 max-w-5xl min-w-0 md:mx-auto">
+    <div class="mx-auto mt-14 max-w-3xl">
+      <h3
+        class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+      >
+        <span
+          class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+          aria-hidden="true"></span>
+        Harness orchestration
+      </h3>
+      <p
+        class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
+        The industry sense, and the one this site focuses on: a control layer
+        above many agent harnesses that handles cross-repo coordination,
+        session memory, routing, composition, sandboxing, and policy, so
+        agentic work connects and compounds across sessions.
+      </p>
+    </div>
+
+    <div class="-mx-6 mt-10 max-w-5xl min-w-0 md:mx-auto">
       <VizSurface aspect="aspect-[3/2]">
         <MetaHarnessLayers
           client:visible
@@ -56,6 +85,33 @@ import VizSurface from '../../VizSurface.astro';
           height={600}
           className="mx-auto"
         />
+      </VizSurface>
+    </div>
+
+    <div class="mx-auto mt-16 max-w-3xl">
+      <h3
+        class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+      >
+        <span
+          class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+          aria-hidden="true"></span>
+        Harness optimization
+      </h3>
+      <p
+        class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+      >
+        The Stanford Meta-Harness sense: the same abstraction applied one level
+        up. The harness runs the agent; the meta-harness runs the harness
+        search. An outer loop wraps a coding agent that reads the code, scores,
+        and execution traces of every prior candidate, writes a new harness
+        around a frozen LLM, and keeps the best variant. Related, but not the
+        focus of this site.
+      </p>
+    </div>
+
+    <div class="-mx-6 mt-10 max-w-4xl min-w-0 md:mx-auto">
+      <VizSurface aspect="none">
+        <HarnessOptimizationLoop client:visible className="mx-auto" />
       </VizSurface>
     </div>
   </div>
