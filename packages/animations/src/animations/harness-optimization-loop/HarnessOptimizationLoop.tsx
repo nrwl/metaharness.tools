@@ -15,7 +15,8 @@ import { usePalette } from '../../lib/theme';
  *  - Proposer: the coding agent that reads that history, diagnoses failures
  *    and writes the next candidate harness.
  *  - Candidate harness: the inner unit under search. It wraps a frozen LLM;
- *    each new version is evaluated on the task set and its score improves.
+ *    each new version is evaluated on the task set. One candidate regresses
+ *    before the search recovers, mirroring the paper's reported trajectory.
  *
  * Three laps run (v2, v3, v4), each appending an entry to the filesystem,
  * then the loop settles on the best variant and restarts. Same visual
@@ -54,10 +55,12 @@ const CODE = {
   c: { x: 447, y: 126 },
   p1: { x: HARNESS.cx - HARNESS.w / 2, y: 165 },
 };
+// Mirrors READ on the right side: drops from the harness bottom, bulges
+// outward, and lands on the filesystem box's right edge.
 const LOG = {
   p0: { x: HARNESS.cx, y: HARNESS.cy + HARNESS.h / 2 },
-  c: { x: 702, y: 378 },
-  p1: { x: 600, y: FS.cy - FS.h / 2 },
+  c: { x: 762, y: 415 },
+  p1: { x: FS.cx + FS.w / 2, y: 435 },
 };
 
 const qbez = (e: { p0: Pt; c: Pt; p1: Pt }, t: number): Pt => {
@@ -94,8 +97,12 @@ const N_LAPS = 3;
 const END_HOLD = 70;
 export const CYCLE = LAP * N_LAPS + END_HOLD;
 
-// Candidate scores per version (v1 is the hand-written seed).
-const SCORES = ['28.3', '33.7', '35.5', '37.6'];
+// Illustrative candidate scores, unitless on purpose: real runs are ~60
+// harnesses over ~20 iterations and their benchmark numbers don't map onto a
+// 3-lap loop. v1 is a baseline seed; v2 regresses before the search recovers,
+// matching the trajectory shape the paper reports (Appendix A: early
+// candidates regress, the proposer diagnoses why, then finds the winner).
+const SCORES = ['0.42', '0.38', '0.51', '0.58'];
 
 interface Resolved {
   lap: number;
@@ -299,7 +306,7 @@ export function HarnessOptimizationLoop({
 
   const iterationLabel =
     kind === 'end'
-      ? `search settled · best of ${SCORES.length} candidates`
+      ? 'search settled · best variant kept'
       : `iteration ${lap + 1} / ${N_LAPS}`;
 
   const arcLabel = (
@@ -416,7 +423,8 @@ export function HarnessOptimizationLoop({
           width={FRAME.w}
           height={FRAME.h}
           rx={FRAME.r}
-          fill="none"
+          fill={BOX_BG}
+          fillOpacity={0.55}
           stroke={mix(BOX_BORDER, GREEN, done * (1 - reset) * 0.6)}
           strokeWidth={1}
         />
@@ -449,8 +457,8 @@ export function HarnessOptimizationLoop({
         {arc(LOG, logH)}
 
         {arcLabel(205, 338, 'reads code · scores · traces', readH, 'start')}
-        {arcLabel(425, 108, 'proposes new harness code', codeH)}
-        {arcLabel(740, 372, 'evaluation logs', logH, 'start')}
+        {arcLabel(390, 108, 'proposes new harness code', codeH)}
+        {arcLabel(760, 388, 'evaluation logs', logH, 'start')}
 
         {/* travelling pulse (occluded by the opaque boxes at each station) */}
         <circle
@@ -582,7 +590,7 @@ export function HarnessOptimizationLoop({
         >
           {done > 0 && reset < 1 ? (
             <span style={{ color: GREEN, opacity: done * (1 - reset) }}>
-              kept &middot; best variant &middot; {score}%
+              kept &middot; best variant &middot; {score}
             </span>
           ) : evaluating ? (
             <span style={{ color: ACCENT, fontStyle: 'italic' }}>
@@ -590,14 +598,14 @@ export function HarnessOptimizationLoop({
             </span>
           ) : (
             <span style={{ color: MUTED }}>
-              pass rate{' '}
+              score{' '}
               <span
                 style={{
                   color: TEXT,
                   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                 }}
               >
-                {score}%
+                {score}
               </span>
             </span>
           )}
