@@ -1,0 +1,74 @@
+---
+// FAQ section. Answers stay visible in the DOM (not collapsed) so search engines
+// and AI overviews can extract them. The FAQPage JSON-LD emitted below is built
+// from the same `faqs` array, so the structured data can never drift from the
+// rendered copy.
+const faqs: { q: string; a: string }[] = [
+  {
+    q: `What is a meta-harness?`,
+    a: `A meta-harness is the layer that optimizes the harness around an AI coding agent. Instead of every session starting from scratch, it feeds outcomes back in as distilled memory, rules, and cross-repo context, so agents like Claude Code and Codex get better over time instead of resetting.`,
+  },
+  {
+    q: `How is a meta-harness different from an agent harness?`,
+    a: `A harness runs one agent in one session. A meta-harness sits above it and optimizes across sessions: what worked flows back in as memory and rules, so later runs start from what earlier ones learned.`,
+  },
+  {
+    q: `Is this the same as the Stanford Meta-Harness paper?`,
+    a: `Same idea, narrower scope. The paper ("Meta-Harness: End-to-End Optimization of Model Harnesses") automates one slice: an outer loop that searches over harness code and keeps the best variant. This site covers the broader practical layer, the feedback loops, memory, and rules that optimize agentic work over time, whether automated or built into your tooling.`,
+  },
+  {
+    q: `Is a meta-harness the same as multi-agent orchestration?`,
+    a: `No. Orchestration routes work between agents inside a session. A meta-harness optimizes the outer loop across sessions; orchestration is at most one capability it can include.`,
+  },
+  {
+    q: `Which tools are meta-harnesses?`,
+    a: `Polygraph, SuperagenticAI's metaharness, and Databricks' Omnigent are early examples, each optimizing a different part of the loop, from cross-repo sessions to harness-code search.`,
+  },
+  {
+    q: `Is it "metaharness", "meta harness", or "meta-harness"?`,
+    a: `All three refer to the same concept. "Meta-harness" is the most common spelling; "metaharness" (one word) and "meta harness" (two words) are used interchangeably.`,
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<section id="faq" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-3xl">
+      <h2
+        class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+      >
+        Frequently asked questions
+      </h2>
+      <dl class="mt-12 space-y-10">
+        {
+          faqs.map((f) => (
+            <div class="border-t border-neutral-200 pt-8 first:border-t-0 first:pt-0 dark:border-neutral-900">
+              <dt class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
+                {f.q}
+              </dt>
+              <dd class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300">
+                {f.a}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<script
+  is:inline
+  type="application/ld+json"
+  set:html={JSON.stringify(faqSchema)}
+/>
