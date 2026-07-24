@@ -1,20 +1,26 @@
 ---
-// Headline rendered as a self-assembling constellation of dots. An invisible
-// (opacity-0) but layout-occupying <h1> reserves space, supplies the exact font
-// metrics/wrapping, and stays the accessible + SEO source of truth. An overlaid
-// canvas samples that text into a grid of dots that fade in left-to-right and
-// link to their neighbours, then holds as the formed word. Theme-aware,
-// DPR-crisp, and drawn once (static) under prefers-reduced-motion. The canvas is
-// purely decorative, so aria-hidden.
+// Headline rendered as a self-assembling constellation of dots. The accessible +
+// SEO heading is a visually-hidden <h1> (keyword-carrying). The decorative
+// wordmark below it ("The Connected Agent") is aria-hidden and only supplies the
+// visual: an invisible (opacity-0) but layout-occupying element reserves space
+// and gives the exact font metrics/wrapping, and an overlaid canvas samples its
+// text into a grid of dots that fade in left-to-right and link to their
+// neighbours, then holds as the formed word. Theme-aware, DPR-crisp, and drawn
+// once (static) under prefers-reduced-motion. Both the wordmark and canvas are
+// decorative, so aria-hidden — the <h1> above is the source of truth for readers.
 ---
 
 <div data-dottext class="relative">
-  <h1
+  <h1 class="sr-only">
+    Meta-harness: the layer above AI agent harnesses
+  </h1>
+  <div
     data-dottext-src
+    aria-hidden="true"
     class="cursor-default text-6xl font-semibold tracking-tight text-neutral-900 opacity-0 sm:text-8xl dark:text-neutral-50"
   >
     The Connected Agent
-  </h1>
+  </div>
   <canvas
     data-dottext-canvas
     aria-hidden="true"

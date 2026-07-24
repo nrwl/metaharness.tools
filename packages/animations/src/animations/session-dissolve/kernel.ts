@@ -33,8 +33,7 @@ const SANS = 'ui-sans-serif, system-ui, -apple-system, sans-serif';
 // Layout (960x600 logical). Both session runs build at the same focal spot;
 // the repo row sits along the bottom.
 // ---------------------------------------------------------------------------
-const BASE_W = 960;
-const BASE_H = 600;
+// (Base 960x600 design size is implicit in the CONTENT box below.)
 // Content bounding box within BASE (focal cluster + "You" card + repo row and
 // their labels), used to fit-and-centre the drawing to the canvas so it fills
 // the frame instead of floating tiny in the middle on narrow widths.

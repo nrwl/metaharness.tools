@@ -1,0 +1,74 @@
+---
+// FAQ section. Answers stay visible in the DOM (not collapsed) so search engines
+// and AI overviews can extract them. The FAQPage JSON-LD emitted below is built
+// from the same `faqs` array, so the structured data can never drift from the
+// rendered copy.
+const faqs: { q: string; a: string }[] = [
+  {
+    q: `What is a meta-harness?`,
+    a: `A meta-harness is the layer above AI agent harnesses like Claude Code and Codex. It spans repositories, sessions, and time: coordinating cross-repo work, persisting memory between sessions, swapping harnesses in and out, and enforcing organizational policy no single harness can. The term is also used for harness optimization (automated search over harness code, the Stanford Meta-Harness sense); this site focuses on the orchestration layer.`,
+  },
+  {
+    q: `How is a meta-harness different from an agent harness?`,
+    a: `A harness runs one agent in one session in one repo. A meta-harness sits above harnesses and operates at a broader scope on every axis: many repositories instead of one, memory that carries from one session to the next, harnesses that can be swapped mid-work, and policy applied across every agent run.`,
+  },
+  {
+    q: `Is this the same as the Stanford Meta-Harness paper?`,
+    a: `Related, but different. The paper ("Meta-Harness: End-to-End Optimization of Model Harnesses") uses the term for harness optimization: an outer loop that searches over one harness's code and keeps the best variant. This site covers the orchestration sense: a layer above many harnesses that coordinates cross-repo work, session memory, and policy.`,
+  },
+  {
+    q: `Is a meta-harness the same as multi-agent orchestration?`,
+    a: `Closely related. Multi-agent orchestration routes work between agents inside a session. A meta-harness operates a level higher, across sessions, repositories, and harnesses; in-session orchestration is one capability it can include.`,
+  },
+  {
+    q: `Which tools are meta-harnesses?`,
+    a: `In the orchestration sense, Polygraph and Databricks' Omnigent are early examples. The Stanford reference code and SuperagenticAI's metaharness implement the optimization sense: automated search over harness code.`,
+  },
+  {
+    q: `Is it "metaharness", "meta harness", or "meta-harness"?`,
+    a: `All three refer to the same concept. "Meta-harness" is the most common spelling; "metaharness" (one word) and "meta harness" (two words) are used interchangeably.`,
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<section id="faq" class="px-6 py-20 md:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-3xl">
+      <h2
+        class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+      >
+        Frequently asked questions
+      </h2>
+      <dl class="mt-12 space-y-10">
+        {
+          faqs.map((f) => (
+            <div class="border-t border-neutral-200 pt-8 first:border-t-0 first:pt-0 dark:border-neutral-900">
+              <dt class="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
+                {f.q}
+              </dt>
+              <dd class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300">
+                {f.a}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<script
+  is:inline
+  type="application/ld+json"
+  set:html={JSON.stringify(faqSchema)}
+/>

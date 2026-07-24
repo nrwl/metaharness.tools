@@ -69,8 +69,7 @@ const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 // Layout (960x600 logical). People spread across the upper half, each with a
 // laptop below their session spot; the shared repo row sits along the bottom.
 // ---------------------------------------------------------------------------
-const BASE_W = 960;
-const BASE_H = 600;
+// (Base 960x600 design size is implicit in the CONTENT box below.)
 // Content bounding box within BASE (the four people + laptops across the top and
 // the shared repo row along the bottom), used to fit-and-centre the drawing to
 // the canvas so it fills the frame rather than floating small on narrow widths.

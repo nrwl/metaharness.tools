@@ -4,7 +4,7 @@
 
 AI agents run inside a **harness** (Claude Code, Codex, and friends). A **meta-harness** is the layer above it: the capabilities that span repos, sessions, and time, filling the gaps a single harness leaves behind.
 
-[metaharness.tools](https://metaharness.tools) is an educational reference explaining what meta-harnesses are, what they add, and why the layer is emerging. We try to keep it clear and objective, and we welcome pull requests if we got something wrong or left something out.
+[**What is a meta-harness?**](https://metaharness.tools) — metaharness.tools is an educational reference on the meta-harness (also written _metaharness_ or _meta harness_): what it is, what it adds, and why the layer is emerging. We try to keep it clear and objective, and we welcome pull requests if we got something wrong or left something out.
 
 Built with [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com), managed as an [Nx](https://nx.dev) workspace.
 
