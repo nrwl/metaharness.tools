@@ -127,14 +127,23 @@ function resolve(frame: number): Resolved {
   return { lap, kind: 'store', t: 1 };
 }
 
-const hexRgb = (h: string): [number, number, number] => [
-  parseInt(h.slice(1, 3), 16),
-  parseInt(h.slice(3, 5), 16),
-  parseInt(h.slice(5, 7), 16),
-];
-const mix = (h1: string, h2: string, t: number): string => {
-  const a = hexRgb(h1);
-  const b = hexRgb(h2);
+// Accepts both `#rrggbb` (palette tokens) and the `rgb(r, g, b)` that `mix`
+// itself returns, so mixes can be nested (border colors blend accent *and*
+// the settled-green in one value).
+const toRgb = (c: string): [number, number, number] => {
+  if (c.startsWith('#')) {
+    return [
+      parseInt(c.slice(1, 3), 16),
+      parseInt(c.slice(3, 5), 16),
+      parseInt(c.slice(5, 7), 16),
+    ];
+  }
+  const [r, g, b] = c.slice(c.indexOf('(') + 1, c.indexOf(')')).split(',');
+  return [parseFloat(r), parseFloat(g), parseFloat(b)];
+};
+const mix = (c1: string, c2: string, t: number): string => {
+  const a = toRgb(c1);
+  const b = toRgb(c2);
   return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(', ')})`;
 };
 
@@ -642,7 +651,11 @@ export function HarnessOptimizationLoop({
             const isPopping = i === storedCount && popping > 0;
             if (!stored && !isPopping) return null;
             const isBest = kind === 'end' && i === SCORES.length - 1;
-            const color = isBest ? GREEN : i === storedCount - 1 || isPopping ? ACCENT : FAINT;
+            const color = isBest
+              ? GREEN
+              : i === storedCount - 1 || isPopping
+                ? ACCENT
+                : FAINT;
             return (
               <div
                 key={s}
