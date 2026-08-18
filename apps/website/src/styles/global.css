@@ -38,15 +38,15 @@ mark {
     linear-gradient(
       101deg,
       transparent 0.4%,
-      color-mix(in srgb, var(--color-accent) 92%, transparent) 2%,
-      color-mix(in srgb, var(--color-accent) 60%, transparent) 5.5%,
-      color-mix(in srgb, var(--color-accent) 60%, transparent) 90%,
-      color-mix(in srgb, var(--color-accent) 92%, transparent) 96%,
+      color-mix(in srgb, var(--color-accent) 66%, transparent) 2%,
+      color-mix(in srgb, var(--color-accent) 40%, transparent) 5.5%,
+      color-mix(in srgb, var(--color-accent) 40%, transparent) 90%,
+      color-mix(in srgb, var(--color-accent) 66%, transparent) 96%,
       transparent 99.6%
     ),
     linear-gradient(
       184deg,
-      color-mix(in srgb, var(--color-accent) 34%, transparent) 0%,
+      color-mix(in srgb, var(--color-accent) 22%, transparent) 0%,
       transparent 24%
     );
   box-decoration-break: clone;
@@ -60,15 +60,15 @@ mark {
     linear-gradient(
       101deg,
       transparent 0.4%,
-      color-mix(in srgb, var(--color-accent) 70%, transparent) 2%,
-      color-mix(in srgb, var(--color-accent) 46%, transparent) 5.5%,
-      color-mix(in srgb, var(--color-accent) 46%, transparent) 90%,
-      color-mix(in srgb, var(--color-accent) 70%, transparent) 96%,
+      color-mix(in srgb, var(--color-accent) 46%, transparent) 2%,
+      color-mix(in srgb, var(--color-accent) 28%, transparent) 5.5%,
+      color-mix(in srgb, var(--color-accent) 28%, transparent) 90%,
+      color-mix(in srgb, var(--color-accent) 46%, transparent) 96%,
       transparent 99.6%
     ),
     linear-gradient(
       184deg,
-      color-mix(in srgb, var(--color-accent) 24%, transparent) 0%,
+      color-mix(in srgb, var(--color-accent) 15%, transparent) 0%,
       transparent 24%
     );
 }

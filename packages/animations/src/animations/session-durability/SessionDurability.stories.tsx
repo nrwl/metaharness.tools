@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SessionDurability } from './SessionDurability';
-import { CYCLE } from './kernel';
+import { CAPTURE_CYCLE, CYCLE } from './kernel';
 
 const meta = {
   title: 'Animations/SessionDurability',
@@ -31,4 +31,14 @@ export const Default: Story = {};
 /** Frozen mid-collection. Drag `seek` to scrub the whole timeline. */
 export const Seek: Story = {
   args: { seek: 120 },
+};
+
+/** Capture half only: sessions collect into the store, no slide-aside and no resume. */
+export const CaptureOnly: Story = {
+  args: { captureOnly: true },
+};
+
+/** Frozen inside the capture-only loop (0..CAPTURE_CYCLE). */
+export const CaptureOnlySeek: Story = {
+  args: { captureOnly: true, seek: Math.round(CAPTURE_CYCLE * 0.7) },
 };

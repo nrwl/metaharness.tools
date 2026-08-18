@@ -128,15 +128,47 @@ interface SessionDef {
   resume?: boolean;
 }
 const SESSIONS: SessionDef[] = [
-  { person: 0, name: 'Maya', letter: 'M', title: 'impl-cancel-order', id: '568d33ca', resume: true },
-  { person: 1, name: 'Leo', letter: 'L', title: 'add-webhooks', id: '1f9a02b7' },
-  { person: 2, name: 'Noah', letter: 'N', title: 'migrate-auth', id: '77c3e410' },
-  { person: 3, name: 'Elena', letter: 'E', title: 'fix-billing', id: '0b52d9af' },
+  {
+    person: 0,
+    name: 'Maya',
+    letter: 'M',
+    title: 'impl-cancel-order',
+    id: '568d33ca',
+    resume: true,
+  },
+  {
+    person: 1,
+    name: 'Leo',
+    letter: 'L',
+    title: 'add-webhooks',
+    id: '1f9a02b7',
+  },
+  {
+    person: 2,
+    name: 'Noah',
+    letter: 'N',
+    title: 'migrate-auth',
+    id: '77c3e410',
+  },
+  {
+    person: 3,
+    name: 'Elena',
+    letter: 'E',
+    title: 'fix-billing',
+    id: '0b52d9af',
+  },
 ];
 
 // Inner context graph (matches the isolated-sessions look): 7 nodes in a disc.
 const CTX_EDGES: ReadonlyArray<readonly [number, number]> = [
-  [0, 1], [1, 2], [0, 3], [3, 4], [2, 5], [4, 6], [5, 6], [1, 5],
+  [0, 1],
+  [1, 2],
+  [0, 3],
+  [3, 4],
+  [2, 5],
+  [4, 6],
+  [5, 6],
+  [1, 5],
 ];
 const CTX_GRAPHS: Pt[][] = SESSIONS.map((_, i) => {
   const rnd = mulberry32(0x5e5 + i * 977);
@@ -167,6 +199,11 @@ const LOG_START = 320; // terminal resume log begins
 // can be read before the loop fades and restarts.
 const FADE = [520, 548] as const;
 
+// Capture-only variant: stop after the last session lands in the store (154),
+// hold the indexed store, then fade and restart. No slide, no resume.
+export const CAPTURE_CYCLE = 250;
+const CAPTURE_FADE = [220, 250] as const;
+
 // ---------------------------------------------------------------------------
 // Entry
 // ---------------------------------------------------------------------------
@@ -174,31 +211,44 @@ export function drawSessionDurability(
   ctx: CanvasRenderingContext2D,
   frame: number,
   palette: VizPalette = DARK_PALETTE,
+  opts: { captureOnly?: boolean } = {},
 ) {
+  const { captureOnly = false } = opts;
+  const fade = captureOnly ? CAPTURE_FADE : FADE;
   const A =
-    smoothstep(0, INTRO_END, frame) * (1 - smoothstep(FADE[0], FADE[1], frame));
+    smoothstep(0, INTRO_END, frame) * (1 - smoothstep(fade[0], fade[1], frame));
   if (A <= 0.001) return;
 
   const col = resolveColors(palette);
 
-  const slide = easeInOut(smoothstep(SLIDE[0], SLIDE[1], frame));
+  // Capture-only keeps the store centered and the laptops on screen: the store
+  // never slides aside to make room for a terminal that is not there.
+  const slide = captureOnly
+    ? 0
+    : easeInOut(smoothstep(SLIDE[0], SLIDE[1], frame));
   const storePos: Pt = {
     x: lerp(STORE_A.x, STORE_B.x, slide),
     y: lerp(STORE_A.y, STORE_B.y, slide),
   };
-  const laptopA = 1 - smoothstep(SLIDE[0], SLIDE[1], frame);
+  const laptopA = captureOnly ? 1 : 1 - smoothstep(SLIDE[0], SLIDE[1], frame);
 
   drawLaptops(ctx, frame, A * laptopA, col);
   drawTethers(ctx, frame, A * laptopA, col);
   drawStore(ctx, frame, storePos, A, col);
-  for (let i = 0; i < SESSIONS.length; i++) drawSession(ctx, i, frame, A * laptopA, col);
-  drawResumeStreak(ctx, frame, storePos, A, col);
+  for (let i = 0; i < SESSIONS.length; i++)
+    drawSession(ctx, i, frame, A * laptopA, col);
+  if (!captureOnly) drawResumeStreak(ctx, frame, storePos, A, col);
 
   ctx.globalAlpha = 1;
 }
 
 // ---- Laptops ---------------------------------------------------------------
-function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
+function drawLaptops(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   if (A <= 0.001) return;
   SESSIONS.forEach((s, i) => {
     const pop = smoothstep(0.4 + i * 3, 0.4 + i * 3 + 10, frame);
@@ -249,7 +299,12 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, co
 }
 
 // ---- Session -> laptop tethers (only while the bubble is expanded/home) -----
-function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
+function drawTethers(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   if (A <= 0.001) return;
   SESSIONS.forEach((_, i) => {
     const st = sessionState(i, frame);
@@ -285,19 +340,31 @@ function sessionState(i: number, frame: number): SessionState {
   const dock: Pt = { x: LAPTOP_X[i] + DOCK_DX, y: LAPTOP_Y - 4 };
   const home: Pt = { x: LAPTOP_X[i], y: BUBBLE_Y };
   const rise = easeInOut(expand);
-  const homePos: Pt = { x: lerp(dock.x, home.x, rise), y: lerp(dock.y, home.y, rise) };
+  const homePos: Pt = {
+    x: lerp(dock.x, home.x, rise),
+    y: lerp(dock.y, home.y, rise),
+  };
 
   const slot = storeGeom(STORE_A);
   const target: Pt = { x: slot.dotX, y: slot.rowY(i) };
   const fe = easeInOut(fly);
-  const pos: Pt = { x: lerp(homePos.x, target.x, fe), y: lerp(homePos.y, target.y, fe) };
+  const pos: Pt = {
+    x: lerp(homePos.x, target.x, fe),
+    y: lerp(homePos.y, target.y, fe),
+  };
 
   const grown = lerp(DOT_R, BUBBLE_R, easeOutBack(clamp01(expand)));
   const r = lerp(grown, DOT_R, fe);
   return { active, expand, fly, pos, r };
 }
 
-function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A: number, col: Colors) {
+function drawSession(
+  ctx: CanvasRenderingContext2D,
+  i: number,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   const st = sessionState(i, frame);
   if (!st.active || A <= 0.001) return;
   const s = SESSIONS[i];
@@ -338,7 +405,10 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
   // Context graph inside the halo (build with the expand, gone once flying).
   if (bubble > 0.01) {
     const nodeR = r * 0.78;
-    const pts = CTX_GRAPHS[i].map((p) => ({ x: x + p.x * nodeR, y: y + p.y * nodeR }));
+    const pts = CTX_GRAPHS[i].map((p) => ({
+      x: x + p.x * nodeR,
+      y: y + p.y * nodeR,
+    }));
     const E = CTX_EDGES.length;
     CTX_EDGES.forEach(([a, b], k) => {
       const er = smoothstep(k / E, k / E + 0.3, st.expand);
@@ -384,7 +454,13 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
 }
 
 // ---- Session store card ----------------------------------------------------
-function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: number, col: Colors) {
+function drawStore(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  c: Pt,
+  A: number,
+  col: Colors,
+) {
   const appear = smoothstep(2, 16, frame);
   if (appear <= 0.001) return;
   const g = storeGeom(c);
@@ -428,7 +504,14 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
       const lit = smoothstep(ROW_LIGHT, ROW_LIGHT + 12, frame);
       if (lit > 0.01) {
         ctx.globalAlpha = appear * A * lit;
-        roundRectPath(ctx, g.left + 8, y - ROW_H / 2 + 3, CARD_W - 16, ROW_H - 6, 6);
+        roundRectPath(
+          ctx,
+          g.left + 8,
+          y - ROW_H / 2 + 3,
+          CARD_W - 16,
+          ROW_H - 6,
+          6,
+        );
         ctx.fillStyle = `rgba(${col.accentRgb}, 0.1)`;
         ctx.fill();
         ctx.strokeStyle = `rgba(${col.accentRgb}, 0.4)`;
@@ -469,7 +552,13 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
 }
 
 // ---- Resume streak: stored session -> terminal center ----------------------
-function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos: Pt, A: number, col: Colors) {
+function drawResumeStreak(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  storePos: Pt,
+  A: number,
+  col: Colors,
+) {
   if (frame < FLY2[0]) return;
   const idx = SESSIONS.findIndex((s) => s.resume);
   const g = storeGeom(storePos);

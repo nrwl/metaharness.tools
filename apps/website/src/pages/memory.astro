@@ -5,8 +5,6 @@ import VizSurface from '../components/VizSurface.astro';
 import VizPlaceholder from '../components/VizPlaceholder.astro';
 import Footer from '../components/sections/Footer.astro';
 import {
-  SessionDissolve,
-  SessionMemory,
   MemoryDistill,
   SessionDurability,
   SessionTimeline,
@@ -18,9 +16,10 @@ const description =
 
 const navLinks = [
   { href: '#types', label: 'The three types' },
-  { href: '#map', label: 'The map' },
+  { href: '#map', label: 'The second axis' },
+  { href: '#capture', label: 'The agent session' },
+  { href: '#why', label: 'Why it matters' },
   { href: '#what-it-does', label: 'What it lets you do' },
-  { href: '#capture', label: 'How you capture it' },
   { href: '#retrieval', label: 'Finding it again' },
 ];
 
@@ -62,8 +61,9 @@ const renderIcon = (name: string) =>
           class="mt-8 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl dark:text-neutral-400"
         >
           Everyone building agents talks about memory. Almost none of them mean
-          the same thing by it. Here is a map of what the word can mean, and why
-          code is the one place memory behaves differently.
+          the same thing by it. It runs along two axes:
+          <mark>what kind of memory it is, and who it is for</mark>. Here is a map
+          of both, and why code is the one place memory behaves differently.
         </p>
       </div>
       <div
@@ -81,14 +81,13 @@ const renderIcon = (name: string) =>
           <h2
             class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
           >
-            Three kinds of memory, borrowed from your own head
+            Three kinds of memory
           </h2>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
             Cognitive science already split memory into parts, and the same
-            split fits agents almost too well. Three kinds, doing three
-            different jobs.
+            split fits agents almost too well. There are three different kinds serving three different jobs.
           </p>
         </div>
 
@@ -97,20 +96,22 @@ const renderIcon = (name: string) =>
             class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
           >
             <h3
-              class="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
             >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
               Working memory
             </h3>
             <p
-              class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
-              What the agent holds while it is doing the work. The context
-              window plus a few affordances stacked on top, like a scratchpad
+            What the agent holds while it is doing the work. The <mark>context
+              window</mark>{' '}plus a few affordances stacked on top, like a scratchpad
               file it keeps updating. Short-lived and scoped to a single
-              session. This is where orchestration lives: what it is doing now,
-              what it just tried, what it plans next.
+              session. This is where orchestration lives.
             </p>
-            <div class="mt-6">
+            <div class="mt-auto pt-6">
               <VizPlaceholder label="working memory" ratio="aspect-[4/3]" />
             </div>
           </div>
@@ -119,19 +120,19 @@ const renderIcon = (name: string) =>
             class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
           >
             <h3
-              class="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
             >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
               Episodic memory
             </h3>
             <p
-              class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
-              The recording. The exact recollection of a piece of work: what was
-              tried, what got rejected, how it went from an empty file to a
-              merged change. Tied to a unit of work, and it does not summarize.
-              <mark>It shows.</mark>
+            This is like <mark>the recording</mark> tied to a specific unit of work. It doesn't summarize but is the exact recollection of what happened during a session including what was tried, what got rejected and what survided into the final merge.
             </p>
-            <div class="mt-6">
+            <div class="mt-auto pt-6">
               <VizPlaceholder label="episodic memory" ratio="aspect-[4/3]" />
             </div>
           </div>
@@ -140,18 +141,21 @@ const renderIcon = (name: string) =>
             class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
           >
             <h3
-              class="text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
             >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
               Semantic memory
             </h3>
             <p
-              class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
-              The distilled version. Facts, PRDs, design docs, "here is how our
+            The <mark>distilled version</mark>. Facts, PRDs, design docs, "here is how our
               auth works." Either boiled down from a recording after the fact,
-              or written by hand up front. Shorter, portable, and lossy.
+              or written by hand up front. These are usually shorter, but also tend to be lossy.
             </p>
-            <div class="mt-6">
+            <div class="mt-auto pt-6">
               <VizPlaceholder label="semantic memory" ratio="aspect-[4/3]" />
             </div>
           </div>
@@ -166,98 +170,56 @@ const renderIcon = (name: string) =>
       </div>
     </section>
 
-    <!-- 2. Git keeps the what, the session keeps the why -->
-    <section
-      id="why"
-      class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
-    >
+    <!-- 2. The second axis + the map (merged) -->
+    <section id="map" class="px-6 pb-20 md:pb-28">
       <div class="mx-auto max-w-6xl">
-        <h2
-          class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
-        >
-          Git keeps the what. The session keeps the why.
-        </h2>
-
-        <div class="mt-12 grid min-w-0 items-center gap-12 lg:grid-cols-2">
-          <div
-            class="space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
-            <p>
-              Version control already remembers your code. Every change, every
-              author, every line, kept forever. What it never captured is the
-              reasoning: why the retry logic looks like that, which three
-              approaches were tried first, what the payment API was doing under
-              load when someone finally worked it out.
-            </p>
-            <p>
-              That reasoning is episodic memory, and until recently it lived in
-              a person's head. Now it runs through an agent session, and
-              <mark>when the session ends it is gone</mark>. The work survives in
-              git; the thinking behind it evaporates.
-            </p>
-          </div>
-
-          <div class="-mx-6 min-w-0 md:mx-0">
-            <VizSurface aspect="aspect-[6/5]">
-              <SessionDissolve
-                client:visible
-                width={600}
-                height={500}
-                className="mx-auto"
-              />
-            </VizSurface>
-          </div>
-        </div>
-
-        <figure
-          class="mx-auto mt-14 max-w-4xl border-y border-neutral-300 py-10 text-center dark:border-neutral-800"
-        >
-          <p
-            class="text-2xl font-medium leading-snug text-neutral-900 sm:text-3xl dark:text-neutral-100"
-          >
-            The diff tells you what changed. Only the session tells you{' '}
-            <span class="text-accent">why</span>.
-          </p>
-        </figure>
-      </div>
-    </section>
-
-    <!-- 3. The second axis + the map (merged) -->
-    <section id="map" class="px-6 py-20 md:py-28">
-      <div class="mx-auto max-w-6xl">
-        <div class="max-w-3xl">
+        <div>
           <h2
             class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
           >
-            Memory has a second axis: who it is for
+            The second axis: who is the memory for?
           </h2>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
             The three types are one dimension. Cutting across them is a second
-            question, and it has nothing to do with how the memory is stored:
-            who is it about?
+            question, and it has nothing to do with how the memory is stored but rather
+            "who is it about?"
           </p>
         </div>
 
-        <dl class="mt-10 max-w-3xl space-y-8">
-          <div>
-            <dt class="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              Personalized
+        <dl class="mt-12 grid gap-6 lg:grid-cols-3">
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
+              Personalized memory
             </dt>
             <dd
-              class="mt-2 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
               About you. What you want, how you like to work, which patterns you
               reach for. Usually stored as a semantic profile of preferences.
             </dd>
           </div>
-          <div>
-            <dt class="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              Institutional
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
+              Institutional memory
             </dt>
             <dd
-              class="mt-2 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
               The same idea scaled to a team, and it is far harder, not for
               technical reasons but for human ones. One person is easy to agree
@@ -266,12 +228,19 @@ const renderIcon = (name: string) =>
               <mark>negotiated fiction</mark>.
             </dd>
           </div>
-          <div>
-            <dt class="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span
+                class="h-2 w-2 shrink-0 rounded-[2px] bg-accent"
+                aria-hidden="true"></span>
               Code
             </dt>
             <dd
-              class="mt-2 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
               The odd one out. Not about you or your team, but about how the
               code itself came to be. Not "she likes tabs" but "this retry
@@ -281,45 +250,184 @@ const renderIcon = (name: string) =>
           </div>
         </dl>
 
-        <div class="mt-16 border-t border-neutral-200 pt-12 dark:border-neutral-900">
-          <div class="max-w-3xl">
-            <h3
-              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
-            >
-              Two axes, one map
-            </h3>
-            <p
-              class="mt-4 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-              Put the two dimensions on a grid and the whole space opens up:
-              type along one edge, purpose along the other. Every approach to
-              memory sits somewhere on it.
-            </p>
-          </div>
+      </div>
+    </section>
 
-          <div class="-mx-6 mt-10 max-w-4xl min-w-0 md:mx-auto">
-            <VizPlaceholder
-              label="memory grid: type x purpose"
-              ratio="aspect-[3/2]"
-            />
+    <!-- 3. The agent session: record, then distill -->
+    <section
+      id="capture"
+      class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
+    >
+      <div class="mx-auto max-w-6xl">
+        <div class="max-w-3xl">
+          <h2
+            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+          >
+            At the core is the agent session
+          </h2>
+          <p
+            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+            Wherever you land on that map, the memory has to come from
+            somewhere, and there is only one place it can come from: a agent session. Whenever you work with an agent, we want to take that working memory and turn it into episodic memory.
+          </p>
+        </div>
+
+        <!-- Record it -->
+        <div class="mt-14 min-w-0">
+          <div
+            class="grid min-w-0 items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]"
+          >
+            <div>
+              <h3
+                class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+              >
+                Capture the session
+              </h3>
+              <p
+                class="mt-4 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+                Episodic memory is not summarized after the fact, it is captured
+                as it happens. Each session is kept whole as its own recording,
+                from the goal it started with through every attempt that failed
+                on the way to the change that shipped. Nothing is thrown away,
+                because you cannot know up front which detail turns out to
+                matter.
+              </p>
+            </div>
+
+            <div class="-mx-6 min-w-0 md:mx-0">
+              <VizSurface aspect="aspect-[12/7]">
+                <SessionDurability
+                  client:visible
+                  captureOnly
+                  className="mx-auto"
+                />
+              </VizSurface>
+            </div>
           </div>
 
           <p
-            class="mx-auto mt-10 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            class="mt-10 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
-            It is worth knowing where the effort has gone.
-            <mark
-              >Current meta-harnesses concentrate on working memory and on the
-              code-episodic corner</mark
-            >, the recorded history of how code came to be. The code-semantic
-            corner, distilled knowledge about a codebase that stays true, is
-            only starting to fill in.
+            By default a session vanishes the moment the agent stops. A
+            meta-harness sits around the harness the agent runs in, which puts
+            it in a position to automate the capture: every run recorded as it
+            happens and kept somewhere central. That is
+            <mark>what turns a one-off run into something the next session can
+              reach for</mark
+            >.
           </p>
+        </div>
+
+        <!-- Distill it -->
+        <div
+          class="mt-16 grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] dark:border-neutral-900"
+        >
+          <div class="lg:order-last">
+            <h3
+              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+            >
+              Then distill it
+            </h3>
+            <div
+              class="mt-4 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+              <p>
+                Recordings are exact but heavy. Over time an offline pass can
+                read across finished sessions and consolidate them into shorter,
+                general knowledge, a step sometimes called <mark>dreaming</mark>.
+                Future sessions connect to that pool and start with what earlier
+                ones learned instead of from a cold context.
+              </p>
+              <p>
+              This is semantic memory, built over time, directly distilled
+                from real recordings rather than hand-written up front. That way it stays
+                anchored to what actually happened, and you can always walk back
+                to the session it came from and check.
+              </p>
+            </div>
+          </div>
+
+          <div class="-mx-6 min-w-0 md:mx-0">
+            <VizSurface>
+              <MemoryDistill client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 4. What memory lets you do -->
+    <!-- 4. Git keeps the what, the session keeps the why -->
+    <section id="why" class="px-6 py-20 md:py-28">
+      <div class="mx-auto max-w-6xl">
+        <h2
+          class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+        >
+          Why memory matters
+        </h2>
+
+        <p
+          class="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+        >
+          Version control already remembers your code. It can tell you
+          <mark>what any file looked like</mark> on any day and who changed it. The
+          history shows a retry wrapper going in around the payment client. What
+          it never captured is the reasoning behind any of it. It is the
+          <mark>session that shows you why</mark> the wrapper exists: the payment
+          API times out under load, someone worked that out the hard way, and the
+          fix is what you are looking at.
+        </p>
+
+        <div class="mt-14 grid min-w-0 items-center gap-12 lg:grid-cols-2">
+          <div class="-mx-6 min-w-0 md:mx-0">
+            <VizPlaceholder
+              label="git keeps the what, the session keeps the why"
+              ratio="aspect-[6/5]"
+            />
+          </div>
+
+          <div>
+            <h3
+              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+            >
+              Memory is valuable context
+            </h3>
+            <div
+              class="mt-4 space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+            <p>
+              An agent always has an answer. Point one at an unfamiliar corner
+              of the system and it reads what is there, finds something that
+              looks broken, and tells you so with complete confidence. That
+              confidence is not a signal of anything. It is what a model does
+              when the current state of the code is all it has to go on.
+            </p>
+            <p>
+              Give it the sessions behind that code and the answer can reverse.
+              What looked like a bug turns out to be a deliberate tradeoff, made
+              after a production incident, by someone who had already tried the
+              obvious fix and watched it fail. The model did not get smarter. It
+              got the context it was missing.
+            </p>
+            </div>
+          </div>
+        </div>
+
+        <figure
+          class="mx-auto mt-14 max-w-4xl border-y border-neutral-300 py-10 text-center dark:border-neutral-800"
+        >
+          <p
+            class="text-2xl font-medium leading-snug text-neutral-900 sm:text-3xl dark:text-neutral-100"
+          >
+            Git has the what. Agent sessions have the{' '}
+            <span class="text-accent">why</span>.
+          </p>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 5. What memory lets you do -->
     <section
       id="what-it-does"
       class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
@@ -334,55 +442,13 @@ const renderIcon = (name: string) =>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
-            Set aside how it is stored for a moment. Once an agent can reach the
-            memory of past work, a set of moves opens up that a pile of facts
-            could never support.
+            Once an agent can reach the memory of past work, a set of moves
+            opens up that a pile of facts could never support.
           </p>
         </div>
-
-        <!-- Materialization: the lead capability -->
-        <div class="mt-12 grid min-w-0 items-center gap-12 lg:grid-cols-2">
-          <div
-            class="space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
-            <p>
-              Start with the one that matters most. A fact set can only answer
-              the questions someone thought to write down. A recorded session
-              can be <mark>pulled back down and run</mark>: check out the repo at
-              that point, spin it up, and look at what the code actually does
-              rather than what a note claims it does.
-            </p>
-            <p>
-              Code is the source of truth, the only artifact that cannot be out
-              of date, because it is the thing that runs. A distilled fact about
-              a codebase drifts the moment the code moves on. Being able to drop
-              back to the running system and see the ground truth is worth more
-              than any better-phrased recall.
-            </p>
-          </div>
-
-          <div class="-mx-6 min-w-0 md:mx-0">
-            <VizPlaceholder
-              label="materialize a session"
-              ratio="aspect-[16/10]"
-            />
-          </div>
-        </div>
-
-        <figure
-          class="mx-auto mt-14 max-w-4xl border-y border-neutral-300 py-10 text-center dark:border-neutral-800"
-        >
-          <p
-            class="text-2xl font-medium leading-snug text-neutral-900 sm:text-3xl dark:text-neutral-100"
-          >
-            A fact set answers the questions someone thought to record. A{' '}
-            <span class="text-accent">running system</span> answers the questions
-            you actually have.
-          </p>
-        </figure>
 
         <!-- Capability rows -->
-        <div class="mt-8 space-y-12">
+        <div class="mt-14 space-y-12">
           <div
             class="grid min-w-0 items-center gap-10 pt-2 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
           >
@@ -420,9 +486,8 @@ const renderIcon = (name: string) =>
               <p
                 class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
               >
-                Start from a single commit, or a single line, jump to the
-                session that produced it, and recover the full context of the
-                decision.
+                Take one line of code, follow it back to the session that
+                produced it, and read the decision behind it in full.
               </p>
             </div>
             <VizPlaceholder label="line to session" ratio="aspect-[16/9]" />
@@ -496,106 +561,8 @@ const renderIcon = (name: string) =>
       </div>
     </section>
 
-    <!-- 5. How you capture it -->
-    <section id="capture" class="px-6 py-20 md:py-28">
-      <div class="mx-auto max-w-6xl">
-        <div class="max-w-3xl">
-          <h2
-            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
-          >
-            So how do you capture it?
-          </h2>
-          <p
-            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
-            If that is what memory buys you, the real question is how the memory
-            gets made in the first place. Two moves, in order.
-          </p>
-        </div>
-
-        <!-- Record it -->
-        <div class="mt-14 grid min-w-0 items-center gap-12 lg:grid-cols-2">
-          <div>
-            <h3
-              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
-            >
-              First, record the session
-            </h3>
-            <div
-              class="mt-4 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-              <p>
-                Episodic memory is not summarized after the fact, it is captured
-                as it happens. Every session that runs, kept as its own
-                recording: the goal, the attempts, the dead ends, the change
-                that finally shipped. Nothing is thrown away, because you cannot
-                know up front which detail turns out to matter.
-              </p>
-              <p>
-                By default a session evaporates when it ends. Capturing it
-                instead is what
-                <mark>turns a one-off run into something the next session can
-                  reach for</mark
-                >.
-              </p>
-            </div>
-          </div>
-
-          <div class="-mx-6 min-w-0 md:mx-0">
-            <VizSurface>
-              <SessionMemory client:visible className="mx-auto" />
-            </VizSurface>
-          </div>
-        </div>
-
-        <!-- Distill it -->
-        <div
-          class="mt-16 grid min-w-0 items-center gap-12 border-t border-neutral-200 pt-16 lg:grid-cols-2 dark:border-neutral-900"
-        >
-          <div class="lg:order-last">
-            <h3
-              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
-            >
-              Then distill it, later
-            </h3>
-            <div
-              class="mt-4 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-              <p>
-                Recordings are exact but heavy. Over time an offline pass can
-                read across finished sessions and consolidate them into shorter,
-                general knowledge, a step sometimes called <mark>dreaming</mark>.
-                Future sessions connect to that pool and start with what earlier
-                ones learned instead of from a cold context.
-              </p>
-              <p>
-                This is semantic memory, but earned. Because it is distilled
-                from real recordings rather than hand-written up front, it stays
-                anchored to what actually happened, and you can always walk back
-                to the session it came from and check.
-              </p>
-              <p>
-                The order matters. You can always distill facts from a
-                recording. You can never recover the recording from the facts.
-                <mark>Record first, distill second.</mark>
-              </p>
-            </div>
-          </div>
-
-          <div class="-mx-6 min-w-0 md:mx-0">
-            <VizSurface>
-              <MemoryDistill client:visible className="mx-auto" />
-            </VizSurface>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- 6. Finding it again -->
-    <section
-      id="retrieval"
-      class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
-    >
+    <section id="retrieval" class="px-6 py-20 md:py-28">
       <div class="mx-auto max-w-6xl">
         <div class="max-w-3xl">
           <h2
@@ -618,17 +585,18 @@ const renderIcon = (name: string) =>
           >
             <p>
               A pile of statements can be embedded and searched by similarity. A
-              history of work has a shape: sessions relate to the repositories
-              they touched, to the code they changed, to each other, and to when
-              they happened. So it is indexed as a set of connected graphs
-              rather than a flat list, a session graph, a repository graph, and
-              a graph of code changes, each pulling the others into focus.
+              history of work has a shape instead: every session is attached to
+              the repositories it touched and the code it changed, and through
+              those to other sessions and to the moment it ran. So it is indexed
+              as a set of connected graphs rather than a flat list. The session
+              graph sits on top of a repository graph and a graph of code
+              changes, and each one pulls the others into focus.
             </p>
             <p>
               Two sessions that touched the same repositories are probably
-              related. So are two with similar descriptions, or the same people,
-              or overlapping changes, or ones that ran close in time. Together
-              those forces surface the sessions near your current work,
+              related. Overlapping changes point the same way, and so does a
+              shared author or a description that reads alike. Pulled together,
+              those signals surface the sessions nearest your current work,
               <mark>without trapping you in the neighborhood</mark>.
             </p>
           </div>
@@ -655,30 +623,50 @@ const renderIcon = (name: string) =>
       </div>
     </section>
 
-    <!-- Finale -->
-    <section id="close" class="px-6 py-20 md:py-28">
+    <!-- Where this fits: orientation for anyone landing straight on this page -->
+    <section
+      id="close"
+      class="border-t border-neutral-200 px-6 py-20 md:py-24 dark:border-neutral-900"
+    >
       <div class="mx-auto max-w-3xl">
+        <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+          Where this fits
+        </p>
         <h2
-          class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-neutral-50"
+          class="mt-6 text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-neutral-50"
         >
-          Record first. Distill later. And always be able to check the code.
+          Memory is one capability of a meta-harness
         </h2>
         <p
           class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
         >
-          Memory for agents is not one feature, it is a space with a shape.
-          Working memory to run the task, episodic memory to remember how the
-          work was done, semantic memory distilled from it once it has proven
-          out, and underneath all of it the code, the one source of truth you
-          can always run.
+          A meta-harness is the layer above agent harnesses like Claude Code and
+          Codex. Capturing and retrieving sessions is one of the things it does,
+          alongside cross-repo coordination, routing, sandboxing, and policy.
         </p>
-        <a
-          href="/#capabilities"
-          class="mt-8 inline-flex items-center gap-2 self-start rounded-md border border-neutral-300 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700 dark:border-neutral-700 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-white"
-        >
-          See where this fits in the meta-harness
-          <span aria-hidden="true">&rarr;</span>
-        </a>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
+          <a
+            href="/"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">What a meta-harness is</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="/#capabilities"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">The full capability map</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="/#landscape"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">Who is building one</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
       </div>
     </section>
   </main>

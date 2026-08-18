@@ -20,7 +20,13 @@ import {
 } from '../provisioning-setup/terminal';
 import commitMono400 from '../provisioning-setup/fonts/commit-mono-400.woff2?url';
 import commitMono700 from '../provisioning-setup/fonts/commit-mono-700.woff2?url';
-import { CYCLE, drawSessionDurability, STAGE_H, STAGE_W } from './kernel';
+import {
+  CAPTURE_CYCLE,
+  CYCLE,
+  drawSessionDurability,
+  STAGE_H,
+  STAGE_W,
+} from './kernel';
 
 /**
  * Session durability: the reverse of IsolatedSessions. Each teammate's parked
@@ -38,6 +44,11 @@ export interface SessionDurabilityProps {
   style?: CSSProperties;
   /** Freeze on a specific frame (0..CYCLE) instead of animating — for stories. */
   seek?: number;
+  /**
+   * Capture half only: sessions fly up and index themselves into the store,
+   * then the loop restarts. No slide-aside, no terminal, no resume.
+   */
+  captureOnly?: boolean;
 }
 
 // --- terminal placement within the stage (matches kernel TERM_CENTER) ---
@@ -256,7 +267,11 @@ const Terminal: React.FC = () => {
 // ---------------------------------------------------------------------------
 // Looping rAF clock (gated by inView; frozen when `seek` is set)
 // ---------------------------------------------------------------------------
-function useLoopFrame(active: boolean, seek: number | undefined): number {
+function useLoopFrame(
+  active: boolean,
+  seek: number | undefined,
+  cycle: number,
+): number {
   const [frame, setFrame] = useState(seek ?? 0);
   const elapsedRef = useRef(0);
   useEffect(() => {
@@ -271,12 +286,12 @@ function useLoopFrame(active: boolean, seek: number | undefined): number {
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       elapsedRef.current += dt;
-      setFrame((elapsedRef.current * FPS) % CYCLE);
+      setFrame((elapsedRef.current * FPS) % cycle);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [active, seek]);
+  }, [active, seek, cycle]);
   return seek ?? frame;
 }
 
@@ -284,11 +299,12 @@ export function SessionDurability({
   className,
   style,
   seek,
+  captureOnly = false,
 }: SessionDurabilityProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
-  const frame = useLoopFrame(inView, seek);
+  const frame = useLoopFrame(inView, seek, captureOnly ? CAPTURE_CYCLE : CYCLE);
   const palette = usePalette();
   const mode = useThemeMode();
 
@@ -319,9 +335,9 @@ export function SessionDurability({
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-    drawSessionDurability(ctx, frame, palette);
+    drawSessionDurability(ctx, frame, palette, { captureOnly });
     // `palette` in deps so a theme toggle repaints even a frozen (seek) frame.
-  }, [frame, palette]);
+  }, [frame, palette, captureOnly]);
 
   return (
     <div
@@ -336,7 +352,11 @@ export function SessionDurability({
         aspectRatio: `${STAGE_W} / ${STAGE_H}`,
         ...style,
       }}
-      aria-label="Session durability: teammate sessions are captured into a central store, then one is resumed in a Claude terminal"
+      aria-label={
+        captureOnly
+          ? 'Session capture: each teammate session expands and flies up into a central session store, indexing itself as a row'
+          : 'Session durability: teammate sessions are captured into a central store, then one is resumed in a Claude terminal'
+      }
     >
       <style>{`
         @font-face {
@@ -360,9 +380,11 @@ export function SessionDurability({
           transformOrigin: 'top left',
         }}
       >
-        <FrameProvider value={frame}>
-          <Terminal />
-        </FrameProvider>
+        {!captureOnly && (
+          <FrameProvider value={frame}>
+            <Terminal />
+          </FrameProvider>
+        )}
         {/* Canvas sits above the terminal so the resume streak lands visibly over
             it; it is transparent everywhere else, so the terminal text shows through. */}
         <canvas

@@ -242,7 +242,10 @@ function build() {
       let minD = Infinity;
       for (let p = 0; p < placed.length; p++) {
         if (Math.abs(placed[p].x - worldX[i]) > 2 * MIN_SEP) continue;
-        minD = Math.min(minD, Math.hypot(placed[p].x - worldX[i], placed[p].y - cand));
+        minD = Math.min(
+          minD,
+          Math.hypot(placed[p].x - worldX[i], placed[p].y - cand),
+        );
       }
       if (minD >= MIN_SEP) {
         bestY = cand;
@@ -272,9 +275,12 @@ function build() {
   const RX1 = BASE_W - 44;
   const RY0 = 118;
   const RY1 = BASE_H - 34;
-  const fit = Math.min((RX1 - RX0) / (maxX - minX), (RY1 - RY0) / (maxY - minY));
-  const offX = RX0 + ((RX1 - RX0) - (maxX - minX) * fit) / 2 - minX * fit;
-  const offY = RY0 + ((RY1 - RY0) - (maxY - minY) * fit) / 2 - minY * fit;
+  const fit = Math.min(
+    (RX1 - RX0) / (maxX - minX),
+    (RY1 - RY0) / (maxY - minY),
+  );
+  const offX = RX0 + (RX1 - RX0 - (maxX - minX) * fit) / 2 - minX * fit;
+  const offY = RY0 + (RY1 - RY0 - (maxY - minY) * fit) / 2 - minY * fit;
   sessions.forEach((s, i) => {
     s.tx = offX + worldX[i] * fit;
     s.ty = offY + worldY[i] * fit;
@@ -321,32 +327,57 @@ function build() {
   if (sel < 0) sel = sessions.findIndex((s) => s.hero);
   if (sel < 0) sel = 0;
 
-  // Reference edges.
+  // Reference edges. The x axis is time, so a session can only reference work
+  // that already happened: every edge is stored later-first (`a`) and runs
+  // leftward to the earlier session (`b`). Same-column pairs carry no direction
+  // and are dropped.
   const set = new Set<string>();
   const edges: Edge[] = [];
   const add = (a: number, b: number) => {
     if (a === b) return;
-    const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+    const late = sessions[a].tx >= sessions[b].tx ? a : b;
+    const early = late === a ? b : a;
+    if (sessions[late].tx <= sessions[early].tx) return;
+    const key = `${late}:${early}`;
     if (set.has(key)) return;
     set.add(key);
-    edges.push({ a, b, bow: rnd() < 0.5 ? -1 : 1, delay: rnd() * 1.4 });
+    edges.push({
+      a: late,
+      b: early,
+      bow: rnd() < 0.5 ? -1 : 1,
+      delay: rnd() * 1.4,
+    });
   };
+
+  // Each session cites one or two sessions from its own past. The leftmost one
+  // has none to cite.
+  const byTime = [...sessions.keys()].sort(
+    (p, q) => sessions[p].tx - sessions[q].tx,
+  );
+  const rankOf = new Array<number>(sessions.length);
+  byTime.forEach((i, r) => (rankOf[i] = r));
   for (let i = 0; i < sessions.length; i++) {
+    const r = rankOf[i];
+    if (r === 0) continue;
     const links = 1 + Math.floor(rnd() * 2);
-    for (let k = 0; k < links; k++) add(i, Math.floor(rnd() * sessions.length));
+    for (let k = 0; k < links; k++) add(i, byTime[Math.floor(rnd() * r)]);
   }
+
+  // The selected session fans out to its nearest earlier neighbours.
   const near = sessions
-    .map((s, i) => ({ i, d: Math.hypot(s.tx - sessions[sel].tx, s.ty - sessions[sel].ty) }))
-    .filter((o) => o.i !== sel)
+    .map((s, i) => ({
+      i,
+      d: Math.hypot(s.tx - sessions[sel].tx, s.ty - sessions[sel].ty),
+    }))
+    .filter((o) => o.i !== sel && sessions[o.i].tx < sessions[sel].tx)
     .sort((a, b) => a.d - b.d)
     .slice(0, 5);
   near.forEach((o) => add(sel, o.i));
 
+  // Only outgoing (leftward) edges count as the selection's fan; a later
+  // session citing this one stays part of the dim backdrop.
   const neighbors = new Set<number>();
-  for (const e of edges) {
-    if (e.a === sel) neighbors.add(e.b);
-    if (e.b === sel) neighbors.add(e.a);
-  }
+  for (const e of edges) if (e.a === sel) neighbors.add(e.b);
 
   // Starfield (subtle backdrop, revealed with the timeline).
   const sr = makeRng(92821);
@@ -454,9 +485,10 @@ export function drawSessionTimeline(
     const pa = timelineOf(e.a, t, elapsed);
     const pb = timelineOf(e.b, t, elapsed);
     const pres = Math.min(pa.present, pb.present);
-    const reveal = pres * smoothstep(TF0 + 1.0 + e.delay, TF0 + 1.9 + e.delay, t);
+    const reveal =
+      pres * smoothstep(TF0 + 1.0 + e.delay, TF0 + 1.9 + e.delay, t);
     if (reveal <= 0.001) continue;
-    const isSel = e.a === G.sel || e.b === G.sel;
+    const isSel = e.a === G.sel;
     const dim = isSel ? 1 : lerp(1, 0.22, selectP);
     strokeCurve(
       ctx,
@@ -472,9 +504,8 @@ export function drawSessionTimeline(
   if (selectP > 0.001) {
     const ps = timelineOf(G.sel, t, elapsed);
     for (const e of G.edges) {
-      if (e.a !== G.sel && e.b !== G.sel) continue;
-      const other = e.a === G.sel ? e.b : e.a;
-      const po = timelineOf(other, t, elapsed);
+      if (e.a !== G.sel) continue;
+      const po = timelineOf(e.b, t, elapsed);
       // Curve runs Priya -> other (u=0 at Priya); flow the dot inward toward Priya.
       const pulseU = 1 - ((elapsed * 0.34 + e.delay) % 1);
       strokeCurve(
@@ -770,7 +801,10 @@ function drawHeroConnectors(
     const repo = REPOS[ri];
     const ang = Math.atan2(repo.y - h.y, repo.x - h.x);
     ctx.beginPath();
-    ctx.moveTo(h.x + Math.cos(ang) * (h.r + 2), h.y + Math.sin(ang) * (h.r + 2));
+    ctx.moveTo(
+      h.x + Math.cos(ang) * (h.r + 2),
+      h.y + Math.sin(ang) * (h.r + 2),
+    );
     ctx.lineTo(repo.x - Math.cos(ang) * 18, repo.y - Math.sin(ang) * 18);
     ctx.stroke();
   }
@@ -805,7 +839,8 @@ function drawTimelineNode(
   ctx.arc(live.x, live.y, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.lineWidth = sel > 0.001 ? 2.5 : 1;
-  ctx.strokeStyle = sel > 0.001 ? palette.accent : `rgba(${palette.edgeRgb}, 0.22)`;
+  ctx.strokeStyle =
+    sel > 0.001 ? palette.accent : `rgba(${palette.edgeRgb}, 0.22)`;
   ctx.beginPath();
   ctx.arc(live.x, live.y, r, 0, Math.PI * 2);
   ctx.stroke();
@@ -819,9 +854,16 @@ function drawTimelineNode(
   // Status dot (non-open).
   if (s.status !== 'open') {
     ctx.globalAlpha = alpha * focus;
-    ctx.fillStyle = s.status === 'done' ? palette.statusDone : palette.statusStale;
+    ctx.fillStyle =
+      s.status === 'done' ? palette.statusDone : palette.statusStale;
     ctx.beginPath();
-    ctx.arc(live.x + r * 0.72, live.y + r * 0.72, Math.max(2.4, r * 0.22), 0, Math.PI * 2);
+    ctx.arc(
+      live.x + r * 0.72,
+      live.y + r * 0.72,
+      Math.max(2.4, r * 0.22),
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
