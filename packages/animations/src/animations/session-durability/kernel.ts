@@ -35,7 +35,9 @@ export const STAGE_W = 960;
 export const STAGE_H = 560;
 
 /** Virtual frames per loop (authored at 30fps). */
-export const CYCLE = 548;
+// Full timeline length. The resume variant enters at RESUME_SHIFT and the
+// capture-only variant stops early, so neither loops over the whole span.
+export const CYCLE = 490;
 
 // ---------------------------------------------------------------------------
 // Palette — resolved from the shared semantic VizPalette so the scene re-themes
@@ -79,7 +81,7 @@ const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 // Layout
 // ---------------------------------------------------------------------------
 const LAPTOP_Y = 500; // hinge baseline
-const LAPTOP_X = [150, 370, 590, 810];
+const LAPTOP_X = [190, 480, 770];
 const DOCK_DX = 26; // parked-dot offset from laptop center
 const DOT_R = 4.5;
 
@@ -87,7 +89,7 @@ const BUBBLE_R = 46;
 const BUBBLE_Y = 330; // expanded bubble center, above the laptop row
 
 const CARD_W = 300;
-const CARD_H = 214;
+const CARD_H = 176;
 const HEADER_H = 46;
 const ROW_PAD = 6;
 const ROW_H = 38;
@@ -150,13 +152,6 @@ const SESSIONS: SessionDef[] = [
     title: 'migrate-auth',
     id: '77c3e410',
   },
-  {
-    person: 3,
-    name: 'Elena',
-    letter: 'E',
-    title: 'fix-billing',
-    id: '0b52d9af',
-  },
 ];
 
 // Inner context graph (matches the isolated-sessions look): 7 nodes in a disc.
@@ -182,9 +177,8 @@ const CTX_GRAPHS: Pt[][] = SESSIONS.map((_, i) => {
 // ---------------------------------------------------------------------------
 // Timeline (virtual frames @30fps)
 // ---------------------------------------------------------------------------
-const INTRO_END = 14;
 // Each session's parked dot expands, holds, then flies into the store.
-const EXP_START = [22, 48, 74, 100];
+const EXP_START = [22, 48, 74];
 const EXPAND_DUR = 16;
 const HOLD_END = 30; // local: expand done .. begin flight
 const FLY_DUR = 24; // local: 30 .. 54 -> lands in store
@@ -195,33 +189,45 @@ const ROW_LIGHT = 278; // resumed row highlights (submit lands ~272 in component
 const FLY2 = [288, 316] as const; // resumed session streaks into the terminal
 const LOG_START = 320; // terminal resume log begins
 
-// Resume log completes ~frame 434; hold the finished state a good while so it
-// can be read before the loop fades and restarts.
-const FADE = [520, 548] as const;
+// The machines and the store card are the resting state: they stay on screen
+// at full strength for the whole loop, so it never blinks through black. Each
+// variant runs, holds its finished state, then cuts straight back to the
+// start. The cut is deliberate: a reverse animation reads as part of the story,
+// a hard reset reads as "this is starting over".
 
-// Capture-only variant: stop after the last session lands in the store (154),
-// hold the indexed store, then fade and restart. No slide, no resume.
-export const CAPTURE_CYCLE = 250;
-const CAPTURE_FADE = [220, 250] as const;
+// Capture-only: sessions land in the store (last at 128), the indexed store
+// holds, then the loop cuts back to an empty store. No slide, no resume.
+export const CAPTURE_CYCLE = 200;
+
+// Resume variant: the capture act is skipped entirely. The animation opens on
+// the store already indexed, with the machines wired to it, and goes straight
+// to the resume. Local frame 0 maps to timeline frame RESUME_SHIFT, which sits
+// after the last landing (128) and before the slide (180). The resume log ends
+// around 366, holds, then cuts back.
+export const RESUME_SHIFT = 140;
+export const CYCLE_END = 430;
+export const RESUME_CYCLE = CYCLE_END - RESUME_SHIFT;
 
 // ---------------------------------------------------------------------------
 // Entry
 // ---------------------------------------------------------------------------
 export function drawSessionDurability(
   ctx: CanvasRenderingContext2D,
-  frame: number,
+  localFrame: number,
   palette: VizPalette = DARK_PALETTE,
-  opts: { captureOnly?: boolean } = {},
+  opts: { captureOnly?: boolean; intro?: number } = {},
 ) {
-  const { captureOnly = false } = opts;
-  const fade = captureOnly ? CAPTURE_FADE : FADE;
-  const A =
-    smoothstep(0, INTRO_END, frame) * (1 - smoothstep(fade[0], fade[1], frame));
+  const { captureOnly = false, intro = 1 } = opts;
+  // The resume variant runs the same timeline, offset past the capture act.
+  const frame = captureOnly ? localFrame : localFrame + RESUME_SHIFT;
+  // `intro` ramps once on first paint and then stays at 1 for the life of the
+  // component, so looping never dips the scene toward the page background.
+  const A = intro;
   if (A <= 0.001) return;
 
   const col = resolveColors(palette);
 
-  // Capture-only keeps the store centered and the laptops on screen: the store
+  // Capture-only keeps the store centred and the machines on screen: the store
   // never slides aside to make room for a terminal that is not there.
   const slide = captureOnly
     ? 0
@@ -234,6 +240,7 @@ export function drawSessionDurability(
 
   drawLaptops(ctx, frame, A * laptopA, col);
   drawTethers(ctx, frame, A * laptopA, col);
+  if (!captureOnly) drawStoreTethers(ctx, storePos, A * laptopA, col);
   drawStore(ctx, frame, storePos, A, col);
   for (let i = 0; i < SESSIONS.length; i++)
     drawSession(ctx, i, frame, A * laptopA, col);
@@ -250,10 +257,10 @@ function drawLaptops(
   col: Colors,
 ) {
   if (A <= 0.001) return;
+  // Part of the resting state: no per-loop pop, they are simply there.
+  const pop = 1;
+  const sc = 1;
   SESSIONS.forEach((s, i) => {
-    const pop = smoothstep(0.4 + i * 3, 0.4 + i * 3 + 10, frame);
-    if (pop <= 0.001) return;
-    const sc = lerp(0.7, 1, easeInOut(pop));
     const x = LAPTOP_X[i];
     const by = LAPTOP_Y;
 
@@ -287,8 +294,7 @@ function drawLaptops(
 
     // Parked dot, before this session expands.
     if (frame < EXP_START[i]) {
-      const dotFade = smoothstep(0.4 + i * 3 + 6, 0.4 + i * 3 + 16, frame);
-      ctx.globalAlpha = dotFade * A;
+      ctx.globalAlpha = A;
       ctx.fillStyle = `rgba(${col.accentRgb}, 0.5)`;
       ctx.beginPath();
       ctx.arc(x + DOCK_DX, by - 4, DOT_R, 0, Math.PI * 2);
@@ -321,6 +327,33 @@ function drawTethers(
     ctx.stroke();
     ctx.restore();
   });
+}
+
+// ---- Laptop -> store wiring ------------------------------------------------
+// Thin standing lines from every machine up to the store card. These are what
+// say "one central store" rather than "four local piles"; they fade out with
+// the laptops when the store slides aside for the terminal.
+function drawStoreTethers(
+  ctx: CanvasRenderingContext2D,
+  c: Pt,
+  A: number,
+  col: Colors,
+) {
+  if (A <= 0.001) return;
+  const g = storeGeom(c);
+  const bottom = g.top + CARD_H;
+  ctx.save();
+  ctx.strokeStyle = col.line;
+  ctx.lineWidth = 1;
+  SESSIONS.forEach((_, i) => {
+    const anchorX = g.left + (CARD_W * (i + 1)) / (SESSIONS.length + 1);
+    ctx.globalAlpha = 0.32 * A;
+    ctx.beginPath();
+    ctx.moveTo(LAPTOP_X[i], LAPTOP_Y - 34);
+    ctx.lineTo(anchorX, bottom);
+    ctx.stroke();
+  });
+  ctx.restore();
 }
 
 // ---- Session bubble (expand from dock, hold, fly into the store) ------------
@@ -461,8 +494,8 @@ function drawStore(
   A: number,
   col: Colors,
 ) {
-  const appear = smoothstep(2, 16, frame);
-  if (appear <= 0.001) return;
+  // The card itself is resting state, always fully there.
+  const appear = 1;
   const g = storeGeom(c);
 
   ctx.save();
@@ -485,7 +518,10 @@ function drawStore(
   ctx.textAlign = 'right';
   ctx.font = `12px ${MONO}`;
   ctx.fillStyle = col.textMuted;
-  const filled = SESSIONS.filter((_, i) => frame >= landFrame(i)).length;
+  const rowFill = SESSIONS.map((_, i) =>
+    smoothstep(landFrame(i), landFrame(i) + 8, frame),
+  );
+  const filled = rowFill.filter((f) => f > 0.5).length;
   ctx.fillText(`${filled} indexed`, g.left + CARD_W - 20, g.top + HEADER_H / 2);
   ctx.strokeStyle = col.cardBorder;
   ctx.beginPath();
@@ -496,8 +532,7 @@ function drawStore(
   // Rows
   SESSIONS.forEach((s, i) => {
     const y = g.rowY(i);
-    const land = landFrame(i);
-    const fill = smoothstep(land, land + 8, frame);
+    const fill = rowFill[i];
 
     // Resumed row highlight.
     if (s.resume) {

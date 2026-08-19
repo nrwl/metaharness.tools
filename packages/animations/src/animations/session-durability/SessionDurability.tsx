@@ -22,8 +22,9 @@ import commitMono400 from '../provisioning-setup/fonts/commit-mono-400.woff2?url
 import commitMono700 from '../provisioning-setup/fonts/commit-mono-700.woff2?url';
 import {
   CAPTURE_CYCLE,
-  CYCLE,
   drawSessionDurability,
+  RESUME_CYCLE,
+  RESUME_SHIFT,
   STAGE_H,
   STAGE_W,
 } from './kernel';
@@ -140,18 +141,6 @@ const LOG: LogDef[] = [
   },
   {
     at: LOG_START + 46,
-    working: 'Provisioning worktrees…',
-    done: 'Worktrees ready',
-    doneAt: LOG_START + 72,
-  },
-  {
-    at: LOG_START + 76,
-    working: 'Replaying conversation state…',
-    done: '42 messages · 6 tool calls replayed',
-    doneAt: LOG_START + 100,
-  },
-  {
-    at: LOG_START + 104,
     done: 'Session resumed · continuing where it left off',
   },
 ];
@@ -194,7 +183,6 @@ const Terminal: React.FC = () => {
   const tw = useTyped(PROMPT, { startFrame: TYPE_START, cps: 26 });
   const typing = frame < SUBMIT;
   const slideIn = interpolate(frame, [TERM_IN[0], TERM_IN[1]], [1, 0]);
-  const fade = interpolate(frame, [520, CYCLE], [1, 0]);
   const submitted = frame >= SUBMIT;
 
   const body: ReactNode = submitted ? (
@@ -231,7 +219,6 @@ const Terminal: React.FC = () => {
         width: TERM.w,
         height: TERM.h,
         transform: `translateX(${slideIn * (TERM.w + 90)}px)`,
-        opacity: fade,
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
@@ -271,12 +258,12 @@ function useLoopFrame(
   active: boolean,
   seek: number | undefined,
   cycle: number,
-): number {
-  const [frame, setFrame] = useState(seek ?? 0);
+): { frame: number; total: number } {
+  const [state, setState] = useState({ frame: seek ?? 0, total: seek ?? 0 });
   const elapsedRef = useRef(0);
   useEffect(() => {
     if (seek !== undefined) {
-      setFrame(seek);
+      setState({ frame: seek, total: Infinity });
       return;
     }
     if (!active) return;
@@ -286,13 +273,14 @@ function useLoopFrame(
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       elapsedRef.current += dt;
-      setFrame((elapsedRef.current * FPS) % cycle);
+      const total = elapsedRef.current * FPS;
+      setState({ frame: total % cycle, total });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [active, seek, cycle]);
-  return seek ?? frame;
+  return state;
 }
 
 export function SessionDurability({
@@ -304,7 +292,17 @@ export function SessionDurability({
   const { ref, inView } = useInView<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
-  const frame = useLoopFrame(inView, seek, captureOnly ? CAPTURE_CYCLE : CYCLE);
+  const { frame, total } = useLoopFrame(
+    inView,
+    seek,
+    captureOnly ? CAPTURE_CYCLE : RESUME_CYCLE,
+  );
+  // One-shot ramp on first paint. After that the scene is simply present: the
+  // loop resets its contents rather than fading the whole thing out.
+  const intro = Math.min(total / 14, 1);
+  // The kernel reads the local frame and offsets internally; the terminal is
+  // driven off the timeline frame so its beats line up with the canvas.
+  const termFrame = captureOnly ? frame : frame + RESUME_SHIFT;
   const palette = usePalette();
   const mode = useThemeMode();
 
@@ -335,9 +333,9 @@ export function SessionDurability({
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-    drawSessionDurability(ctx, frame, palette, { captureOnly });
+    drawSessionDurability(ctx, frame, palette, { captureOnly, intro });
     // `palette` in deps so a theme toggle repaints even a frozen (seek) frame.
-  }, [frame, palette, captureOnly]);
+  }, [frame, palette, captureOnly, intro]);
 
   return (
     <div
@@ -355,7 +353,7 @@ export function SessionDurability({
       aria-label={
         captureOnly
           ? 'Session capture: each teammate session expands and flies up into a central session store, indexing itself as a row'
-          : 'Session durability: teammate sessions are captured into a central store, then one is resumed in a Claude terminal'
+          : 'Session durability: three teammate machines wired to one central session store, and one of those stored sessions resumed in a Claude terminal'
       }
     >
       <style>{`
@@ -381,7 +379,7 @@ export function SessionDurability({
         }}
       >
         {!captureOnly && (
-          <FrameProvider value={frame}>
+          <FrameProvider value={termFrame}>
             <Terminal />
           </FrameProvider>
         )}

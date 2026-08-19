@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SessionDurability } from './SessionDurability';
-import { CAPTURE_CYCLE, CYCLE } from './kernel';
+import { CAPTURE_CYCLE, RESUME_CYCLE } from './kernel';
 
 const meta = {
   title: 'Animations/SessionDurability',
@@ -10,7 +10,7 @@ const meta = {
     backgrounds: { default: 'dark' },
   },
   argTypes: {
-    seek: { control: { type: 'range', min: 0, max: CYCLE, step: 1 } },
+    seek: { control: { type: 'range', min: 0, max: RESUME_CYCLE, step: 1 } },
   },
   decorators: [
     (Story) => (
@@ -25,10 +25,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Full loop: parked dots expand into sessions, collect into the store, then one resumes. */
+/** Resume loop: opens on an indexed store wired to three machines, then resumes one. */
 export const Default: Story = {};
 
-/** Frozen mid-collection. Drag `seek` to scrub the whole timeline. */
+/** Frozen mid-resume. Drag `seek` to scrub the resume timeline (0..RESUME_CYCLE). */
 export const Seek: Story = {
   args: { seek: 120 },
 };

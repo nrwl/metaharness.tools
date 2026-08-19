@@ -111,7 +111,8 @@ export type { IsolatedSessionsProps } from './animations/isolated-sessions';
 
 export {
   SessionDurability,
-  SESSION_DURABILITY_CYCLE,
+  SESSION_DURABILITY_CAPTURE_CYCLE,
+  SESSION_DURABILITY_RESUME_CYCLE,
 } from './animations/session-durability';
 export type { SessionDurabilityProps } from './animations/session-durability';
 

@@ -49,7 +49,9 @@ const STAGE_H = 540;
 // docked at the top (phase 5), with a connector line down to the PR panel.
 const TERM_FULL = { left: 40, top: 42, width: 880, height: 456 };
 const TERM_SMALL = { left: 220, top: 28, width: 520, height: 126 };
-const PR_BOX = { left: 70, top: 214, width: 820, height: 214 };
+// `height` is a floor, not a cap: the panel grows with its rows. A fixed
+// height silently clipped the third PR while the header still counted it.
+const PR_BOX = { left: 70, top: 214, width: 820, minHeight: 214 };
 const CONNECT_X = STAGE_W / 2;
 
 // --- timeline (virtual 30fps) ---
@@ -527,7 +529,6 @@ const PullRequests: React.FC = () => {
   return (
     <div
       style={{
-        height: '100%',
         boxSizing: 'border-box',
         background: 'var(--crs-pr-bg)',
         border: '1px solid var(--crs-pr-border)',
@@ -755,7 +756,7 @@ const Scene: React.FC = () => {
           left: PR_BOX.left,
           top: PR_BOX.top,
           width: PR_BOX.width,
-          height: PR_BOX.height,
+          minHeight: PR_BOX.minHeight,
           opacity: prReveal,
         }}
       >
