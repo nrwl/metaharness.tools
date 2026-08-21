@@ -1,12 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import SectionRailV3 from '../components/sections/v3/SectionRailV3.astro';
 import VizSurface from '../components/VizSurface.astro';
-import VizPlaceholder from '../components/VizPlaceholder.astro';
 import Footer from '../components/sections/Footer.astro';
 import {
+  LineToSession,
+  MemoryCorrection,
   MemoryDistill,
   SessionDurability,
+  SessionReview,
   SessionTimeline,
 } from '@metaharness/animations';
 
@@ -14,13 +17,16 @@ const title = 'Memory is not one thing';
 const description =
   'A map of what agentic memory can mean: working, episodic, and semantic memory, who it is for, and why code is the one place memory behaves differently.';
 
-const navLinks = [
-  { href: '#types', label: 'The three types' },
-  { href: '#map', label: 'The second axis' },
-  { href: '#capture', label: 'The agent session' },
-  { href: '#why', label: 'Why it matters' },
-  { href: '#what-it-does', label: 'What it lets you do' },
+// Sidebar TOC. Mirrors the section h2s, trimmed to fit the rail.
+const railSections = [
+  { id: 'types', label: 'Three kinds of memory' },
+  { id: 'map', label: 'The second axis: who is the memory for?' },
+  { id: 'capture', label: 'At the core is the agent session' },
+  { id: 'why', label: 'Why memory matters' },
+  { id: 'what-it-does', label: 'What you can do with memory' },
+  { id: 'close', label: 'Where this fits' },
 ];
+
 
 // Lucide-style icons (24x24, stroke currentColor), rendered inline before each row title.
 const icons: Record<string, string> = {
@@ -29,8 +35,6 @@ const icons: Record<string, string> = {
   loop: '<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>',
   users:
     '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  userCheck:
-    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
   // Memory types.
   scratchpad:
     '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2.1 2.1 0 1 1 3 3L12 15l-4 1 1-4Z"/>',
@@ -49,10 +53,11 @@ const renderIcon = (name: string) =>
 ---
 
 <Layout title={title} description={description}>
-  <Nav links={navLinks} />
+  <Nav />
   <main
     class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100"
   >
+    <SectionRailV3 sections={railSections} />
     <!-- Hero -->
     <section
       id="top"
@@ -70,10 +75,8 @@ const renderIcon = (name: string) =>
         <p
           class="mt-8 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl dark:text-neutral-400"
         >
-          Everyone building agents talks about memory. Almost none of them mean
-          the same thing by it. It runs along two axes:
-          <mark>what kind of memory it is, and who it is for</mark>. Here is a map
-          of both, and why code is the one place memory behaves differently.
+        There's a lot of talk about agentic memory, but not all of it refers to the same thing. This page explores memory from two different axes:
+          <mark>what kind of memory it is, and who it is for</mark>.
         </p>
       </div>
       <div
@@ -95,9 +98,8 @@ const renderIcon = (name: string) =>
           </h2>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
-            Cognitive science already split memory into parts, and the same
-            split fits agents almost too well. There are three different kinds serving three different jobs.
+            >
+            Cognitive science splits memory into different categories: sensory, short-term/working, and long-term memory. Agentic memory can be split along similar lines:
           </p>
         </div>
 
@@ -113,11 +115,8 @@ const renderIcon = (name: string) =>
             </h3>
             <p
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-            What the agent holds while it is doing the work. The <mark>context
-              window</mark>{' '}plus a few affordances stacked on top, like a scratchpad
-              file it keeps updating. Short-lived and scoped to a single
-              session. This is where orchestration lives.
+              >
+              This is also often referred to as the <mark>context</mark>, and it is what the agent actively holds while it is doing the work during a session. The working memory is short-lived, scoped to a single session and vanishes once the session terminates.
             </p>
           </div>
 
@@ -132,8 +131,8 @@ const renderIcon = (name: string) =>
             </h3>
             <p
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-            This is like <mark>the recording</mark> tied to a specific unit of work. It doesn't summarize but is the exact recollection of what happened during a session including what was tried, what got rejected and what survided into the final merge.
+              >
+              This is the entire <mark>recording</mark> of an agentic session. It doesn't summarize but is the exact recollection of what happened during the session, including what was tried and what got rejected. This memory persists after the session terminates and is usually stored in local files on the computer the agent ran on.
             </p>
           </div>
 
@@ -148,10 +147,8 @@ const renderIcon = (name: string) =>
             </h3>
             <p
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-            The <mark>distilled version</mark>. Facts, PRDs, design docs, "here is how our
-              auth works." Either boiled down from a recording after the fact,
-              or written by hand up front. These are usually shorter, but also tend to be lossy.
+              >
+              This is the collection of facts, PRDs and design docs, and it is the <mark>distilled version</mark> of the episodic memory. Semantic memory is a summary and thus much more concise. But it also tends to be lossy and can be detrimental if not frequently updated.
             </p>
           </div>
         </div>
@@ -159,8 +156,8 @@ const renderIcon = (name: string) =>
         <p
           class="mx-auto mt-12 max-w-3xl text-center text-lg text-neutral-600 dark:text-neutral-400"
         >
-          Most tools that say "memory" mean the semantic kind, because a list of
-          facts is the easiest thing to show.
+          Most tools that talk about "memory" mean the semantic kind, usually
+          because a list of facts is the easiest thing to store and show.
         </p>
       </div>
     </section>
@@ -177,9 +174,7 @@ const renderIcon = (name: string) =>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
-            The three types are one dimension. Cutting across them is a second
-            question, and it has nothing to do with how the memory is stored but rather
-            "who is it about?"
+            The three types are one dimension. The other dimension is less about how memory is stored but rather "who is it about?".
           </p>
         </div>
 
@@ -195,9 +190,8 @@ const renderIcon = (name: string) =>
             </dt>
             <dd
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-              About you. What you want, how you like to work, which patterns you
-              reach for. Usually stored as a semantic profile of preferences.
+              >
+              This  is the memory about what you want, how you like to work and which tools you reach for. It can be episodic or semantic, but most tools implement it as semantic: a stored profile of preferences.
             </dd>
           </div>
           <div
@@ -211,12 +205,8 @@ const renderIcon = (name: string) =>
             </dt>
             <dd
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-            >
-              The same idea scaled to a team, and it is far harder, not for
-              technical reasons but for human ones. One person is easy to agree
-              with. Teams rarely agree cleanly on how things should be done, so
-              the document that claims to speak for the team is usually a
-              <mark>negotiated fiction</mark>.
+              >
+              This is the memory about how your team works. It is far harder to build, not for technical reasons but for human ones. Personal preferences are easy to capture because there is only one person to agree with. Team preferences require agreement, and teams rarely agree cleanly on how things "should" be done. The document that claims to speak for the team is usually a negotiated fiction.
             </dd>
           </div>
           <div
@@ -231,10 +221,7 @@ const renderIcon = (name: string) =>
             <dd
               class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
-              The odd one out. Not about you or your team, but about how the
-              code itself came to be. Not "she likes tabs" but "this retry
-              exists because the payment API times out under load, and here is
-              the session where that was found and fixed."
+              This is the memory about how the code itself was produced, independent of you or your team. Not "Victor likes tabs" but "this retry logic exists because the payment API times out under load, and here is the session where that was discovered and handled." It too can be episodic or semantic.
             </dd>
           </div>
         </dl>
@@ -256,9 +243,8 @@ const renderIcon = (name: string) =>
           </h2>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-          >
-            Wherever you land on that map, the memory has to come from
-            somewhere, and there is only one place it can come from: a agent session. Whenever you work with an agent, we want to take that working memory and turn it into episodic memory.
+            >
+            The core primitive each memory emerges from is the agent session. It is what encodes the original intent, the deviations and the tradeoffs that were discussed along the way. The idea is to take this short-lived working memory and turn it into episodic memory.
           </p>
         </div>
 
@@ -275,13 +261,8 @@ const renderIcon = (name: string) =>
               </h3>
               <p
                 class="mt-4 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-              >
-                Episodic memory is not summarized after the fact, it is captured
-                as it happens. Each session is kept whole as its own recording,
-                from the goal it started with through every attempt that failed
-                on the way to the change that shipped. Nothing is thrown away,
-                because you cannot know up front which detail turns out to
-                matter.
+                >
+                Episodic memory is not summarized after the fact but it is rather captured as it happens. Each session is kept entirely as its own record. Nothing is thrown away because you cannot anticipate which detail turns out to matter.
               </p>
             </div>
 
@@ -299,13 +280,7 @@ const renderIcon = (name: string) =>
           <p
             class="mt-10 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
-            By default a session vanishes the moment the agent stops. A
-            meta-harness sits around the harness the agent runs in, which puts
-            it in a position to automate the capture: every run recorded as it
-            happens and kept somewhere central. That is
-            <mark>what turns a one-off run into something the next session can
-              reach for</mark
-            >.
+          While the working memory vanishes the moment the agent session terminates, the session itself is persisted to the local file system, where it might get purged at some point. A meta-harness can close this gap. By wrapping the underlying agent harness it can gather the session logs and store them centrally so they can be processed at a later point.
           </p>
         </div>
 
@@ -322,18 +297,11 @@ const renderIcon = (name: string) =>
             <div
               class="mt-4 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
-              <p>
-                Recordings are exact but heavy. Over time an offline pass can
-                read across finished sessions and consolidate them into shorter,
-                general knowledge, a step sometimes called <mark>dreaming</mark>.
-                Future sessions connect to that pool and start with what earlier
-                ones learned instead of from a cold context.
+            <p>
+              Individual session recordings precisely represent what happened, but they are also heavy to process. That's why often this episodic memory is consolidated into shorter fragments that can be connected in a pool of general knowledge and facts. Future sessions can connect to this pool rather than starting from a cold context.
               </p>
               <p>
-              This is semantic memory, built over time, directly distilled
-                from real recordings rather than hand-written up front. That way it stays
-                anchored to what actually happened, and you can always walk back
-                to the session it came from and check.
+          This process, often also referred to as <mark>dreaming</mark>, needs to happen in the background. It is not a one-time operation but an ongoing task, otherwise the pool fills up with stale and wrong knowledge.
               </p>
             </div>
           </div>
@@ -358,65 +326,49 @@ const renderIcon = (name: string) =>
 
         <p
           class="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
-        >
-          Version control already remembers your code. It can tell you
-          <mark>what any file looked like</mark> on any day and who changed it. The
-          history shows a retry wrapper going in around the payment client. What
-          it never captured is the reasoning behind any of it. It is the
-          <mark>session that shows you why</mark> the wrapper exists: the payment
-          API times out under load, someone worked that out the hard way, and the
-          fix is what you are looking at.
+          >
+          Your source code and Git encode different things. Version control <mark>gives you the WHAT and WHEN</mark>, and your code has the final result. What is lost is the reasoning that went into producing it. Right now that reasoning lives in the developers' heads, and it is completely lost when agents produce the code.
+        </p>
+
+        <p
+          class="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+          The <mark>agent session encodes the WHY</mark>.
         </p>
 
         <div class="mt-14 grid min-w-0 items-center gap-12 lg:grid-cols-2">
           <div class="-mx-6 min-w-0 md:mx-0">
-            <VizPlaceholder
-              label="git keeps the what, the session keeps the why"
-              ratio="aspect-[6/5]"
-            />
+            <VizSurface aspect="none">
+              <MemoryCorrection client:visible className="mx-auto" />
+            </VizSurface>
           </div>
 
           <div>
             <h3
               class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
             >
-              Memory is valuable context
+              Memory is the base context to start from
             </h3>
             <div
               class="mt-4 space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
             >
             <p>
-              An agent always has an answer. Point one at an unfamiliar corner
-              of the system and it reads what is there, finds something that
-              looks broken, and tells you so with complete confidence. That
-              confidence is not a signal of anything. It is what a model does
-              when the current state of the code is all it has to go on.
+              Agents can only produce quality answers based on the knowledge and context they have. They will look at your code, commit history and docs and produce a plan.
+            </p>
+              <p>
+              By giving your agent knowledge about past sessions, that confident and urgent P0 issue (that made a lot of sense at the time) can turn out to be a deliberate tradeoff and become obsolete.
             </p>
             <p>
-              Give it the sessions behind that code and the answer can reverse.
-              What looked like a bug turns out to be a deliberate tradeoff, made
-              after a production incident, by someone who had already tried the
-              obvious fix and watched it fail. The model did not get smarter. It
-              got the context it was missing.
+            It is not that the model got smarter, we just gave it more context to reason about.
             </p>
             </div>
           </div>
         </div>
 
-        <figure
-          class="mx-auto mt-14 max-w-4xl border-y border-neutral-300 py-10 text-center dark:border-neutral-800"
-        >
-          <p
-            class="text-2xl font-medium leading-snug text-neutral-900 sm:text-3xl dark:text-neutral-100"
-          >
-            Git has the what. Agent sessions have the{' '}
-            <span class="text-accent">why</span>.
-          </p>
-        </figure>
       </div>
     </section>
 
-    <!-- 5. What memory lets you do -->
+    <!-- 5. What you can do with memory -->
     <section
       id="what-it-does"
       class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
@@ -426,18 +378,17 @@ const renderIcon = (name: string) =>
           <h2
             class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
           >
-            What memory lets you do
+            What you can do with memory
           </h2>
           <p
             class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
           >
-            Once an agent can reach the memory of past work, a set of moves
-            opens up that a pile of facts could never support.
+          Giving agents access to past sessions and a central memory store opens a series of interesting capabilities.
           </p>
         </div>
 
         <!-- Capability rows -->
-        <div class="mt-14 space-y-12">
+        <div class="mt-12 space-y-12">
           <div
             class="grid min-w-0 items-center gap-10 pt-2 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
           >
@@ -446,20 +397,17 @@ const renderIcon = (name: string) =>
                 class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
               >
                 <span class="text-accent" set:html={renderIcon('eye')} />
-                Review the session, not just the diff
+                Interactive review sessions
               </h3>
               <p
                 class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
               >
-                Open the recording behind a coworker's change and ask what
-                options they weighed and why it landed this way, instead of
-                reverse-engineering intent from a diff.
+              Reviewing large PRs that have been created by agents is hard. Being able to instantiate the implementing agent session helps to better understand the decisions that went into the final implementation. This is helpful both for human-led reviews as well as for adversarial reviews by another agent.
               </p>
             </div>
-            <VizPlaceholder
-              label="review the session behind a change"
-              ratio="aspect-[16/9]"
-            />
+            <VizSurface aspect="none">
+              <SessionReview client:visible className="mx-auto" />
+            </VizSurface>
           </div>
 
           <div
@@ -469,17 +417,18 @@ const renderIcon = (name: string) =>
               <h3
                 class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
               >
-                <span class="text-accent" set:html={renderIcon('link')} />
-                From a line of code to the session that wrote it
+              <span class="text-accent" set:html={renderIcon('link')} />
+                Like Git blame but for agent sessions
               </h3>
               <p
                 class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
-              >
-                Take one line of code, follow it back to the session that
-                produced it, and read the decision behind it in full.
+                >
+                Git blame only shows you who implemented the line of code. Episodic memory gives you the ability to load the agent session from any part of the codebase, which gives you a much deeper and more complete view into the decisions that went into the code change.
               </p>
             </div>
-            <VizPlaceholder label="line to session" ratio="aspect-[16/9]" />
+            <VizSurface aspect="none">
+              <LineToSession client:visible className="mx-auto" />
+            </VizSurface>
           </div>
 
           <div
@@ -494,9 +443,8 @@ const renderIcon = (name: string) =>
               </h3>
               <p
                 class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
-              >
-                Pick up a teammate's half-finished session on your own machine
-                and carry it forward, instead of starting cold.
+                >
+                You can resume any team member's agentic session to collaborate on it, whether that's for picking it up and implementing it or just for giving feedback on an implementation plan.
               </p>
             </div>
             <VizSurface>
@@ -516,10 +464,8 @@ const renderIcon = (name: string) =>
               </h3>
               <p
                 class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
-              >
-                Someone has almost certainly worked through the area you are
-                about to touch. Shared, resumable sessions turn hundreds of
-                isolated runs into memory the whole org can build on.
+                >
+                Someone has almost certainly worked through the area you are about to touch. Shared, resumable sessions allow you to load related sessions into your own context to give your agent a complete picture of the situation.
               </p>
             </div>
             <VizSurface>
@@ -527,25 +473,6 @@ const renderIcon = (name: string) =>
             </VizSurface>
           </div>
 
-          <div
-            class="grid min-w-0 items-start gap-10 border-t border-neutral-200 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] dark:border-neutral-900"
-          >
-            <div>
-              <h3
-                class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
-              >
-                <span class="text-accent" set:html={renderIcon('userCheck')} />
-                Know who to ask
-              </h3>
-              <p
-                class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
-              >
-                Answer questions about people, not just code: who is the domain
-                expert for the kind of change you are about to make, and who
-                should review it.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>

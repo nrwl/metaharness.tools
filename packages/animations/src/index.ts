@@ -109,6 +109,15 @@ export {
 } from './animations/isolated-sessions';
 export type { IsolatedSessionsProps } from './animations/isolated-sessions';
 
+export { LineToSession } from './animations/line-to-session';
+export type { LineToSessionProps } from './animations/line-to-session';
+
+export { MemoryCorrection } from './animations/memory-correction';
+export type { MemoryCorrectionProps } from './animations/memory-correction';
+
+export { SessionReview } from './animations/session-review';
+export type { SessionReviewProps } from './animations/session-review';
+
 export {
   SessionDurability,
   SESSION_DURABILITY_CAPTURE_CYCLE,
