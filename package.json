@@ -22,8 +22,5 @@
     "nx": "23.0.1",
     "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1"
-  },
-  "nx": {
-    "includedScripts": []
   }
 }

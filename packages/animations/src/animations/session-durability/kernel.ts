@@ -35,7 +35,9 @@ export const STAGE_W = 960;
 export const STAGE_H = 560;
 
 /** Virtual frames per loop (authored at 30fps). */
-export const CYCLE = 548;
+// Full timeline length. The resume variant enters at RESUME_SHIFT and the
+// capture-only variant stops early, so neither loops over the whole span.
+export const CYCLE = 490;
 
 // ---------------------------------------------------------------------------
 // Palette — resolved from the shared semantic VizPalette so the scene re-themes
@@ -79,7 +81,7 @@ const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 // Layout
 // ---------------------------------------------------------------------------
 const LAPTOP_Y = 500; // hinge baseline
-const LAPTOP_X = [150, 370, 590, 810];
+const LAPTOP_X = [190, 480, 770];
 const DOCK_DX = 26; // parked-dot offset from laptop center
 const DOT_R = 4.5;
 
@@ -87,7 +89,7 @@ const BUBBLE_R = 46;
 const BUBBLE_Y = 330; // expanded bubble center, above the laptop row
 
 const CARD_W = 300;
-const CARD_H = 214;
+const CARD_H = 176;
 const HEADER_H = 46;
 const ROW_PAD = 6;
 const ROW_H = 38;
@@ -128,15 +130,40 @@ interface SessionDef {
   resume?: boolean;
 }
 const SESSIONS: SessionDef[] = [
-  { person: 0, name: 'Maya', letter: 'M', title: 'impl-cancel-order', id: '568d33ca', resume: true },
-  { person: 1, name: 'Leo', letter: 'L', title: 'add-webhooks', id: '1f9a02b7' },
-  { person: 2, name: 'Noah', letter: 'N', title: 'migrate-auth', id: '77c3e410' },
-  { person: 3, name: 'Elena', letter: 'E', title: 'fix-billing', id: '0b52d9af' },
+  {
+    person: 0,
+    name: 'Maya',
+    letter: 'M',
+    title: 'impl-cancel-order',
+    id: '568d33ca',
+    resume: true,
+  },
+  {
+    person: 1,
+    name: 'Leo',
+    letter: 'L',
+    title: 'add-webhooks',
+    id: '1f9a02b7',
+  },
+  {
+    person: 2,
+    name: 'Noah',
+    letter: 'N',
+    title: 'migrate-auth',
+    id: '77c3e410',
+  },
 ];
 
 // Inner context graph (matches the isolated-sessions look): 7 nodes in a disc.
 const CTX_EDGES: ReadonlyArray<readonly [number, number]> = [
-  [0, 1], [1, 2], [0, 3], [3, 4], [2, 5], [4, 6], [5, 6], [1, 5],
+  [0, 1],
+  [1, 2],
+  [0, 3],
+  [3, 4],
+  [2, 5],
+  [4, 6],
+  [5, 6],
+  [1, 5],
 ];
 const CTX_GRAPHS: Pt[][] = SESSIONS.map((_, i) => {
   const rnd = mulberry32(0x5e5 + i * 977);
@@ -150,9 +177,8 @@ const CTX_GRAPHS: Pt[][] = SESSIONS.map((_, i) => {
 // ---------------------------------------------------------------------------
 // Timeline (virtual frames @30fps)
 // ---------------------------------------------------------------------------
-const INTRO_END = 14;
 // Each session's parked dot expands, holds, then flies into the store.
-const EXP_START = [22, 48, 74, 100];
+const EXP_START = [22, 48, 74];
 const EXPAND_DUR = 16;
 const HOLD_END = 30; // local: expand done .. begin flight
 const FLY_DUR = 24; // local: 30 .. 54 -> lands in store
@@ -163,47 +189,78 @@ const ROW_LIGHT = 278; // resumed row highlights (submit lands ~272 in component
 const FLY2 = [288, 316] as const; // resumed session streaks into the terminal
 const LOG_START = 320; // terminal resume log begins
 
-// Resume log completes ~frame 434; hold the finished state a good while so it
-// can be read before the loop fades and restarts.
-const FADE = [520, 548] as const;
+// The machines and the store card are the resting state: they stay on screen
+// at full strength for the whole loop, so it never blinks through black. Each
+// variant runs, holds its finished state, then cuts straight back to the
+// start. The cut is deliberate: a reverse animation reads as part of the story,
+// a hard reset reads as "this is starting over".
+
+// Capture-only: sessions land in the store (last at 128), the indexed store
+// holds, then the loop cuts back to an empty store. No slide, no resume.
+export const CAPTURE_CYCLE = 200;
+
+// Resume variant: the capture act is skipped entirely. The animation opens on
+// the store already indexed, with the machines wired to it, and goes straight
+// to the resume. Local frame 0 maps to timeline frame RESUME_SHIFT, which sits
+// after the last landing (128) and before the slide (180). The resume log ends
+// around 366, holds, then cuts back.
+export const RESUME_SHIFT = 140;
+export const CYCLE_END = 430;
+export const RESUME_CYCLE = CYCLE_END - RESUME_SHIFT;
 
 // ---------------------------------------------------------------------------
 // Entry
 // ---------------------------------------------------------------------------
 export function drawSessionDurability(
   ctx: CanvasRenderingContext2D,
-  frame: number,
+  localFrame: number,
   palette: VizPalette = DARK_PALETTE,
+  opts: { captureOnly?: boolean; intro?: number } = {},
 ) {
-  const A =
-    smoothstep(0, INTRO_END, frame) * (1 - smoothstep(FADE[0], FADE[1], frame));
+  const { captureOnly = false, intro = 1 } = opts;
+  // The resume variant runs the same timeline, offset past the capture act.
+  const frame = captureOnly ? localFrame : localFrame + RESUME_SHIFT;
+  // `intro` ramps once on first paint and then stays at 1 for the life of the
+  // component, so looping never dips the scene toward the page background.
+  const A = intro;
   if (A <= 0.001) return;
 
   const col = resolveColors(palette);
 
-  const slide = easeInOut(smoothstep(SLIDE[0], SLIDE[1], frame));
+  // Capture-only keeps the store centred and the machines on screen: the store
+  // never slides aside to make room for a terminal that is not there.
+  const slide = captureOnly
+    ? 0
+    : easeInOut(smoothstep(SLIDE[0], SLIDE[1], frame));
   const storePos: Pt = {
     x: lerp(STORE_A.x, STORE_B.x, slide),
     y: lerp(STORE_A.y, STORE_B.y, slide),
   };
-  const laptopA = 1 - smoothstep(SLIDE[0], SLIDE[1], frame);
+  const laptopA = captureOnly ? 1 : 1 - smoothstep(SLIDE[0], SLIDE[1], frame);
 
   drawLaptops(ctx, frame, A * laptopA, col);
   drawTethers(ctx, frame, A * laptopA, col);
+  if (!captureOnly) drawStoreTethers(ctx, storePos, A * laptopA, col);
   drawStore(ctx, frame, storePos, A, col);
-  for (let i = 0; i < SESSIONS.length; i++) drawSession(ctx, i, frame, A * laptopA, col);
-  drawResumeStreak(ctx, frame, storePos, A, col);
+  for (let i = 0; i < SESSIONS.length; i++)
+    drawSession(ctx, i, frame, A * laptopA, col);
+  if (!captureOnly) drawResumeStreak(ctx, frame, storePos, A, col);
 
   ctx.globalAlpha = 1;
 }
 
 // ---- Laptops ---------------------------------------------------------------
-function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
+function drawLaptops(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   if (A <= 0.001) return;
+  // Part of the resting state: no per-loop pop, they are simply there.
+  const pop = 1;
+  const sc = 1;
   SESSIONS.forEach((s, i) => {
-    const pop = smoothstep(0.4 + i * 3, 0.4 + i * 3 + 10, frame);
-    if (pop <= 0.001) return;
-    const sc = lerp(0.7, 1, easeInOut(pop));
     const x = LAPTOP_X[i];
     const by = LAPTOP_Y;
 
@@ -237,8 +294,7 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, co
 
     // Parked dot, before this session expands.
     if (frame < EXP_START[i]) {
-      const dotFade = smoothstep(0.4 + i * 3 + 6, 0.4 + i * 3 + 16, frame);
-      ctx.globalAlpha = dotFade * A;
+      ctx.globalAlpha = A;
       ctx.fillStyle = `rgba(${col.accentRgb}, 0.5)`;
       ctx.beginPath();
       ctx.arc(x + DOCK_DX, by - 4, DOT_R, 0, Math.PI * 2);
@@ -249,7 +305,12 @@ function drawLaptops(ctx: CanvasRenderingContext2D, frame: number, A: number, co
 }
 
 // ---- Session -> laptop tethers (only while the bubble is expanded/home) -----
-function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number, col: Colors) {
+function drawTethers(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   if (A <= 0.001) return;
   SESSIONS.forEach((_, i) => {
     const st = sessionState(i, frame);
@@ -266,6 +327,33 @@ function drawTethers(ctx: CanvasRenderingContext2D, frame: number, A: number, co
     ctx.stroke();
     ctx.restore();
   });
+}
+
+// ---- Laptop -> store wiring ------------------------------------------------
+// Thin standing lines from every machine up to the store card. These are what
+// say "one central store" rather than "four local piles"; they fade out with
+// the laptops when the store slides aside for the terminal.
+function drawStoreTethers(
+  ctx: CanvasRenderingContext2D,
+  c: Pt,
+  A: number,
+  col: Colors,
+) {
+  if (A <= 0.001) return;
+  const g = storeGeom(c);
+  const bottom = g.top + CARD_H;
+  ctx.save();
+  ctx.strokeStyle = col.line;
+  ctx.lineWidth = 1;
+  SESSIONS.forEach((_, i) => {
+    const anchorX = g.left + (CARD_W * (i + 1)) / (SESSIONS.length + 1);
+    ctx.globalAlpha = 0.32 * A;
+    ctx.beginPath();
+    ctx.moveTo(LAPTOP_X[i], LAPTOP_Y - 34);
+    ctx.lineTo(anchorX, bottom);
+    ctx.stroke();
+  });
+  ctx.restore();
 }
 
 // ---- Session bubble (expand from dock, hold, fly into the store) ------------
@@ -285,19 +373,31 @@ function sessionState(i: number, frame: number): SessionState {
   const dock: Pt = { x: LAPTOP_X[i] + DOCK_DX, y: LAPTOP_Y - 4 };
   const home: Pt = { x: LAPTOP_X[i], y: BUBBLE_Y };
   const rise = easeInOut(expand);
-  const homePos: Pt = { x: lerp(dock.x, home.x, rise), y: lerp(dock.y, home.y, rise) };
+  const homePos: Pt = {
+    x: lerp(dock.x, home.x, rise),
+    y: lerp(dock.y, home.y, rise),
+  };
 
   const slot = storeGeom(STORE_A);
   const target: Pt = { x: slot.dotX, y: slot.rowY(i) };
   const fe = easeInOut(fly);
-  const pos: Pt = { x: lerp(homePos.x, target.x, fe), y: lerp(homePos.y, target.y, fe) };
+  const pos: Pt = {
+    x: lerp(homePos.x, target.x, fe),
+    y: lerp(homePos.y, target.y, fe),
+  };
 
   const grown = lerp(DOT_R, BUBBLE_R, easeOutBack(clamp01(expand)));
   const r = lerp(grown, DOT_R, fe);
   return { active, expand, fly, pos, r };
 }
 
-function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A: number, col: Colors) {
+function drawSession(
+  ctx: CanvasRenderingContext2D,
+  i: number,
+  frame: number,
+  A: number,
+  col: Colors,
+) {
   const st = sessionState(i, frame);
   if (!st.active || A <= 0.001) return;
   const s = SESSIONS[i];
@@ -338,7 +438,10 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
   // Context graph inside the halo (build with the expand, gone once flying).
   if (bubble > 0.01) {
     const nodeR = r * 0.78;
-    const pts = CTX_GRAPHS[i].map((p) => ({ x: x + p.x * nodeR, y: y + p.y * nodeR }));
+    const pts = CTX_GRAPHS[i].map((p) => ({
+      x: x + p.x * nodeR,
+      y: y + p.y * nodeR,
+    }));
     const E = CTX_EDGES.length;
     CTX_EDGES.forEach(([a, b], k) => {
       const er = smoothstep(k / E, k / E + 0.3, st.expand);
@@ -384,9 +487,15 @@ function drawSession(ctx: CanvasRenderingContext2D, i: number, frame: number, A:
 }
 
 // ---- Session store card ----------------------------------------------------
-function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: number, col: Colors) {
-  const appear = smoothstep(2, 16, frame);
-  if (appear <= 0.001) return;
+function drawStore(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  c: Pt,
+  A: number,
+  col: Colors,
+) {
+  // The card itself is resting state, always fully there.
+  const appear = 1;
   const g = storeGeom(c);
 
   ctx.save();
@@ -409,7 +518,10 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
   ctx.textAlign = 'right';
   ctx.font = `12px ${MONO}`;
   ctx.fillStyle = col.textMuted;
-  const filled = SESSIONS.filter((_, i) => frame >= landFrame(i)).length;
+  const rowFill = SESSIONS.map((_, i) =>
+    smoothstep(landFrame(i), landFrame(i) + 8, frame),
+  );
+  const filled = rowFill.filter((f) => f > 0.5).length;
   ctx.fillText(`${filled} indexed`, g.left + CARD_W - 20, g.top + HEADER_H / 2);
   ctx.strokeStyle = col.cardBorder;
   ctx.beginPath();
@@ -420,15 +532,21 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
   // Rows
   SESSIONS.forEach((s, i) => {
     const y = g.rowY(i);
-    const land = landFrame(i);
-    const fill = smoothstep(land, land + 8, frame);
+    const fill = rowFill[i];
 
     // Resumed row highlight.
     if (s.resume) {
       const lit = smoothstep(ROW_LIGHT, ROW_LIGHT + 12, frame);
       if (lit > 0.01) {
         ctx.globalAlpha = appear * A * lit;
-        roundRectPath(ctx, g.left + 8, y - ROW_H / 2 + 3, CARD_W - 16, ROW_H - 6, 6);
+        roundRectPath(
+          ctx,
+          g.left + 8,
+          y - ROW_H / 2 + 3,
+          CARD_W - 16,
+          ROW_H - 6,
+          6,
+        );
         ctx.fillStyle = `rgba(${col.accentRgb}, 0.1)`;
         ctx.fill();
         ctx.strokeStyle = `rgba(${col.accentRgb}, 0.4)`;
@@ -469,7 +587,13 @@ function drawStore(ctx: CanvasRenderingContext2D, frame: number, c: Pt, A: numbe
 }
 
 // ---- Resume streak: stored session -> terminal center ----------------------
-function drawResumeStreak(ctx: CanvasRenderingContext2D, frame: number, storePos: Pt, A: number, col: Colors) {
+function drawResumeStreak(
+  ctx: CanvasRenderingContext2D,
+  frame: number,
+  storePos: Pt,
+  A: number,
+  col: Colors,
+) {
   if (frame < FLY2[0]) return;
   const idx = SESSIONS.findIndex((s) => s.resume);
   const g = storeGeom(storePos);

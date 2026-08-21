@@ -20,7 +20,14 @@ import {
 } from '../provisioning-setup/terminal';
 import commitMono400 from '../provisioning-setup/fonts/commit-mono-400.woff2?url';
 import commitMono700 from '../provisioning-setup/fonts/commit-mono-700.woff2?url';
-import { CYCLE, drawSessionDurability, STAGE_H, STAGE_W } from './kernel';
+import {
+  CAPTURE_CYCLE,
+  drawSessionDurability,
+  RESUME_CYCLE,
+  RESUME_SHIFT,
+  STAGE_H,
+  STAGE_W,
+} from './kernel';
 
 /**
  * Session durability: the reverse of IsolatedSessions. Each teammate's parked
@@ -38,6 +45,11 @@ export interface SessionDurabilityProps {
   style?: CSSProperties;
   /** Freeze on a specific frame (0..CYCLE) instead of animating — for stories. */
   seek?: number;
+  /**
+   * Capture half only: sessions fly up and index themselves into the store,
+   * then the loop restarts. No slide-aside, no terminal, no resume.
+   */
+  captureOnly?: boolean;
 }
 
 // --- terminal placement within the stage (matches kernel TERM_CENTER) ---
@@ -129,18 +141,6 @@ const LOG: LogDef[] = [
   },
   {
     at: LOG_START + 46,
-    working: 'Provisioning worktrees…',
-    done: 'Worktrees ready',
-    doneAt: LOG_START + 72,
-  },
-  {
-    at: LOG_START + 76,
-    working: 'Replaying conversation state…',
-    done: '42 messages · 6 tool calls replayed',
-    doneAt: LOG_START + 100,
-  },
-  {
-    at: LOG_START + 104,
     done: 'Session resumed · continuing where it left off',
   },
 ];
@@ -183,7 +183,6 @@ const Terminal: React.FC = () => {
   const tw = useTyped(PROMPT, { startFrame: TYPE_START, cps: 26 });
   const typing = frame < SUBMIT;
   const slideIn = interpolate(frame, [TERM_IN[0], TERM_IN[1]], [1, 0]);
-  const fade = interpolate(frame, [520, CYCLE], [1, 0]);
   const submitted = frame >= SUBMIT;
 
   const body: ReactNode = submitted ? (
@@ -220,7 +219,6 @@ const Terminal: React.FC = () => {
         width: TERM.w,
         height: TERM.h,
         transform: `translateX(${slideIn * (TERM.w + 90)}px)`,
-        opacity: fade,
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
@@ -256,12 +254,16 @@ const Terminal: React.FC = () => {
 // ---------------------------------------------------------------------------
 // Looping rAF clock (gated by inView; frozen when `seek` is set)
 // ---------------------------------------------------------------------------
-function useLoopFrame(active: boolean, seek: number | undefined): number {
-  const [frame, setFrame] = useState(seek ?? 0);
+function useLoopFrame(
+  active: boolean,
+  seek: number | undefined,
+  cycle: number,
+): { frame: number; total: number } {
+  const [state, setState] = useState({ frame: seek ?? 0, total: seek ?? 0 });
   const elapsedRef = useRef(0);
   useEffect(() => {
     if (seek !== undefined) {
-      setFrame(seek);
+      setState({ frame: seek, total: Infinity });
       return;
     }
     if (!active) return;
@@ -271,24 +273,36 @@ function useLoopFrame(active: boolean, seek: number | undefined): number {
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       elapsedRef.current += dt;
-      setFrame((elapsedRef.current * FPS) % CYCLE);
+      const total = elapsedRef.current * FPS;
+      setState({ frame: total % cycle, total });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [active, seek]);
-  return seek ?? frame;
+  }, [active, seek, cycle]);
+  return state;
 }
 
 export function SessionDurability({
   className,
   style,
   seek,
+  captureOnly = false,
 }: SessionDurabilityProps) {
   const { ref, inView } = useInView<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
-  const frame = useLoopFrame(inView, seek);
+  const { frame, total } = useLoopFrame(
+    inView,
+    seek,
+    captureOnly ? CAPTURE_CYCLE : RESUME_CYCLE,
+  );
+  // One-shot ramp on first paint. After that the scene is simply present: the
+  // loop resets its contents rather than fading the whole thing out.
+  const intro = Math.min(total / 14, 1);
+  // The kernel reads the local frame and offsets internally; the terminal is
+  // driven off the timeline frame so its beats line up with the canvas.
+  const termFrame = captureOnly ? frame : frame + RESUME_SHIFT;
   const palette = usePalette();
   const mode = useThemeMode();
 
@@ -319,9 +333,9 @@ export function SessionDurability({
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-    drawSessionDurability(ctx, frame, palette);
+    drawSessionDurability(ctx, frame, palette, { captureOnly, intro });
     // `palette` in deps so a theme toggle repaints even a frozen (seek) frame.
-  }, [frame, palette]);
+  }, [frame, palette, captureOnly, intro]);
 
   return (
     <div
@@ -336,7 +350,11 @@ export function SessionDurability({
         aspectRatio: `${STAGE_W} / ${STAGE_H}`,
         ...style,
       }}
-      aria-label="Session durability: teammate sessions are captured into a central store, then one is resumed in a Claude terminal"
+      aria-label={
+        captureOnly
+          ? 'Session capture: each teammate session expands and flies up into a central session store, indexing itself as a row'
+          : 'Session durability: three teammate machines wired to one central session store, and one of those stored sessions resumed in a Claude terminal'
+      }
     >
       <style>{`
         @font-face {
@@ -360,9 +378,11 @@ export function SessionDurability({
           transformOrigin: 'top left',
         }}
       >
-        <FrameProvider value={frame}>
-          <Terminal />
-        </FrameProvider>
+        {!captureOnly && (
+          <FrameProvider value={termFrame}>
+            <Terminal />
+          </FrameProvider>
+        )}
         {/* Canvas sits above the terminal so the resume streak lands visibly over
             it; it is transparent everywhere else, so the terminal text shows through. */}
         <canvas

@@ -83,18 +83,17 @@ interface SessionDef {
   rest: Pt;
 }
 
+// Array order = creation order (a link can only point at an earlier session).
 const SESSIONS: SessionDef[] = [
-  { name: 'Maya', letter: 'M', repos: [0, 1], rest: { x: 290, y: 124 } },
-  { name: 'Leo', letter: 'L', repos: [2], rest: { x: 572, y: 150 } },
-  { name: 'Noah', letter: 'N', repos: [1], rest: { x: 750, y: 106 } },
-  { name: 'Priya', letter: 'P', repos: [0, 2], rest: { x: 428, y: 98 } },
+  { name: 'Maya', letter: 'M', repos: [0, 1], rest: { x: 250, y: 128 } },
+  { name: 'Leo', letter: 'L', repos: [2], rest: { x: 710, y: 148 } },
+  { name: 'Priya', letter: 'P', repos: [0, 2], rest: { x: 480, y: 96 } },
 ];
 
 /** Dashed session -> earlier-session reference links. */
 const REF_LINKS = [
-  { from: 3, to: 0 }, // Priya -> Maya
-  { from: 3, to: 1 }, // Priya -> Leo
-  { from: 2, to: 1 }, // Noah -> Leo
+  { from: 2, to: 0 }, // Priya -> Maya
+  { from: 2, to: 1 }, // Priya -> Leo
 ];
 
 // Inner context graph: 7 nodes seeded-random in a unit disc, fixed edges.
@@ -340,10 +339,7 @@ function drawSessionConnectors(
         st.x + Math.cos(ang) * (st.r + 2),
         st.y + Math.sin(ang) * (st.r + 2),
       );
-      ctx.lineTo(
-        repo.x - Math.cos(ang) * 18,
-        repo.y - Math.sin(ang) * 18,
-      );
+      ctx.lineTo(repo.x - Math.cos(ang) * 18, repo.y - Math.sin(ang) * 18);
       ctx.stroke();
       ctx.restore();
     }
@@ -395,10 +391,7 @@ function drawSession(
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pts[a].x, pts[a].y);
-    ctx.lineTo(
-      lerp(pts[a].x, pts[b].x, er),
-      lerp(pts[a].y, pts[b].y, er),
-    );
+    ctx.lineTo(lerp(pts[a].x, pts[b].x, er), lerp(pts[a].y, pts[b].y, er));
     ctx.stroke();
   });
   pts.forEach((p, j) => {

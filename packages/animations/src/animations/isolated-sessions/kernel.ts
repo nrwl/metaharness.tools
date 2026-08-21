@@ -111,10 +111,9 @@ interface PersonDef {
 }
 
 const PEOPLE: PersonDef[] = [
-  { name: 'Maya', letter: 'M', x: 130, y: 176, repo: 0 },
-  { name: 'Leo', letter: 'L', x: 365, y: 162, repo: 2 },
-  { name: 'Noah', letter: 'N', x: 600, y: 186, repo: 1 },
-  { name: 'Elena', letter: 'E', x: 835, y: 170, repo: 0 },
+  { name: 'Maya', letter: 'M', x: 170, y: 176, repo: 0 },
+  { name: 'Leo', letter: 'L', x: 480, y: 162, repo: 2 },
+  { name: 'Noah', letter: 'N', x: 790, y: 186, repo: 1 },
 ];
 
 /** Vertical offset from a person's home position to their laptop baseline. */
@@ -136,7 +135,6 @@ const RUNS: ReadonlyArray<{ person: number; start: number }> = [
   { person: 0, start: 1.0 },
   { person: 1, start: 2.1 },
   { person: 2, start: 3.1 },
-  { person: 3, start: 4.2 },
   { person: 0, start: 7.4 },
   { person: 2, start: 8.5 },
   { person: 1, start: 9.5 },
@@ -154,7 +152,14 @@ const RUN_SEQ: number[] = (() => {
 
 // Inner context graph: 7 nodes seeded-random in a unit disc, fixed edges.
 const CTX_EDGES: ReadonlyArray<readonly [number, number]> = [
-  [0, 1], [1, 2], [0, 3], [3, 4], [2, 5], [4, 6], [5, 6], [1, 5],
+  [0, 1],
+  [1, 2],
+  [0, 3],
+  [3, 4],
+  [2, 5],
+  [4, 6],
+  [5, 6],
+  [1, 5],
 ];
 
 const CTX_GRAPHS: Pt[][] = RUNS.map((_, i) => {
@@ -487,13 +492,7 @@ function drawSession(
     ctx.globalAlpha = alpha * nr * ctxVis;
     ctx.fillStyle = c.nodeTint;
     ctx.beginPath();
-    ctx.arc(
-      pt.x,
-      pt.y,
-      Math.max(1.4, 4 * st.scale - impl * 2),
-      0,
-      Math.PI * 2,
-    );
+    ctx.arc(pt.x, pt.y, Math.max(1.4, 4 * st.scale - impl * 2), 0, Math.PI * 2);
     ctx.fill();
   });
 

@@ -1,5 +1,14 @@
 ---
-const sections = [
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections?: Section[];
+}
+
+const homeSections: Section[] = [
   { id: 'what-is', label: 'Meta-harnesses are the missing layer' },
   { id: 'single-repo', label: 'A harness lives inside one repo' },
   { id: 'work-shift', label: 'AI changes the nature of your work' },
@@ -11,6 +20,8 @@ const sections = [
   { id: 'faq', label: 'Frequently asked questions' },
   { id: 'resources', label: 'Resources' },
 ];
+
+const { sections = homeSections } = Astro.props;
 
 const lens = sections.map((s) => s.label.length);
 const minLen = Math.min(...lens);

@@ -1,0 +1,528 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import SectionRailV3 from '../components/sections/v3/SectionRailV3.astro';
+import VizSurface from '../components/VizSurface.astro';
+import Footer from '../components/sections/Footer.astro';
+import {
+  LineToSession,
+  MemoryCorrection,
+  MemoryDistill,
+  SessionDurability,
+  SessionReview,
+  SessionTimeline,
+} from '@metaharness/animations';
+
+const title = 'Memory is not one thing';
+const description =
+  'A map of what agentic memory can mean: working, episodic, and semantic memory, who it is for, and why code is the one place memory behaves differently.';
+
+// Sidebar TOC. Mirrors the section h2s, trimmed to fit the rail.
+const railSections = [
+  { id: 'types', label: 'Three kinds of memory' },
+  { id: 'map', label: 'The second axis: who is the memory for?' },
+  { id: 'capture', label: 'At the core is the agent session' },
+  { id: 'why', label: 'Why memory matters' },
+  { id: 'what-it-does', label: 'What you can do with memory' },
+  { id: 'close', label: 'Where this fits' },
+];
+
+
+// Lucide-style icons (24x24, stroke currentColor), rendered inline before each row title.
+const icons: Record<string, string> = {
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  loop: '<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>',
+  users:
+    '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  // Memory types.
+  scratchpad:
+    '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2.1 2.1 0 1 1 3 3L12 15l-4 1 1-4Z"/>',
+  filmstrip:
+    '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M17 3v18"/><path d="M3 12h18"/>',
+  book: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  // Who the memory is for.
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  building:
+    '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 7h4"/><path d="M10 11h4"/><path d="M10 15h4"/><path d="M4 22h16"/>',
+  code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+};
+
+const renderIcon = (name: string) =>
+  `<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
+---
+
+<Layout title={title} description={description}>
+  <Nav />
+  <main
+    class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100"
+  >
+    <SectionRailV3 sections={railSections} />
+    <!-- Hero -->
+    <section
+      id="top"
+      class="relative flex min-h-[calc(100svh-61px)] flex-col justify-center px-6"
+    >
+      <div class="mx-auto w-full max-w-4xl">
+        <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+          Agentic memory
+        </p>
+        <h1
+          class="mt-6 text-5xl font-semibold tracking-tight text-neutral-900 sm:text-7xl dark:text-neutral-50"
+        >
+          Memory is not one thing.
+        </h1>
+        <p
+          class="mt-8 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl dark:text-neutral-400"
+        >
+        There's a lot of talk about agentic memory, but not all of it refers to the same thing. This page explores memory from two different axes:
+          <mark>what kind of memory it is, and who it is for</mark>.
+        </p>
+      </div>
+      <div
+        class="absolute inset-x-0 bottom-6 flex flex-col items-center gap-1 font-mono text-xs uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-600"
+      >
+        <span>Scroll down</span>
+        <span aria-hidden="true">&darr;</span>
+      </div>
+    </section>
+
+    <!-- 1. The three types -->
+    <section id="types" class="px-6 py-20 md:py-28">
+      <div class="mx-auto max-w-6xl">
+        <div class="max-w-3xl">
+          <h2
+            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+          >
+            Three kinds of memory
+          </h2>
+          <p
+            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+            Cognitive science splits memory into different categories: sensory, short-term/working, and long-term memory. Agentic memory can be split along similar lines:
+          </p>
+        </div>
+
+        <div class="mt-12 grid gap-6 lg:grid-cols-3">
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <h3
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('scratchpad')} />
+              Working memory
+            </h3>
+            <p
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+              This is also often referred to as the <mark>context</mark>, and it is what the agent actively holds while it is doing the work during a session. The working memory is short-lived, scoped to a single session and vanishes once the session terminates.
+            </p>
+          </div>
+
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <h3
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('filmstrip')} />
+              Episodic memory
+            </h3>
+            <p
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+              This is the entire <mark>recording</mark> of an agentic session. It doesn't summarize but is the exact recollection of what happened during the session, including what was tried and what got rejected. This memory persists after the session terminates and is usually stored in local files on the computer the agent ran on.
+            </p>
+          </div>
+
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <h3
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('book')} />
+              Semantic memory
+            </h3>
+            <p
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+              This is the collection of facts, PRDs and design docs, and it is the <mark>distilled version</mark> of the episodic memory. Semantic memory is a summary and thus much more concise. But it also tends to be lossy and can be detrimental if not frequently updated.
+            </p>
+          </div>
+        </div>
+
+        <p
+          class="mx-auto mt-12 max-w-3xl text-center text-lg text-neutral-600 dark:text-neutral-400"
+        >
+          Most tools that talk about "memory" mean the semantic kind, usually
+          because a list of facts is the easiest thing to store and show.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. The second axis + the map (merged) -->
+    <section id="map" class="px-6 pb-20 md:pb-28">
+      <div class="mx-auto max-w-6xl">
+        <div>
+          <h2
+            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+          >
+            The second axis: who is the memory for?
+          </h2>
+          <p
+            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+            The three types are one dimension. The other dimension is less about how memory is stored but rather "who is it about?".
+          </p>
+        </div>
+
+        <dl class="mt-12 grid gap-6 lg:grid-cols-3">
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('user')} />
+              Personalized memory
+            </dt>
+            <dd
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+              This  is the memory about what you want, how you like to work and which tools you reach for. It can be episodic or semantic, but most tools implement it as semantic: a stored profile of preferences.
+            </dd>
+          </div>
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('building')} />
+              Institutional memory
+            </dt>
+            <dd
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+              >
+              This is the memory about how your team works. It is far harder to build, not for technical reasons but for human ones. Personal preferences are easy to capture because there is only one person to agree with. Team preferences require agreement, and teams rarely agree cleanly on how things "should" be done. The document that claims to speak for the team is usually a negotiated fiction.
+            </dd>
+          </div>
+          <div
+            class="flex flex-col rounded-xl border border-neutral-300 bg-neutral-100/60 p-7 dark:border-neutral-800 dark:bg-neutral-900/40"
+          >
+            <dt
+              class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+            >
+              <span class="text-accent" set:html={renderIcon('code')} />
+              Code
+            </dt>
+            <dd
+              class="mt-3 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+              This is the memory about how the code itself was produced, independent of you or your team. Not "Victor likes tabs" but "this retry logic exists because the payment API times out under load, and here is the session where that was discovered and handled." It too can be episodic or semantic.
+            </dd>
+          </div>
+        </dl>
+
+      </div>
+    </section>
+
+    <!-- 3. The agent session: record, then distill -->
+    <section
+      id="capture"
+      class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
+    >
+      <div class="mx-auto max-w-6xl">
+        <div class="max-w-3xl">
+          <h2
+            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+          >
+            At the core is the agent session
+          </h2>
+          <p
+            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+            The core primitive each memory emerges from is the agent session. It is what encodes the original intent, the deviations and the tradeoffs that were discussed along the way. The idea is to take this short-lived working memory and turn it into episodic memory.
+          </p>
+        </div>
+
+        <!-- Record it -->
+        <div class="mt-14 min-w-0">
+          <div
+            class="grid min-w-0 items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]"
+          >
+            <div>
+              <h3
+                class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+              >
+                Capture the session
+              </h3>
+              <p
+                class="mt-4 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+                >
+                Episodic memory is not summarized after the fact but it is rather captured as it happens. Each session is kept entirely as its own record. Nothing is thrown away because you cannot anticipate which detail turns out to matter.
+              </p>
+            </div>
+
+            <div class="-mx-6 min-w-0 md:mx-0">
+              <VizSurface aspect="aspect-[12/7]">
+                <SessionDurability
+                  client:visible
+                  captureOnly
+                  className="mx-auto"
+                />
+              </VizSurface>
+            </div>
+          </div>
+
+          <p
+            class="mt-10 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+          While the working memory vanishes the moment the agent session terminates, the session itself is persisted to the local file system, where it might get purged at some point. A meta-harness can close this gap. By wrapping the underlying agent harness it can gather the session logs and store them centrally so they can be processed at a later point.
+          </p>
+        </div>
+
+        <!-- Distill it -->
+        <div
+          class="mt-16 grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] dark:border-neutral-900"
+        >
+          <div class="lg:order-last">
+            <h3
+              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+            >
+              Then distill it
+            </h3>
+            <div
+              class="mt-4 space-y-5 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+            <p>
+              Individual session recordings precisely represent what happened, but they are also heavy to process. That's why often this episodic memory is consolidated into shorter fragments that can be connected in a pool of general knowledge and facts. Future sessions can connect to this pool rather than starting from a cold context.
+              </p>
+              <p>
+          This process, often also referred to as <mark>dreaming</mark>, needs to happen in the background. It is not a one-time operation but an ongoing task, otherwise the pool fills up with stale and wrong knowledge.
+              </p>
+            </div>
+          </div>
+
+          <div class="-mx-6 min-w-0 md:mx-0">
+            <VizSurface>
+              <MemoryDistill client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Git keeps the what, the session keeps the why -->
+    <section id="why" class="px-6 py-20 md:py-28">
+      <div class="mx-auto max-w-6xl">
+        <h2
+          class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+        >
+          Why memory matters
+        </h2>
+
+        <p
+          class="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+          Your source code and Git encode different things. Version control <mark>gives you the WHAT and WHEN</mark>, and your code has the final result. What is lost is the reasoning that went into producing it. Right now that reasoning lives in the developers' heads, and it is completely lost when agents produce the code.
+        </p>
+
+        <p
+          class="mt-6 max-w-3xl text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+          The <mark>agent session encodes the WHY</mark>.
+        </p>
+
+        <div class="mt-14 grid min-w-0 items-center gap-12 lg:grid-cols-2">
+          <div class="-mx-6 min-w-0 md:mx-0">
+            <VizSurface aspect="none">
+              <MemoryCorrection client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+
+          <div>
+            <h3
+              class="text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl dark:text-neutral-50"
+            >
+              Memory is the base context to start from
+            </h3>
+            <div
+              class="mt-4 space-y-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+            >
+            <p>
+              Agents can only produce quality answers based on the knowledge and context they have. They will look at your code, commit history and docs and produce a plan.
+            </p>
+              <p>
+              By giving your agent knowledge about past sessions, that confident and urgent P0 issue (that made a lot of sense at the time) can turn out to be a deliberate tradeoff and become obsolete.
+            </p>
+            <p>
+            It is not that the model got smarter, we just gave it more context to reason about.
+            </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. What you can do with memory -->
+    <section
+      id="what-it-does"
+      class="border-y border-neutral-200 bg-neutral-100/60 px-6 py-20 md:py-28 dark:border-neutral-900 dark:bg-neutral-900/40"
+    >
+      <div class="mx-auto max-w-6xl">
+        <div class="max-w-3xl">
+          <h2
+            class="text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-50"
+          >
+            What you can do with memory
+          </h2>
+          <p
+            class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+          >
+          Giving agents access to past sessions and a central memory store opens a series of interesting capabilities.
+          </p>
+        </div>
+
+        <!-- Capability rows -->
+        <div class="mt-12 space-y-12">
+          <div
+            class="grid min-w-0 items-center gap-10 pt-2 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]"
+          >
+            <div>
+              <h3
+                class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              >
+                <span class="text-accent" set:html={renderIcon('eye')} />
+                Interactive review sessions
+              </h3>
+              <p
+                class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+              >
+              Reviewing large PRs that have been created by agents is hard. Being able to instantiate the implementing agent session helps to better understand the decisions that went into the final implementation. This is helpful both for human-led reviews as well as for adversarial reviews by another agent.
+              </p>
+            </div>
+            <VizSurface aspect="none">
+              <SessionReview client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+
+          <div
+            class="grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] dark:border-neutral-900"
+          >
+            <div>
+              <h3
+                class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              >
+              <span class="text-accent" set:html={renderIcon('link')} />
+                Like Git blame but for agent sessions
+              </h3>
+              <p
+                class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+                >
+                Git blame only shows you who implemented the line of code. Episodic memory gives you the ability to load the agent session from any part of the codebase, which gives you a much deeper and more complete view into the decisions that went into the code change.
+              </p>
+            </div>
+            <VizSurface aspect="none">
+              <LineToSession client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+
+          <div
+            class="grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] dark:border-neutral-900"
+          >
+            <div>
+              <h3
+                class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              >
+                <span class="text-accent" set:html={renderIcon('loop')} />
+                Resume anyone's work
+              </h3>
+              <p
+                class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+                >
+                You can resume any team member's agentic session to collaborate on it, whether that's for picking it up and implementing it or just for giving feedback on an implementation plan.
+              </p>
+            </div>
+            <VizSurface>
+              <SessionDurability client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+
+          <div
+            class="grid min-w-0 items-center gap-10 border-t border-neutral-200 pt-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] dark:border-neutral-900"
+          >
+            <div>
+              <h3
+                class="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+              >
+                <span class="text-accent" set:html={renderIcon('users')} />
+                Build on what the team already did
+              </h3>
+              <p
+                class="mt-3 text-base leading-relaxed text-neutral-600 dark:text-neutral-400"
+                >
+                Someone has almost certainly worked through the area you are about to touch. Shared, resumable sessions allow you to load related sessions into your own context to give your agent a complete picture of the situation.
+              </p>
+            </div>
+            <VizSurface>
+              <SessionTimeline client:visible className="mx-auto" />
+            </VizSurface>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Where this fits: orientation for anyone landing straight on this page -->
+    <section
+      id="close"
+      class="px-6 py-20 md:py-24"
+    >
+      <div class="mx-auto max-w-3xl">
+        <p class="font-mono text-xs uppercase tracking-[0.25em] text-accent">
+          Where this fits
+        </p>
+        <h2
+          class="mt-6 text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl dark:text-neutral-50"
+        >
+          Memory is one capability of a meta-harness
+        </h2>
+        <p
+          class="mt-6 text-lg leading-relaxed text-neutral-700 dark:text-neutral-300"
+        >
+          A meta-harness is the layer above agent harnesses like Claude Code and
+          Codex. Capturing and retrieving sessions is one of the things it does,
+          alongside cross-repo coordination, routing, sandboxing, and policy.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
+          <a
+            href="/"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">What a meta-harness is</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="/#capabilities"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">The full capability map</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="/#landscape"
+            class="inline-flex items-center gap-2 text-base font-medium text-neutral-900 transition-colors hover:text-accent dark:text-neutral-100"
+          >
+            <span class="underline decoration-accent decoration-2 underline-offset-4">Who is building one</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
