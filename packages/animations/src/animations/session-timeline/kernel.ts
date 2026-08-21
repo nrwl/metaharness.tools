@@ -13,7 +13,9 @@
  *      card appears.
  *
  * Timeline geometry mirrors Polygraph's session-graph (deterministic layout,
- * not a force sim). Everything derives from `elapsed`, holds, fades, and loops.
+ * not a force sim). Everything derives from `elapsed`. The three acts play
+ * once and the scene then holds on the selected session — the gold reference
+ * arcs keep pulsing, but nothing fades back out.
  */
 import {
   clamp01,
@@ -29,8 +31,14 @@ import {
 } from '../../lib/anim';
 import { DARK_PALETTE, type VizPalette } from '../../lib/palette';
 
-/** Seconds per loop. */
-export const CYCLE = 17.6;
+/**
+ * Seconds from first paint to the settled third act. The story runs once; past
+ * this the scene holds rather than looping, so it never blinks through black.
+ */
+export const CYCLE = 13.5;
+
+/** One-shot fade-in on first paint. Ramps to 1 and never dips again. */
+const INTRO = 0.5;
 
 // ---------------------------------------------------------------------------
 // Palette — colors come from the theme {@link VizPalette} threaded on the
@@ -404,7 +412,6 @@ const TF0 = 7.6; // transform to timeline begins
 const REPO_FADE = [7.6, 8.8] as const;
 const SEL0 = 11.4;
 const SEL1 = 12.5;
-const FADE = [16.0, 17.4] as const;
 
 interface HeroState {
   pop: number;
@@ -459,9 +466,10 @@ export function drawSessionTimeline(
   ctx: CanvasRenderingContext2D,
   { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
-  const t = elapsed % CYCLE;
-  const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
-  const A = appear * cycleFade;
+  // The three acts are a one-shot intro: time freezes at CYCLE so act 3 stays
+  // on screen. `A` only ever ramps up, so the scene never fades to black.
+  const t = Math.min(elapsed, CYCLE);
+  const A = appear * Math.min(elapsed / INTRO, 1);
   if (A <= 0.001) return;
 
   const repoFade = 1 - smoothstep(REPO_FADE[0], REPO_FADE[1], t);
@@ -470,7 +478,7 @@ export function drawSessionTimeline(
   const selectP = smoothstep(SEL0, SEL1, t);
 
   const fit = Math.min(width / BASE_W, height / BASE_H);
-  const sc = fit * lerp(0.94, 1, appear);
+  const sc = fit * lerp(0.94, 1, A);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);

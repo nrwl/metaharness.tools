@@ -121,14 +121,18 @@ const CTX_GRAPHS: Pt[][] = SESSIONS.map((_, i) => {
 });
 
 // ---------------------------------------------------------------------------
-// Timeline. Repos draw first; sessions run staggered active windows, then the
-// whole scene fades and loops.
+// Timeline. The repo row builds once and is then permanent scaffolding;
+// sessions run staggered active windows on top of it and the loop cuts back to
+// an empty band rather than fading the whole scene out.
 // ---------------------------------------------------------------------------
 const REPO_START = 0.15;
 const REPO_STAGGER = 0.22;
 const SESSION_START = 1.2;
 const SESSION_GAP = 1.9;
-const FADE = [13.8, 15.2] as const;
+/** One-shot fade-in on first paint. Ramps to 1 and never dips again. */
+const INTRO = 0.5;
+/** Repo-row build window; frozen past this so the row never rebuilds. */
+const REPO_BUILT = 3;
 
 interface SessionState {
   u: number;
@@ -192,13 +196,14 @@ export function drawSessionMemory(
   { width, height, elapsed, appear, progress }: MorphFrame,
 ) {
   const t = elapsed % CYCLE;
-  const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
-  const A = appear * cycleFade;
+  // `A` only ever ramps up (one-shot intro), so the scene never fades to
+  // black; the loop restarts the sessions, not the repo row.
+  const A = appear * Math.min(elapsed / INTRO, 1);
   if (A <= 0.001) return;
   const p = progress < 0 ? 0 : progress > 1 ? 1 : progress;
 
   const fit = Math.min(width / BASE_W, height / BASE_H);
-  const sc = fit * lerp(0.92, 1, appear);
+  const sc = fit * lerp(0.92, 1, A);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);
@@ -206,7 +211,7 @@ export function drawSessionMemory(
 
   const states = SESSIONS.map((_, i) => sessionState(i, t, elapsed, p));
 
-  drawRepoLayer(ctx, t, A);
+  drawRepoLayer(ctx, Math.min(elapsed, REPO_BUILT), A);
   drawRefLinks(ctx, states, p, A);
   drawSessionConnectors(ctx, states, A);
   for (let i = 0; i < SESSIONS.length; i++) {
