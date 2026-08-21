@@ -10,8 +10,9 @@
  * distilled — the graph nodes detach and stream inward, pouring into the memory
  * blurb, which pulses brighter and swells a little with every session it
  * absorbs. Absorbed context settles as faint drifting motes inside the blurb,
- * so the memory visibly gains substance over the cycle. Then the whole scene
- * fades and loops, the blurb starting small again.
+ * so the memory visibly gains substance over the first cycle. The blurb and
+ * its motes are then permanent: later cycles bring fresh sessions to pour in,
+ * but the memory never empties and the scene never fades out.
  *
  * The memory blurb is deliberately boundary-less: layered radial-gradient glows
  * plus a couple of wobbling, gradient-filled contours (no stroke), so its edge
@@ -156,10 +157,11 @@ const MOTE_SEEDS: Pt[][] = SESSIONS.map((_, i) => {
 });
 
 // ---------------------------------------------------------------------------
-// Timeline. The blurb seeds early and grows as sessions pour in; the whole
-// scene fades and loops at the end.
+// Timeline. The blurb seeds early and grows as sessions pour in over the first
+// cycle; from then on it stays full while the session churn keeps looping.
 // ---------------------------------------------------------------------------
-const FADE = [15.4, 17] as const;
+/** One-shot fade-in on first paint. Ramps to 1 and never dips again. */
+const INTRO = 0.5;
 
 interface SessionState {
   u: number;
@@ -211,12 +213,13 @@ export function drawMemoryDistill(
 ) {
   const c = resolveColors(palette);
   const t = elapsed % MEMORY_DISTILL_CYCLE;
-  const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
-  const A = appear * cycleFade;
+  // `A` only ever ramps up (one-shot intro), so the scene never fades to
+  // black. The loop restarts the sessions, not the memory.
+  const A = appear * Math.min(elapsed / INTRO, 1);
   if (A <= 0.001) return;
 
   const fit = Math.min(width / BASE_W, height / BASE_H);
-  const sc = fit * lerp(0.92, 1, appear);
+  const sc = fit * lerp(0.92, 1, A);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);
@@ -224,10 +227,18 @@ export function drawMemoryDistill(
 
   const states = SESSIONS.map((_, i) => sessionState(i, t, elapsed));
 
+  // Past the first cycle every session has already been absorbed once, so the
+  // memory stays full: the loop hands it fresh sessions rather than emptying
+  // it. Without this the blurb would snap back to its seed size at t=0.
+  const settled = elapsed >= MEMORY_DISTILL_CYCLE;
+
   // Charge = mean of how much each session has poured in; drives blurb size.
-  let charge = 0;
-  for (const st of states) charge += st.poured;
-  charge = clamp01(charge / SESSIONS.length);
+  let charge = 1;
+  if (!settled) {
+    charge = 0;
+    for (const st of states) charge += st.poured;
+    charge = clamp01(charge / SESSIONS.length);
+  }
 
   // Flash: brief brighten each time a session's stream arrives (~distill 0.85).
   let flash = 0;
@@ -241,7 +252,7 @@ export function drawMemoryDistill(
 
   drawStreams(ctx, states, blobR, elapsed, A, c);
   drawMemoryBlob(ctx, blobR, elapsed, flash, charge, A, c);
-  drawMotes(ctx, states, blobR, elapsed, A, c);
+  drawMotes(ctx, states, blobR, elapsed, settled, A, c);
   for (let i = 0; i < SESSIONS.length; i++) {
     drawSession(ctx, i, states[i], A, c);
   }
@@ -352,14 +363,16 @@ function drawMotes(
   states: SessionState[],
   blobR: number,
   elapsed: number,
+  settled: boolean,
   A: number,
   c: Colors,
 ) {
   ctx.save();
   for (let i = 0; i < SESSIONS.length; i++) {
     const st = states[i];
-    // A mote appears only once its session has finished pouring in.
-    const reveal = smoothstep(0.7, 1, st.distill) * st.pop;
+    // A mote appears only once its session has finished pouring in — and once
+    // absorbed it stays, so the motes survive the loop with the blurb.
+    const reveal = settled ? 1 : smoothstep(0.7, 1, st.distill) * st.pop;
     if (reveal <= 0.01) continue;
     MOTE_SEEDS[i].forEach((m, j) => {
       const dd = drift(0.5 + i * 0.3 + j * 0.11, elapsed, 3.2);

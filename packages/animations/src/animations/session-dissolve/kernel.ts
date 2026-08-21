@@ -95,10 +95,12 @@ const CTX_GRAPHS: Pt[][] = RUNS.map((_, i) => {
 });
 
 // ---------------------------------------------------------------------------
-// Timeline. Repos draw first; each run pops, builds, connects, dissolves; the
-// whole scene fades and loops.
+// Timeline. Repos are permanent scaffolding; each run pops, builds, connects
+// and dissolves on top of them, then the loop hands over the next pair. Both
+// runs are gone well before the cycle ends, so the restart is a clean cut.
 // ---------------------------------------------------------------------------
-const FADE = [9.8, 11] as const;
+/** One-shot fade-in on first paint. Ramps to 1 and never dips again. */
+const INTRO = 0.5;
 
 interface RunState {
   u: number;
@@ -134,23 +136,22 @@ export function drawSessionDissolve(
   { width, height, elapsed, appear, palette = DARK_PALETTE }: KernelFrame,
 ) {
   const t = elapsed % SESSION_DISSOLVE_CYCLE;
-  const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
-  // Repo row is pinned to `appear` (scroll reveal) so it stays put; only the
-  // session/focal cluster rides the per-cycle fade `A`.
-  const A = appear * cycleFade;
-  if (appear <= 0.001) return;
+  // `A` only ever ramps up (one-shot intro): the repo row and the session
+  // churn both stay at full strength, so the loop never dips toward black.
+  const A = appear * Math.min(elapsed / INTRO, 1);
+  if (A <= 0.001) return;
 
   // Fit the actual content bounding box (not the loose BASE canvas) so the
   // drawing fills the frame — critical on narrow/mobile widths where any empty
   // margin shrinks the legible content. Centre on the content, not BASE centre.
   const fit = Math.min(width / FIT_W, height / FIT_H);
-  const sc = fit * lerp(0.92, 1, appear);
+  const sc = fit * lerp(0.92, 1, A);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.scale(sc, sc);
   ctx.translate(-FIT_CX, -FIT_CY);
 
-  drawRepoLayer(ctx, appear, palette);
+  drawRepoLayer(ctx, A, palette);
   // Sessions are numbered continuously across cycles (Session 1, 2, 3, …) —
   // each cycle's runs continue the count, reinforcing the endless churn.
   const cyclesDone = Math.floor(elapsed / SESSION_DISSOLVE_CYCLE);
@@ -168,7 +169,7 @@ export function drawSessionDissolve(
 // ---- Repo row --------------------------------------------------------------
 function drawRepoLayer(
   ctx: CanvasRenderingContext2D,
-  A: number, // persistent scroll-reveal (not the per-cycle fade): repos stay put
+  A: number, // permanent scaffolding: the repos are drawn every frame
   palette: VizPalette,
 ) {
   const ACCENT = palette.accent;

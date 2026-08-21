@@ -32,8 +32,15 @@ import {
 } from '../../lib/anim';
 import { DARK_PALETTE } from '../../lib/palette';
 
-/** Seconds per loop. */
-export const CYCLE = 13;
+/**
+ * Seconds from first paint to the settled cloud. The build runs once; past
+ * this the scene holds (with the slow rotation still running) rather than
+ * looping, so nothing ever blinks through the page background.
+ */
+export const CYCLE = 9.6;
+
+/** One-shot fade-in on first paint. Ramps to 1 and never dips again. */
+const INTRO = 0.5;
 
 const fract = (x: number) => x - Math.floor(x);
 
@@ -242,7 +249,6 @@ function buildLayout() {
 const GROW_START = 1.3; // three big labelled hubs sit alone until here
 const GROW_DUR = 7.6; // the rest of the cloud streams in over this window
 const PRIM_SHRINK_DUR = 3.5; // primaries reach their natural size early on
-const FADE = [11.5, 12.7] as const; // hold, then fade + loop
 const FIT_START = 150; // camera fit at intro (three big hubs + labels)
 const R_BIG = 19; // primary hub radius at intro (shrinks to its natural r)
 
@@ -270,9 +276,10 @@ export function drawRepositoryGraph(
   const LABEL_COLOR = palette.textHeader;
 
   const showLabels = opts?.labels !== false;
-  const t = elapsed % CYCLE;
-  const cycleFade = 1 - smoothstep(FADE[0], FADE[1], t);
-  const A = appear * cycleFade;
+  // The build is a one-shot intro: time freezes at CYCLE so the settled cloud
+  // stays put. `A` only ever ramps up, so the graph never fades to black.
+  const t = Math.min(elapsed, CYCLE);
+  const A = appear * Math.min(elapsed / INTRO, 1);
   if (A <= 0.001) return;
 
   const { pos, edges, appearAt, fitEnd, primLabels } = LAYOUT;
@@ -285,8 +292,10 @@ export function drawRepositoryGraph(
   const startScale = (half * 0.82) / FIT_START;
   const endScale = (half * 0.92) / fitEnd;
   const scale =
-    startScale * Math.pow(endScale / startScale, grow) * lerp(0.95, 1, appear);
-  const rot = t * 0.012; // very subtle global rotation, incl. the hold
+    startScale * Math.pow(endScale / startScale, grow) * lerp(0.95, 1, A);
+  // Rotation reads live `elapsed`, not the frozen `t`, so the settled cloud
+  // keeps drifting instead of locking into a still frame.
+  const rot = elapsed * 0.012;
   const labelAlpha = showLabels ? 1 - smoothstep(1.8, 3.8, t) : 0;
 
   // Primary hub radius shrinks from R_BIG to its natural graph radius early,
